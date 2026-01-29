@@ -236,6 +236,12 @@ function TabApp() {
   const [showLegend, setShowLegend] = useState(false);
   const [mobileInputCell, setMobileInputCell] = useState(null);
   const [powerChordMode, setPowerChordMode] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isUndoRedo, setIsUndoRedo] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [savedProjects, setSavedProjects] = useState([]);
+  const [currentProjectId, setCurrentProjectId] = useState(null);
 
   const mobileInputRef = useRef(null);
   const playbackRef = useRef(null);
@@ -257,11 +263,125 @@ function TabApp() {
     return tabData[key];
   }, [tabData, sections, stringCounts]);
 
-  // Update tab data
+  // Update tab data with history tracking
   const updateTabData = useCallback((sectionId, instrument, newData) => {
     const key = `${sectionId}-${instrument}`;
-    setTabData(prev => ({ ...prev, [key]: newData }));
+    setTabData(prev => {
+      const updated = { ...prev, [key]: newData };
+      setHistory(h => {
+        const newHistory = h.slice(0, historyIndex + 1);
+        newHistory.push(JSON.stringify(updated));
+        if (newHistory.length > 200) newHistory.shift();
+        return newHistory;
+      });
+      setHistoryIndex(i => Math.min(i + 1, 199));
+      return updated;
+    });
+  }, [historyIndex]);
+
+  // Undo
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      setIsUndoRedo(true);
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setTabData(JSON.parse(history[newIndex]));
+      setTimeout(() => setIsUndoRedo(false), 0);
+    }
+  }, [history, historyIndex]);
+
+  // Redo
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      setIsUndoRedo(true);
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setTabData(JSON.parse(history[newIndex]));
+      setTimeout(() => setIsUndoRedo(false), 0);
+    }
+  }, [history, historyIndex]);
+
+  // Load saved projects list from localStorage
+  useEffect(() => {
+    const projects = JSON.parse(localStorage.getItem('tabEditorProjects') || '[]');
+    setSavedProjects(projects);
   }, []);
+
+  // Save current project to library
+  const saveToLibrary = () => {
+    const projectId = currentProjectId || generateId();
+    const project = {
+      id: projectId,
+      projectName,
+      bpm,
+      timeSignature,
+      noteResolution,
+      projectKey,
+      tunings,
+      stringCounts,
+      sections,
+      tabData,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const projects = JSON.parse(localStorage.getItem('tabEditorProjects') || '[]');
+    const existingIndex = projects.findIndex(p => p.id === projectId);
+
+    if (existingIndex >= 0) {
+      projects[existingIndex] = project;
+    } else {
+      projects.unshift(project);
+    }
+
+    localStorage.setItem('tabEditorProjects', JSON.stringify(projects));
+    setSavedProjects(projects);
+    setCurrentProjectId(projectId);
+  };
+
+  // Load project from library
+  const loadFromLibrary = (project) => {
+    setProjectName(project.projectName || 'Untitled Project');
+    setBpm(project.bpm || DEFAULT_BPM);
+    setTimeSignature(project.timeSignature || TIME_SIGNATURES[0]);
+    setNoteResolution(project.noteResolution || NOTE_RESOLUTIONS[1]);
+    setProjectKey(project.projectKey || 'E');
+    setTunings(project.tunings || { guitar: 'standard', bass: 'standard' });
+    setStringCounts(project.stringCounts || { guitar: 6, bass: 4 });
+    setSections(project.sections || [createSection('Intro')]);
+    setTabData(project.tabData || {});
+    setCurrentProjectId(project.id);
+    setShowLibrary(false);
+    setHistory([]);
+    setHistoryIndex(-1);
+  };
+
+  // Delete project from library
+  const deleteFromLibrary = (projectId) => {
+    const projects = JSON.parse(localStorage.getItem('tabEditorProjects') || '[]');
+    const filtered = projects.filter(p => p.id !== projectId);
+    localStorage.setItem('tabEditorProjects', JSON.stringify(filtered));
+    setSavedProjects(filtered);
+    if (currentProjectId === projectId) {
+      setCurrentProjectId(null);
+    }
+  };
+
+  // Create new project
+  const newProject = () => {
+    setProjectName('Untitled Project');
+    setBpm(DEFAULT_BPM);
+    setTimeSignature(TIME_SIGNATURES[0]);
+    setNoteResolution(NOTE_RESOLUTIONS[1]);
+    setProjectKey('E');
+    setTunings({ guitar: 'standard', bass: 'standard' });
+    setStringCounts({ guitar: 6, bass: 4 });
+    setSections([createSection('Intro')]);
+    setTabData({});
+    setCurrentProjectId(null);
+    setHistory([]);
+    setHistoryIndex(-1);
+    setShowLibrary(false);
+  };
 
   // Initialize data when sections change
   useEffect(() => {
@@ -418,10 +538,24 @@ function TabApp() {
 
   // Keyboard input handler
   const handleKeyDown = useCallback((e) => {
+    const key = e.key;
+
+    // Undo (works even without selection)
+    if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undo();
+      return;
+    }
+
+    // Redo (Ctrl+Shift+Z or Ctrl+Y)
+    if ((e.ctrlKey || e.metaKey) && (key === 'y' || (key === 'z' && e.shiftKey) || key === 'Z')) {
+      e.preventDefault();
+      redo();
+      return;
+    }
+
     if (selectedCells.length === 0) return;
     if (editingSection) return;
-
-    const key = e.key;
 
     if ((e.ctrlKey || e.metaKey) && key === 'c') {
       e.preventDefault();
@@ -457,7 +591,7 @@ function TabApp() {
       e.preventDefault();
       inputValue(key);
     }
-  }, [selectedCells, activeInstrument, editingSection]);
+  }, [selectedCells, activeInstrument, editingSection, undo, redo]);
 
   // Input value to selected cells
   const inputValue = (value) => {
@@ -1408,6 +1542,76 @@ function TabApp() {
 
   return (
     <div style={styles.container}>
+      {/* Library modal */}
+      {showLibrary && (
+        <div style={styles.mobileInputOverlay} onClick={() => setShowLibrary(false)}>
+          <div style={{
+            ...styles.mobileInputBox,
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            marginBottom: 0,
+            alignSelf: 'center',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <span style={{ color: colors.textBright, fontSize: '14px', fontWeight: 'bold' }}>Project Library</span>
+              <button style={styles.button} onClick={() => setShowLibrary(false)}>Close</button>
+            </div>
+            <button
+              style={{ ...styles.button, ...styles.buttonPrimary, width: '100%', marginBottom: '16px' }}
+              onClick={newProject}
+            >
+              + New Project
+            </button>
+            {savedProjects.length === 0 ? (
+              <div style={{ color: colors.textMuted, textAlign: 'center', padding: '20px' }}>
+                No saved projects yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {savedProjects.map(project => (
+                  <div
+                    key={project.id}
+                    style={{
+                      backgroundColor: project.id === currentProjectId ? colors.selection : colors.bg,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: '3px',
+                      padding: '10px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div
+                      style={{ cursor: 'pointer', flex: 1 }}
+                      onClick={() => loadFromLibrary(project)}
+                    >
+                      <div style={{ color: colors.textBright, fontWeight: 'bold' }}>
+                        {project.projectName}
+                      </div>
+                      <div style={{ color: colors.textMuted, fontSize: '10px' }}>
+                        {project.timeSignature?.label || '4/4'} • {project.bpm || 120} BPM • {project.sections?.length || 0} riffs
+                      </div>
+                    </div>
+                    <button
+                      style={{ ...styles.smallButton, color: colors.red }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Delete this project?')) {
+                          deleteFromLibrary(project.id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Mobile input overlay */}
       {mobileInputCell && (
         <div style={styles.mobileInputOverlay} onClick={closeMobileInput}>
@@ -1475,17 +1679,10 @@ function TabApp() {
         <div style={styles.headerRight}>
           {!focusMode && (
             <>
-              <input
-                type="file"
-                accept=".json"
-                onChange={importFromJSON}
-                style={{ display: 'none' }}
-                id="import-file"
-              />
-              <label htmlFor="import-file" style={{ ...styles.button, cursor: 'pointer' }}>
-                Open
-              </label>
-              <button style={styles.button} onClick={exportToJSON}>Save</button>
+              <button style={styles.button} onClick={() => setShowLibrary(true)}>Library</button>
+              <button style={{ ...styles.button, ...styles.buttonPrimary }} onClick={saveToLibrary}>
+                {currentProjectId ? 'Save' : 'Save to Library'}
+              </button>
               <button style={styles.button} onClick={exportToText}>Export text</button>
             </>
           )}
@@ -1845,6 +2042,14 @@ function TabApp() {
         <div style={styles.legendSection}>
           <div style={styles.legendSectionTitle}>Keyboard shortcuts</div>
           <div style={styles.legendGrid}>
+            <div style={styles.legendItem}>
+              <span style={styles.legendKey}>Ctrl+Z</span>
+              <span>Undo</span>
+            </div>
+            <div style={styles.legendItem}>
+              <span style={styles.legendKey}>Ctrl+Y</span>
+              <span>Redo</span>
+            </div>
             <div style={styles.legendItem}>
               <span style={styles.legendKey}>Ctrl+C</span>
               <span>Copy selection</span>
