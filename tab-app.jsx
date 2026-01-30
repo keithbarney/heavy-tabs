@@ -1,3 +1,47 @@
+// Lucide Icons (inline SVG components)
+const Icon = ({ children, size = 16, strokeWidth = 2, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ display: 'inline-block', verticalAlign: 'middle' }}
+    {...props}
+  >
+    {children}
+  </svg>
+);
+
+const Icons = {
+  Play: (props) => <Icon {...props}><polygon points="6 3 20 12 6 21 6 3" /></Icon>,
+  Pause: (props) => <Icon {...props}><rect x="14" y="4" width="4" height="16" rx="1" /><rect x="6" y="4" width="4" height="16" rx="1" /></Icon>,
+  Square: (props) => <Icon {...props}><rect x="3" y="3" width="18" height="18" rx="2" /></Icon>,
+  Repeat: (props) => <Icon {...props}><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></Icon>,
+  Save: (props) => <Icon {...props}><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></Icon>,
+  Download: (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></Icon>,
+  Printer: (props) => <Icon {...props}><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /><rect x="6" y="14" width="12" height="8" rx="1" /></Icon>,
+  FolderOpen: (props) => <Icon {...props}><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></Icon>,
+  Settings: (props) => <Icon {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></Icon>,
+  Moon: (props) => <Icon {...props}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></Icon>,
+  Sun: (props) => <Icon {...props}><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></Icon>,
+  Maximize: (props) => <Icon {...props}><path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" /></Icon>,
+  Minimize: (props) => <Icon {...props}><path d="M8 3v3a2 2 0 0 1-2 2H3" /><path d="M21 8h-3a2 2 0 0 1-2-2V3" /><path d="M3 16h3a2 2 0 0 1 2 2v3" /><path d="M16 21v-3a2 2 0 0 1 2-2h3" /></Icon>,
+  Plus: (props) => <Icon {...props}><path d="M5 12h14" /><path d="M12 5v14" /></Icon>,
+  Minus: (props) => <Icon {...props}><path d="M5 12h14" /></Icon>,
+  Copy: (props) => <Icon {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></Icon>,
+  Clipboard: (props) => <Icon {...props}><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></Icon>,
+  Trash: (props) => <Icon {...props}><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></Icon>,
+  X: (props) => <Icon {...props}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>,
+  HelpCircle: (props) => <Icon {...props}><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></Icon>,
+  Hand: (props) => <Icon {...props}><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2" /><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8" /><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></Icon>,
+  Volume2: (props) => <Icon {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></Icon>,
+};
+
 // Spacegray / Base16 Ocean Dark color palette
 const themes = {
   dark: {
@@ -1992,11 +2036,11 @@ function TabApp() {
                 <span>Bar {measureIdx + 1}</span>
                 <span style={{ display: 'flex', gap: '2px' }}>
                   <button
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: '10px', color: colors.textMuted }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', color: colors.textMuted, display: 'flex', alignItems: 'center' }}
                     onClick={() => copyBar(section.id, measureIdx)}
                     title="Copy bar"
                   >
-                    📋
+                    <Icons.Copy size={12} />
                   </button>
                   <button
                     style={{
@@ -2004,14 +2048,15 @@ function TabApp() {
                       border: 'none',
                       cursor: 'pointer',
                       padding: '0 2px',
-                      fontSize: '10px',
                       color: barClipboard ? colors.textMuted : colors.border,
+                      display: 'flex',
+                      alignItems: 'center',
                     }}
                     onClick={() => pasteBar(section.id, measureIdx)}
                     title="Paste bar"
                     disabled={!barClipboard}
                   >
-                    📄
+                    <Icons.Clipboard size={12} />
                   </button>
                 </span>
               </div>
@@ -2068,19 +2113,19 @@ function TabApp() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '8px', marginTop: '18px' }}>
             <button
-              style={{ ...styles.button, padding: '4px 8px', fontSize: '12px' }}
+              style={{ ...styles.button, padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={() => updateSection(section.id, { measures: section.measures + 1 })}
               title="Add bar"
             >
-              +
+              <Icons.Plus size={14} />
             </button>
             <button
-              style={{ ...styles.button, padding: '4px 8px', fontSize: '12px' }}
+              style={{ ...styles.button, padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={() => handleRemoveBar(section)}
               title="Remove bar"
               disabled={section.measures <= 1}
             >
-              −
+              <Icons.Minus size={14} />
             </button>
           </div>
         </div>
@@ -2089,10 +2134,109 @@ function TabApp() {
   };
 
   return (
-    <div style={styles.container} onClick={() => setSelectedCells([])}>
+    <div style={styles.container} onClick={() => setSelectedCells([])} className="app-container">
       <style>{`
+        /* Container query setup */
+        .app-container {
+          container-type: inline-size;
+          container-name: app;
+        }
+        .header-container {
+          container-type: inline-size;
+          container-name: header;
+        }
+        .toolbar-container {
+          container-type: inline-size;
+          container-name: toolbar;
+        }
+        .section-header-container {
+          container-type: inline-size;
+          container-name: section-header;
+        }
+
+        /* Accessible focus styles */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+          outline: 2px solid ${colors.accent};
+          outline-offset: 2px;
+        }
+
+        /* Screen reader only class */
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
+        /* Button label - visible by default */
+        .btn-label {
+          display: inline;
+        }
+
+        /* Tab cell hover */
         .tab-cell:hover {
           background-color: ${colors.bgHighlight} !important;
+        }
+
+        /* Responsive: Hide button labels on small containers */
+        @container header (max-width: 700px) {
+          .btn-label {
+            display: none;
+          }
+          .header-btn {
+            min-width: 44px !important;
+            min-height: 44px !important;
+            padding: 0 12px !important;
+          }
+        }
+
+        @container toolbar (max-width: 500px) {
+          .toolbar-btn .btn-label {
+            display: none;
+          }
+        }
+
+        @container section-header (max-width: 400px) {
+          .section-btn .btn-label {
+            display: none;
+          }
+        }
+
+        /* WCAG 2.2 Touch target sizes for mobile */
+        @media (pointer: coarse) {
+          button,
+          input,
+          select,
+          [role="button"] {
+            min-height: 44px;
+            min-width: 44px;
+          }
+          input[type="number"],
+          input[type="text"] {
+            min-width: 60px;
+          }
+          select {
+            min-width: 80px;
+          }
+        }
+
+        /* Responsive header layout */
+        @container app (max-width: 600px) {
+          .header-group {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .project-input {
+            flex: 1;
+            min-width: 100px;
+          }
         }
       `}</style>
       {/* Library modal */}
@@ -2108,13 +2252,13 @@ function TabApp() {
           }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span style={{ color: colors.textBright, fontSize: '14px', fontWeight: 'bold' }}>Project Library</span>
-              <button style={styles.button} onClick={() => setShowLibrary(false)}>Close</button>
+              <button style={{ ...styles.button, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowLibrary(false)}><Icons.X size={14} /></button>
             </div>
             <button
-              style={{ ...styles.button, ...styles.buttonPrimary, width: '100%', marginBottom: '16px' }}
+              style={{ ...styles.button, ...styles.buttonPrimary, width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               onClick={newProject}
             >
-              + New Project
+              <Icons.Plus size={14} />New Project
             </button>
             {savedProjects.length === 0 ? (
               <div style={{ color: colors.textMuted, textAlign: 'center', padding: '20px' }}>
@@ -2147,7 +2291,7 @@ function TabApp() {
                       </div>
                     </div>
                     <button
-                      style={{ ...styles.smallButton, color: colors.red }}
+                      style={{ ...styles.smallButton, color: colors.red, display: 'flex', alignItems: 'center', gap: '3px' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (confirm('Delete this project?')) {
@@ -2155,7 +2299,7 @@ function TabApp() {
                         }
                       }}
                     >
-                      Delete
+                      <Icons.Trash size={12} />Delete
                     </button>
                   </div>
                 ))}
@@ -2178,11 +2322,11 @@ function TabApp() {
               The last bar contains notes. Remove it anyway?
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button style={styles.button} onClick={() => setConfirmRemoveBar(null)}>
-                Cancel
+              <button style={{ ...styles.button, display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => setConfirmRemoveBar(null)}>
+                <Icons.X size={14} />Cancel
               </button>
               <button
-                style={{ ...styles.button, backgroundColor: colors.red }}
+                style={{ ...styles.button, backgroundColor: colors.red, display: 'flex', alignItems: 'center', gap: '4px' }}
                 onClick={() => {
                   const section = sections.find(s => s.id === confirmRemoveBar.sectionId);
                   if (section) {
@@ -2191,7 +2335,7 @@ function TabApp() {
                   setConfirmRemoveBar(null);
                 }}
               >
-                Remove
+                <Icons.Trash size={14} />Remove
               </button>
             </div>
           </div>
@@ -2210,7 +2354,7 @@ function TabApp() {
           }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <span style={{ color: colors.textBright, fontSize: '14px', fontWeight: 'bold' }}>Select Chord</span>
-              <button style={styles.button} onClick={() => { setShowChordPicker(false); setChordSearch(''); }}>Close</button>
+              <button style={{ ...styles.button, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setShowChordPicker(false); setChordSearch(''); }}><Icons.X size={14} /></button>
             </div>
             <input
               type="text"
@@ -2306,13 +2450,13 @@ function TabApp() {
             )}
             <div style={styles.mobileInputButtons}>
               <button
-                style={styles.mobileInputButton}
+                style={{ ...styles.mobileInputButton, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 onClick={closeMobileInput}
               >
-                Close
+                <Icons.X size={14} />Close
               </button>
               <button
-                style={{ ...styles.mobileInputButton, ...styles.mobileInputButtonPrimary }}
+                style={{ ...styles.mobileInputButton, ...styles.mobileInputButtonPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 onClick={() => {
                   const { sectionId, measureIdx, stringIdx, cellIdx } = mobileInputCell;
                   const nextCellIdx = cellIdx + 1;
@@ -2328,7 +2472,7 @@ function TabApp() {
                   }
                 }}
               >
-                Next cell
+                Next
               </button>
             </div>
           </div>
@@ -2348,7 +2492,7 @@ function TabApp() {
           }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span style={{ color: colors.textBright, fontSize: '14px', fontWeight: 'bold' }}>Keyboard Shortcuts</span>
-              <button style={styles.button} onClick={() => setShowShortcuts(false)}>Close</button>
+              <button style={{ ...styles.button, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowShortcuts(false)}><Icons.X size={14} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
@@ -2394,143 +2538,170 @@ function TabApp() {
       )}
 
       {/* Simplified Header - Dieter Rams inspired */}
-      <div style={{...styles.header, ...(focusMode ? { padding: '8px 20px' } : {})}}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{...styles.header, ...(focusMode ? { padding: '8px 20px' } : {})}} className="header-container" role="toolbar" aria-label="Main toolbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="header-group">
           {focusMode ? (
             <span style={{ color: colors.textBright, fontSize: '12px', fontWeight: 'bold' }}>{projectName}</span>
           ) : (
             <>
-              <button style={{ ...styles.button, height: '28px' }} onClick={() => setShowLibrary(true)} title="Open project library">Library</button>
+              <button className="header-btn" style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => setShowLibrary(true)} aria-label="Open project library"><Icons.FolderOpen size={16} /><span className="btn-label">Library</span></button>
               <input
+                className="project-input"
                 style={{ ...styles.projectName, height: '28px' }}
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="Project name"
-                title="Project name"
+                aria-label="Project name"
               />
               <button
-                style={{ ...styles.button, ...styles.buttonPrimary, height: '28px', opacity: (currentProjectId && !hasUnsavedChanges) ? 0.5 : 1 }}
+                className="header-btn"
+                style={{ ...styles.button, ...styles.buttonPrimary, height: '28px', opacity: (currentProjectId && !hasUnsavedChanges) ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '4px' }}
                 onClick={saveToLibrary}
                 disabled={currentProjectId && !hasUnsavedChanges}
-                title="Save to library"
+                aria-label="Save to library"
               >
-                Save
+                <Icons.Save size={16} /><span className="btn-label">Save</span>
               </button>
-              <button style={{ ...styles.button, height: '28px' }} onClick={exportToText} title="Export as text file">Export</button>
-              <button style={{ ...styles.button, height: '28px' }} onClick={printTab} title="Print tab">Print</button>
+              <button className="header-btn" style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={exportToText} aria-label="Export as text file"><Icons.Download size={16} /><span className="btn-label">Export</span></button>
+              <button className="header-btn" style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={printTab} aria-label="Print tab"><Icons.Printer size={16} /><span className="btn-label">Print</span></button>
             </>
           )}
         </div>
 
         {!focusMode && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} role="group" aria-label="Playback controls">
             {/* Compact Transport + Click + Tap */}
             <button
-              style={{ ...styles.button, height: '28px', padding: '0 8px', fontSize: '14px' }}
+              className="header-btn"
+              style={{ ...styles.button, height: '28px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={togglePlayback}
-              title={isPlaying ? 'Pause' : 'Play'}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+              aria-pressed={isPlaying}
             >
-              {isPlaying ? '⏸' : '▶'}
+              {isPlaying ? <Icons.Pause size={16} /> : <Icons.Play size={16} />}
             </button>
             <button
-              style={{ ...styles.button, height: '28px', padding: '0 8px', fontSize: '14px' }}
+              className="header-btn"
+              style={{ ...styles.button, height: '28px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={stopPlayback}
-              title="Stop"
+              aria-label="Stop"
             >
-              ⏹
+              <Icons.Square size={16} />
             </button>
             <button
+              className="header-btn"
               style={{
                 ...styles.button,
                 height: '28px',
                 padding: '0 8px',
-                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 opacity: isLooping ? 1 : 0.5,
                 ...(isLooping ? styles.buttonPrimary : {})
               }}
               onClick={() => setIsLooping(!isLooping)}
-              title="Loop"
+              aria-label="Loop"
+              aria-pressed={isLooping}
             >
-              🔁
+              <Icons.Repeat size={16} />
             </button>
             <button
+              className="header-btn"
               style={{
                 ...styles.button,
                 height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 ...(clickTrack ? styles.buttonPrimary : {}),
               }}
               onClick={() => setClickTrack(!clickTrack)}
-              title="Metronome"
+              aria-label="Metronome"
+              aria-pressed={clickTrack}
             >
-              Click
+              <Icons.Volume2 size={16} />
             </button>
             <button
-              style={{ ...styles.button, height: '28px' }}
+              className="header-btn"
+              style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={handleTapTempo}
-              title="Tap to set tempo"
+              aria-label="Tap to set tempo"
             >
-              Tap
+              <Icons.Hand size={16} />
             </button>
 
             {/* BPM */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <label htmlFor="bpm-input" className="sr-only">Tempo in BPM</label>
               <input
+                id="bpm-input"
                 type="number"
                 style={{ ...styles.input, width: '55px', height: '28px', textAlign: 'center' }}
                 value={bpm}
                 onChange={(e) => setBpm(Math.max(40, Math.min(300, parseInt(e.target.value) || 120)))}
                 min="40"
                 max="300"
-                title="Tempo (40-300 BPM)"
+                aria-label="Tempo (40-300 BPM)"
               />
-              <span style={{ color: colors.textMuted, fontSize: '11px', textTransform: 'uppercase' }}>bpm</span>
+              <span style={{ color: colors.textMuted, fontSize: '11px', textTransform: 'uppercase' }} aria-hidden="true">bpm</span>
             </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="header-group">
           <button
-            style={{ ...styles.button, height: '28px' }}
+            className="header-btn"
+            style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={() => setShowSettings(!showSettings)}
-            title="Toggle advanced settings"
+            aria-label="Toggle advanced settings"
+            aria-expanded={showSettings}
           >
-            Advanced
+            <Icons.Settings size={16} />
           </button>
           <button
-            style={{ ...styles.button, height: '28px', ...(theme === 'dark' ? {} : styles.buttonPrimary) }}
+            className="header-btn"
+            style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', ...(theme === 'dark' ? {} : styles.buttonPrimary) }}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            Dark Mode
+            {theme === 'dark' ? <Icons.Moon size={16} /> : <Icons.Sun size={16} />}
           </button>
           <button
-            style={{ ...styles.button, height: '28px', ...(focusMode ? styles.buttonPrimary : {}) }}
+            className="header-btn"
+            style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', ...(focusMode ? styles.buttonPrimary : {}) }}
             onClick={() => setFocusMode(!focusMode)}
-            title="Focus mode"
+            aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+            aria-pressed={focusMode}
           >
-            {focusMode ? 'Exit' : 'Focus'}
+            {focusMode ? <Icons.Minimize size={16} /> : <Icons.Maximize size={16} />}
           </button>
         </div>
       </div>
 
       {/* Settings Panel */}
       {!focusMode && showSettings && (
-        <div style={{
-          backgroundColor: colors.bg,
-          padding: '12px 20px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '16px',
-          alignItems: 'flex-end',
-        }}>
+        <div
+          className="toolbar-container"
+          style={{
+            backgroundColor: colors.bg,
+            padding: '12px 20px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '16px',
+            alignItems: 'flex-start',
+          }}
+          role="group"
+          aria-label="Project settings"
+        >
           {/* Instrument Select */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Instrument</span>
+            <label htmlFor="instrument-select" style={{ ...styles.label, textTransform: 'uppercase' }}>Instrument</label>
             <select
+              id="instrument-select"
               style={styles.select}
               value={activeInstrument}
               onChange={(e) => setActiveInstrument(e.target.value)}
-              title="Select instrument"
             >
               <option value="guitar">Guitar</option>
               <option value="bass">Bass</option>
@@ -2541,12 +2712,12 @@ function TabApp() {
           {/* Strings */}
           {activeInstrument !== 'drums' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ ...styles.label, textTransform: 'uppercase' }}>Strings</span>
+              <label htmlFor="strings-select" style={{ ...styles.label, textTransform: 'uppercase' }}>Strings</label>
               <select
+                id="strings-select"
                 style={styles.select}
                 value={stringCounts[activeInstrument]}
                 onChange={(e) => setStringCounts({ ...stringCounts, [activeInstrument]: parseInt(e.target.value) })}
-                title="Number of strings"
               >
                 {Object.keys(tuningConfigs[activeInstrument]).map(count => (
                   <option key={count} value={count}>{count}</option>
@@ -2557,16 +2728,19 @@ function TabApp() {
 
           {/* Tuning - Radio Buttons */}
           {activeInstrument !== 'drums' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ ...styles.label, textTransform: 'uppercase' }}>Tuning</span>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', height: '26px' }}>
+            <fieldset style={{ display: 'flex', flexDirection: 'column', gap: '4px', border: 'none', padding: 0, margin: 0 }}>
+              <legend style={{ ...styles.label, textTransform: 'uppercase', padding: 0 }}>Tuning</legend>
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center',
+              }} role="radiogroup">
                 <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: colors.text, fontSize: '12px' }}>
                   <input
                     type="radio"
                     name={`tuning-${activeInstrument}`}
                     checked={tunings[activeInstrument] === 'standard'}
                     onChange={() => setTunings({ ...tunings, [activeInstrument]: 'standard' })}
-                    title="Standard tuning"
                   />
                   Standard
                 </label>
@@ -2576,22 +2750,21 @@ function TabApp() {
                     name={`tuning-${activeInstrument}`}
                     checked={tunings[activeInstrument] === 'drop'}
                     onChange={() => setTunings({ ...tunings, [activeInstrument]: 'drop' })}
-                    title="Drop tuning"
                   />
                   Drop
                 </label>
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Key */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Key</span>
+            <label htmlFor="key-select" style={{ ...styles.label, textTransform: 'uppercase' }}>Key</label>
             <select
+              id="key-select"
               style={styles.select}
               value={projectKey}
               onChange={(e) => setProjectKey(e.target.value)}
-              title="Song key"
             >
               {KEYS.map(key => (
                 <option key={key} value={key}>{key}</option>
@@ -2601,15 +2774,15 @@ function TabApp() {
 
           {/* Time Signature */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Time</span>
+            <label htmlFor="time-select" style={{ ...styles.label, textTransform: 'uppercase' }}>Time</label>
             <select
+              id="time-select"
               style={styles.select}
               value={timeSignature.label}
               onChange={(e) => {
                 const newTimeSig = TIME_SIGNATURES.find(t => t.label === e.target.value);
                 if (newTimeSig) setTimeSignature(newTimeSig);
               }}
-              title="Time signature"
             >
               {TIME_SIGNATURES.map(ts => (
                 <option key={ts.label} value={ts.label}>{ts.label}</option>
@@ -2619,15 +2792,15 @@ function TabApp() {
 
           {/* Grid Resolution */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Grid</span>
+            <label htmlFor="grid-select" style={{ ...styles.label, textTransform: 'uppercase' }}>Grid</label>
             <select
+              id="grid-select"
               style={styles.select}
               value={noteResolution.label}
               onChange={(e) => {
                 const newRes = NOTE_RESOLUTIONS.find(r => r.label === e.target.value);
                 if (newRes) setNoteResolution(newRes);
               }}
-              title="Grid resolution"
             >
               {NOTE_RESOLUTIONS.map(res => (
                 <option key={res.label} value={res.label}>{res.label}</option>
@@ -2637,15 +2810,26 @@ function TabApp() {
 
           {/* Power Chord - Checkbox */}
           {activeInstrument !== 'drums' && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: colors.text, fontSize: '12px' }}>
-              <input
-                type="checkbox"
-                checked={powerChordMode}
-                onChange={() => setPowerChordMode(!powerChordMode)}
-                title="Auto-fill power chords (root + 5th + octave)"
-              />
-              Power Chord
-            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ ...styles.label, textTransform: 'uppercase' }} aria-hidden="true">&nbsp;</span>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                color: colors.text,
+                fontSize: '12px',
+              }}>
+                <input
+                  type="checkbox"
+                  checked={powerChordMode}
+                  onChange={() => setPowerChordMode(!powerChordMode)}
+                  aria-describedby="power-chord-desc"
+                />
+                <span>Power Chord</span>
+                <span id="power-chord-desc" className="sr-only">Auto-fill power chords with root, 5th, and octave</span>
+              </label>
+            </div>
           )}
         </div>
       )}
@@ -2656,11 +2840,14 @@ function TabApp() {
           <div key={section.id} style={{
             ...styles.section,
             borderLeft: section.color ? `4px solid ${section.color}` : undefined,
-          }}>
-            <div style={{
-              ...styles.sectionHeader,
-              backgroundColor: section.color ? `${section.color}15` : undefined,
-            }}>
+          }} role="region" aria-label={`Section: ${section.name}`}>
+            <div
+              className="section-header-container"
+              style={{
+                ...styles.sectionHeader,
+                backgroundColor: section.color ? `${section.color}15` : undefined,
+              }}
+            >
               <div style={styles.sectionTitle}>
                 {section.color && (
                   <span style={{
@@ -2670,7 +2857,7 @@ function TabApp() {
                     backgroundColor: section.color,
                     marginRight: '8px',
                     flexShrink: 0,
-                  }} />
+                  }} aria-hidden="true" />
                 )}
                 {editingSection === section.id ? (
                   <input
@@ -2687,6 +2874,7 @@ function TabApp() {
                         setEditingSection(null);
                       }
                     }}
+                    aria-label="Section name"
                     autoFocus
                   />
                 ) : (
@@ -2698,11 +2886,20 @@ function TabApp() {
                         setEditingSectionName(section.name);
                       }
                     }}
+                    role="button"
+                    tabIndex={focusMode ? -1 : 0}
+                    onKeyDown={(e) => {
+                      if (!focusMode && (e.key === 'Enter' || e.key === ' ')) {
+                        setEditingSection(section.id);
+                        setEditingSectionName(section.name);
+                      }
+                    }}
+                    aria-label={`Section name: ${section.name}. Double-click to edit.`}
                   >
                     {section.name}
                   </span>
                 )}
-                <span style={{ color: colors.textMuted, fontSize: '12px' }}>
+                <span style={{ color: colors.textMuted, fontSize: '12px' }} aria-label={section.repeat > 1 ? `Repeat ${section.repeat} times` : undefined}>
                   {section.repeat > 1 && `×${section.repeat}`}
                 </span>
                 {/* Notes/Lyrics field */}
@@ -2721,34 +2918,35 @@ function TabApp() {
                   onChange={(e) => updateSection(section.id, { notes: e.target.value })}
                   placeholder="lyrics / notes..."
                   onClick={(e) => e.stopPropagation()}
-                  title="Add lyrics or notes for this part"
+                  aria-label={`Lyrics or notes for ${section.name}`}
                 />
               </div>
 
               {!focusMode && (
               <div style={styles.sectionControls}>
-                <span style={styles.label}>Bars</span>
+                <label htmlFor={`bars-${section.id}`} style={styles.label}>Bars</label>
                 <input
+                  id={`bars-${section.id}`}
                   type="number"
                   style={styles.smallInput}
                   value={section.measures}
                   onChange={(e) => updateSection(section.id, { measures: Math.max(1, parseInt(e.target.value) || 1) })}
                   min="1"
-                  title="Number of bars"
                 />
 
-                <span style={{ ...styles.label, marginLeft: '8px' }}>Repeat</span>
+                <label htmlFor={`repeat-${section.id}`} style={{ ...styles.label, marginLeft: '8px' }}>Repeat</label>
                 <input
+                  id={`repeat-${section.id}`}
                   type="number"
                   style={styles.smallInput}
                   value={section.repeat}
                   onChange={(e) => updateSection(section.id, { repeat: Math.max(1, parseInt(e.target.value) || 1) })}
                   min="1"
-                  title="Repeat count"
                 />
 
-                <span style={{ ...styles.label, marginLeft: '8px' }}>Color</span>
+                <label htmlFor={`color-${section.id}`} style={{ ...styles.label, marginLeft: '8px' }}>Color</label>
                 <select
+                  id={`color-${section.id}`}
                   style={{ ...styles.select, width: 'auto', padding: '2px 4px' }}
                   value={section.color || ''}
                   onChange={(e) => updateSection(section.id, { color: e.target.value || null })}
@@ -2760,26 +2958,28 @@ function TabApp() {
                 </select>
 
                 <button
-                  style={styles.smallButton}
+                  className="section-btn"
+                  style={{ ...styles.smallButton, display: 'flex', alignItems: 'center', gap: '3px' }}
                   onClick={() => duplicateSection(section.id)}
-                  title="Duplicate section"
+                  aria-label={`Duplicate section ${section.name}`}
                 >
-                  Copy
+                  <Icons.Copy size={12} /><span className="btn-label">Copy</span>
                 </button>
-                
+
                 {sections.length > 1 && (
                   <button
-                    style={{ ...styles.smallButton, color: colors.red }}
+                    className="section-btn"
+                    style={{ ...styles.smallButton, color: colors.red, display: 'flex', alignItems: 'center', gap: '3px' }}
                     onClick={() => deleteSection(section.id)}
-                    title="Delete section"
+                    aria-label={`Delete section ${section.name}`}
                   >
-                    Delete
+                    <Icons.Trash size={12} /><span className="btn-label">Delete</span>
                   </button>
                 )}
               </div>
               )}
             </div>
-            
+
             {renderGrid(section)}
           </div>
         ))}
@@ -2793,15 +2993,20 @@ function TabApp() {
               padding: '12px',
               marginTop: '8px',
               opacity: 0.6,
+              minHeight: '44px',
               border: `1px dashed ${colors.border}`,
               backgroundColor: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
             }}
             onClick={addSection}
             onMouseEnter={(e) => e.target.style.opacity = '1'}
             onMouseLeave={(e) => e.target.style.opacity = '0.6'}
-            title="Add a new part"
+            aria-label="Add a new part"
           >
-            + Add Part
+            <Icons.Plus size={16} /><span className="btn-label">Add Part</span>
           </button>
         )}
       </div>
@@ -2809,11 +3014,12 @@ function TabApp() {
       {/* Legend Toggle & Panel */}
       <div style={styles.legendToggleBar}>
         <button
-          style={{ ...styles.button, display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ ...styles.button, display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}
           onClick={() => setShowLegend(!showLegend)}
-          title="Show notation reference"
+          aria-expanded={showLegend}
+          aria-label={showLegend ? 'Hide notation legend' : 'Show notation legend'}
         >
-          <span>{showLegend ? 'Hide legend' : 'Show legend'}</span>
+          <Icons.HelpCircle size={16} /><span>{showLegend ? 'Hide legend' : 'Show legend'}</span>
         </button>
         {!showLegend && (
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '16px', color: colors.textMuted, fontSize: '11px' }}>
