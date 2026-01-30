@@ -1846,9 +1846,11 @@ function TabApp() {
     measure: {
       display: 'flex',
       flexDirection: 'column',
+      position: 'relative',
+    },
+    measureGrid: {
       borderLeft: `2px solid ${colors.border}`,
       borderRight: `1px solid ${colors.border}`,
-      position: 'relative',
     },
     measureNumber: {
       textAlign: 'left',
@@ -2060,15 +2062,16 @@ function TabApp() {
                   </button>
                 </span>
               </div>
-              {/* Playback cursor */}
-              {isMeasurePlaying && (
-                <div style={{
-                  ...styles.playbackCursor,
-                  left: `${cursorPosition}px`,
-                  height: `${stringCount * 20}px`,
-                }} />
-              )}
-              {measure.map((string, stringIdx) => (
+              <div style={styles.measureGrid}>
+                {/* Playback cursor */}
+                {isMeasurePlaying && (
+                  <div style={{
+                    ...styles.playbackCursor,
+                    left: `${cursorPosition}px`,
+                    height: `${stringCount * 20}px`,
+                  }} />
+                )}
+                {measure.map((string, stringIdx) => (
                 <div key={stringIdx} style={styles.row}>
                   {string.map((cell, cellIdx) => {
                     const cellKey = `${section.id}-${measureIdx}-${stringIdx}-${cellIdx}`;
@@ -2107,6 +2110,7 @@ function TabApp() {
                   })}
                 </div>
               ))}
+              </div>
             </div>
             );
           })}
@@ -2597,7 +2601,6 @@ function TabApp() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: isLooping ? 1 : 0.5,
                 ...(isLooping ? styles.buttonPrimary : {})
               }}
               onClick={() => setIsLooping(!isLooping)}
@@ -2652,10 +2655,11 @@ function TabApp() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="header-group">
           <button
             className="header-btn"
-            style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ ...styles.button, height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', ...(showSettings ? styles.buttonPrimary : {}) }}
             onClick={() => setShowSettings(!showSettings)}
             aria-label="Toggle advanced settings"
             aria-expanded={showSettings}
+            aria-pressed={showSettings}
           >
             <Icons.Settings size={16} />
           </button>
@@ -2963,7 +2967,7 @@ function TabApp() {
                   onClick={() => duplicateSection(section.id)}
                   aria-label={`Duplicate section ${section.name}`}
                 >
-                  <Icons.Copy size={12} /><span className="btn-label">Copy</span>
+                  <Icons.Copy size={12} /><span className="btn-label">Duplicate</span>
                 </button>
 
                 {sections.length > 1 && (
