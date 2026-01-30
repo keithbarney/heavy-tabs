@@ -1,5 +1,3 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-
 // Spacegray / Base16 Ocean Dark color palette
 const themes = {
   dark: {
@@ -86,8 +84,56 @@ const transposeNote = (note, semitones) => {
 // Get tuning notes transposed to key
 const getTuningNotes = (instrument, stringCount, tuning, key) => {
   const baseTuning = tuningConfigs[instrument]?.[stringCount]?.[tuning]?.notes || [];
-  const semitones = KEY_SEMITONES[key] - KEY_SEMITONES['E']; // E is standard tuning base
+  // Standard tuning base is E, Drop tuning base is D (the dropped root)
+  const baseKey = tuning === 'drop' ? 'D' : 'E';
+  const semitones = KEY_SEMITONES[key] - KEY_SEMITONES[baseKey];
   return baseTuning.map(note => transposeNote(note, semitones));
+};
+
+// Chord library - frets from high E (index 0) to low E (index 5), 'x' = muted
+const CHORD_SHAPES = {
+  major: {
+    'A': { frets: [0, 2, 2, 2, 0, 'x'] },
+    'B': { frets: [2, 4, 4, 4, 2, 'x'] },
+    'C': { frets: [0, 1, 0, 2, 3, 'x'] },
+    'D': { frets: [2, 3, 2, 0, 'x', 'x'] },
+    'E': { frets: [0, 0, 1, 2, 2, 0] },
+    'F': { frets: [1, 1, 2, 3, 3, 1] },
+    'G': { frets: [3, 0, 0, 0, 2, 3] },
+    'F#': { frets: [2, 2, 3, 4, 4, 2] },
+    'Gb': { frets: [2, 2, 3, 4, 4, 2] },
+    'C#': { frets: [4, 6, 6, 6, 4, 'x'] },
+    'Db': { frets: [4, 6, 6, 6, 4, 'x'] },
+    'Eb': { frets: [3, 4, 3, 1, 'x', 'x'] },
+    'Ab': { frets: [4, 4, 5, 6, 6, 4] },
+    'Bb': { frets: [1, 3, 3, 3, 1, 'x'] },
+  },
+  minor: {
+    'Am': { frets: [0, 1, 2, 2, 0, 'x'] },
+    'Bm': { frets: [2, 3, 4, 4, 2, 'x'] },
+    'Cm': { frets: [3, 4, 5, 5, 3, 'x'] },
+    'Dm': { frets: [1, 3, 2, 0, 'x', 'x'] },
+    'Em': { frets: [0, 0, 0, 2, 2, 0] },
+    'Fm': { frets: [1, 1, 1, 3, 3, 1] },
+    'Gm': { frets: [3, 3, 3, 5, 5, 3] },
+    'F#m': { frets: [2, 2, 2, 4, 4, 2] },
+    'Gbm': { frets: [2, 2, 2, 4, 4, 2] },
+    'C#m': { frets: [4, 5, 6, 6, 4, 'x'] },
+    'Dbm': { frets: [4, 5, 6, 6, 4, 'x'] },
+    'Ebm': { frets: [6, 7, 8, 8, 6, 'x'] },
+    'Abm': { frets: [4, 4, 4, 6, 6, 4] },
+    'Bbm': { frets: [1, 2, 3, 3, 1, 'x'] },
+  },
+};
+
+// Get all chord names for display
+const getAllChords = () => {
+  const chords = [];
+  KEYS.forEach(key => {
+    chords.push({ name: `${key}`, type: 'major', key });
+    chords.push({ name: `${key}m`, type: 'minor', key });
+  });
+  return chords;
 };
 
 // Instrument configurations (for drums only now)
@@ -176,12 +222,26 @@ const getCellsPerMeasure = (timeSig, resolution) => {
 // Generate unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// Initial riff creator
-const createSection = (name = 'New Riff') => ({
+// Section colors for visual organization
+const SECTION_COLORS = [
+  { name: 'None', value: null },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Purple', value: '#a855f7' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Teal', value: '#14b8a6' },
+  { name: 'Pink', value: '#ec4899' },
+];
+
+// Initial part creator
+const createSection = (name = 'New Part') => ({
   id: generateId(),
   name,
+  notes: '',
   measures: 1,
   repeat: 1,
+  color: null,
 });
 
 // Initial measure data creator
@@ -194,7 +254,7 @@ const createEmptyMeasure = (instrument, stringCount, cellsPerMeasure = 16) => {
 };
 
 // Main App Component
-export default function TabApp() {
+function TabApp() {
   const [theme, setTheme] = useState('dark');
   const [activeInstrument, setActiveInstrument] = useState('guitar');
   const [stringCounts, setStringCounts] = useState({ guitar: 6, bass: 4 });
@@ -210,28 +270,39 @@ export default function TabApp() {
   const [selectionStart, setSelectionStart] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [clipboard, setClipboard] = useState(null);
+  const [barClipboard, setBarClipboard] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [clickTrack, setClickTrack] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [clickTrack, setClickTrack] = useState(true);
+  const [isLooping, setIsLooping] = useState(false);
   const [playbackPosition, setPlaybackPosition] = useState(null);
   const [editingSection, setEditingSection] = useState(null);
   const [editingSectionName, setEditingSectionName] = useState('');
   const [focusMode, setFocusMode] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [mobileInputCell, setMobileInputCell] = useState(null);
-  const [powerChordMode, setPowerChordMode] = useState(false);
+  const [powerChordMode, setPowerChordMode] = useState(true);
+  const [showChordPicker, setShowChordPicker] = useState(false);
+  const [chordSearch, setChordSearch] = useState('');
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isUndoRedo, setIsUndoRedo] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [savedProjects, setSavedProjects] = useState([]);
   const [currentProjectId, setCurrentProjectId] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [confirmRemoveBar, setConfirmRemoveBar] = useState(null); // { sectionId, sectionName }
+  const [showSettings, setShowSettings] = useState(true);
 
   const mobileInputRef = useRef(null);
-  
+
   const playbackRef = useRef(null);
+  const playbackActiveRef = useRef(false);
   const audioContextRef = useRef(null);
-  
+  const autoSaveTimerRef = useRef(null);
+  const tapTimesRef = useRef([]);
+
   const colors = themes[theme];
   const cellsPerMeasure = getCellsPerMeasure(timeSignature, noteResolution);
 
@@ -255,13 +326,18 @@ export default function TabApp() {
       const updated = { ...prev, [key]: newData };
       // Save to history (trim future states if we're not at the end)
       setHistory(h => {
+        // If this is the first change, save the original state first
+        if (h.length === 0) {
+          setHistoryIndex(1);
+          return [JSON.stringify(prev), JSON.stringify(updated)];
+        }
         const newHistory = h.slice(0, historyIndex + 1);
         newHistory.push(JSON.stringify(updated));
         // Limit history size
         if (newHistory.length > 200) newHistory.shift();
+        setHistoryIndex(Math.min(newHistory.length - 1, 199));
         return newHistory;
       });
-      setHistoryIndex(i => Math.min(i + 1, 199));
       return updated;
     });
   }, [historyIndex]);
@@ -323,7 +399,61 @@ export default function TabApp() {
     localStorage.setItem('tabEditorProjects', JSON.stringify(projects));
     setSavedProjects(projects);
     setCurrentProjectId(projectId);
+    setHasUnsavedChanges(false);
   };
+
+  // Auto-save with 5 second debounce (only if project has been saved before)
+  useEffect(() => {
+    if (!currentProjectId) return;
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      const project = {
+        id: currentProjectId,
+        projectName,
+        bpm,
+        timeSignature,
+        noteResolution,
+        projectKey,
+        tunings,
+        stringCounts,
+        sections,
+        tabData,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const projects = JSON.parse(localStorage.getItem('tabEditorProjects') || '[]');
+      const existingIndex = projects.findIndex(p => p.id === currentProjectId);
+
+      if (existingIndex >= 0) {
+        projects[existingIndex] = project;
+        localStorage.setItem('tabEditorProjects', JSON.stringify(projects));
+        setSavedProjects(projects);
+        setHasUnsavedChanges(false);
+      }
+    }, 5000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [currentProjectId, projectName, bpm, timeSignature, noteResolution, projectKey, tunings, stringCounts, sections, tabData]);
+
+  // Track unsaved changes (only after initial load)
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (currentProjectId) {
+      setHasUnsavedChanges(true);
+    }
+  }, [projectName, bpm, timeSignature, noteResolution, projectKey, tunings, stringCounts, sections, tabData]);
 
   // Load project from library
   const loadFromLibrary = (project) => {
@@ -340,6 +470,8 @@ export default function TabApp() {
     setShowLibrary(false);
     setHistory([]);
     setHistoryIndex(-1);
+    setHasUnsavedChanges(false);
+    isInitialMount.current = true; // Reset to prevent marking as unsaved
   };
 
   // Delete project from library
@@ -542,6 +674,30 @@ export default function TabApp() {
     if ((e.ctrlKey || e.metaKey) && (key === 'y' || (key === 'z' && e.shiftKey) || key === 'Z')) {
       e.preventDefault();
       redo();
+      return;
+    }
+
+    // Spacebar to toggle play/pause (only if not typing in an input, ignore key repeat)
+    if (key === ' ' && !e.repeat && !e.target.matches('input, textarea, select')) {
+      e.preventDefault();
+      togglePlayback();
+      return;
+    }
+
+    // ? to show keyboard shortcuts
+    if (key === '?' && !e.target.matches('input, textarea, select')) {
+      e.preventDefault();
+      setShowShortcuts(true);
+      return;
+    }
+
+    // Escape to close modals
+    if (key === 'Escape') {
+      if (showShortcuts) {
+        setShowShortcuts(false);
+        return;
+      }
+      closeMobileInput();
       return;
     }
 
@@ -758,9 +914,34 @@ export default function TabApp() {
     });
   };
 
-  // Add riff
+  // Copy entire bar
+  const copyBar = (sectionId, measureIdx) => {
+    const data = getTabData(sectionId, activeInstrument);
+    if (data[measureIdx]) {
+      setBarClipboard(JSON.parse(JSON.stringify(data[measureIdx])));
+    }
+  };
+
+  // Paste bar at position
+  const pasteBar = (sectionId, measureIdx) => {
+    if (!barClipboard) return;
+    const data = getTabData(sectionId, activeInstrument);
+    if (!data[measureIdx]) return;
+
+    // Check if bar has same number of strings
+    if (barClipboard.length !== data[measureIdx].length) return;
+
+    const newData = data.map((measure, mIdx) => {
+      if (mIdx !== measureIdx) return measure;
+      return JSON.parse(JSON.stringify(barClipboard));
+    });
+
+    updateTabData(sectionId, activeInstrument, newData);
+  };
+
+  // Add part
   const addSection = () => {
-    const newSection = createSection(`Riff ${sections.length + 1}`);
+    const newSection = createSection(`Part ${sections.length + 1}`);
     setSections([...sections, newSection]);
   };
 
@@ -820,6 +1001,74 @@ export default function TabApp() {
     }
   };
 
+  // Check if last bar has notes and handle removal
+  const handleRemoveBar = (section) => {
+    if (section.measures <= 1) return;
+
+    // Check if last bar has any notes
+    const key = `${section.id}-${activeInstrument}`;
+    const data = tabData[key] || [];
+    const lastBar = data[data.length - 1];
+
+    const hasNotes = lastBar && lastBar.some(string =>
+      string.some(cell => cell !== '-' && cell !== '')
+    );
+
+    if (hasNotes) {
+      setConfirmRemoveBar({ sectionId: section.id, sectionName: section.name });
+    } else {
+      updateSection(section.id, { measures: section.measures - 1 });
+    }
+  };
+
+  // Apply a chord to the current selection
+  const applyChord = (chordName) => {
+    // Only works for 6-string guitar
+    if (activeInstrument !== 'guitar' || stringCounts.guitar !== 6) return;
+
+    // Get the cell position from mobileInputCell or selectedCells
+    let sectionId, measureIdx, cellIdx;
+    if (mobileInputCell) {
+      sectionId = mobileInputCell.sectionId;
+      measureIdx = mobileInputCell.measureIdx;
+      cellIdx = mobileInputCell.cellIdx;
+    } else if (selectedCells.length > 0) {
+      const parts = selectedCells[0].split('-');
+      sectionId = parts[0];
+      measureIdx = parseInt(parts[1]);
+      cellIdx = parseInt(parts[3]);
+    } else {
+      return;
+    }
+
+    // Find the chord
+    const chord = CHORD_SHAPES.major[chordName] || CHORD_SHAPES.minor[chordName];
+    if (!chord) return;
+
+    // Use getTabData to ensure data exists
+    const data = getTabData(sectionId, activeInstrument);
+    if (!data || !data[measureIdx]) return;
+
+    const newData = data.map((measure, mIdx) => {
+      if (mIdx !== measureIdx) return measure;
+      return measure.map((string, sIdx) => {
+        return string.map((cell, cIdx) => {
+          if (cIdx !== cellIdx) return cell;
+          // chord.frets is [high E, B, G, D, A, low E] (index 0 = high E)
+          // our strings are also [high E, B, G, D, A, low E] (index 0 = high E)
+          const fretValue = chord.frets[sIdx];
+          if (fretValue === 'x' || fretValue === null) return '-';
+          if (fretValue === 0) return '0';
+          return String(fretValue);
+        });
+      });
+    });
+
+    updateTabData(sectionId, activeInstrument, newData);
+    setShowChordPicker(false);
+    setChordSearch('');
+  };
+
   // Audio playback
   const initAudio = () => {
     if (!audioContextRef.current) {
@@ -828,41 +1077,43 @@ export default function TabApp() {
     return audioContextRef.current;
   };
 
-  const playNote = (frequency, duration, type = 'sine') => {
+  const playNote = (frequency, duration, type = 'sine', scheduleAhead = 0.03) => {
     if (isMuted) return;
     const ctx = initAudio();
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
-    
+    const startTime = ctx.currentTime + scheduleAhead;
+
     oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
-    
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-    
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+
+    gainNode.gain.setValueAtTime(0.3, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
-    
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + duration);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
   };
 
-  const playClick = (isDownbeat = false) => {
+  const playClick = (isDownbeat = false, scheduleAhead = 0.03) => {
     const ctx = initAudio();
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
+    const startTime = ctx.currentTime + scheduleAhead;
 
     oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(isDownbeat ? 1000 : 800, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(isDownbeat ? 1000 : 800, startTime);
 
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+    gainNode.gain.setValueAtTime(0.3, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.05);
 
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.05);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.05);
   };
 
   const playDrumSound = (drumType) => {
@@ -906,31 +1157,63 @@ export default function TabApp() {
   };
 
   // Playback control
-  const startPlayback = () => {
-    if (isPlaying) {
-      stopPlayback();
+  const loopingRef = useRef(false);
+
+  const togglePlayback = () => {
+    // Use ref to avoid stale closure issues with keyboard handler
+    if (playbackActiveRef.current) {
+      pausePlayback();
       return;
     }
-    
+    startPlayback();
+  };
+
+  const startPlayback = () => {
     setIsPlaying(true);
+    playbackActiveRef.current = true;
+    loopingRef.current = isLooping;
     const msPerBeat = 60000 / bpm;
     const cellsPerBeat = noteResolution.perQuarter * (timeSignature.noteValue === 4 ? 1 : 0.5);
     const msPerCell = msPerBeat / cellsPerBeat;
-    
+
+    // Start from current position or beginning
     let currentSection = 0;
     let currentMeasure = 0;
     let currentCell = 0;
     let repeatCount = 0;
-    
+
+    // Resume from paused position if available
+    if (playbackPosition) {
+      const sectionIdx = sections.findIndex(s => s.id === playbackPosition.sectionId);
+      if (sectionIdx >= 0) {
+        currentSection = sectionIdx;
+        currentMeasure = playbackPosition.measureIdx;
+        currentCell = playbackPosition.cellIdx;
+      }
+    }
+
     const playStep = () => {
-      if (currentSection >= sections.length) {
-        stopPlayback();
+      // Check if playback was stopped
+      if (!playbackActiveRef.current) {
         return;
       }
-      
+
+      if (currentSection >= sections.length) {
+        if (loopingRef.current) {
+          // Loop back to beginning
+          currentSection = 0;
+          currentMeasure = 0;
+          currentCell = 0;
+          repeatCount = 0;
+        } else {
+          stopPlayback();
+          return;
+        }
+      }
+
       const section = sections[currentSection];
       const data = getTabData(section.id, activeInstrument);
-      
+
       setPlaybackPosition({ sectionId: section.id, measureIdx: currentMeasure, cellIdx: currentCell });
 
       // Play click track
@@ -965,7 +1248,7 @@ export default function TabApp() {
           }
         });
       }
-      
+
       // Advance position
       currentCell++;
       if (currentCell >= cellsPerMeasure) {
@@ -980,18 +1263,73 @@ export default function TabApp() {
           }
         }
       }
-      
+
       playbackRef.current = setTimeout(playStep, msPerCell);
     };
-    
+
     playStep();
   };
 
+  const pausePlayback = () => {
+    playbackActiveRef.current = false;
+    setIsPlaying(false);
+    if (playbackRef.current) {
+      clearTimeout(playbackRef.current);
+      playbackRef.current = null;
+    }
+    // Keep playbackPosition so we can resume
+  };
+
   const stopPlayback = () => {
+    playbackActiveRef.current = false;
     setIsPlaying(false);
     setPlaybackPosition(null);
     if (playbackRef.current) {
       clearTimeout(playbackRef.current);
+      playbackRef.current = null;
+    }
+  };
+
+  const rewindPlayback = () => {
+    const wasPlaying = playbackActiveRef.current;
+    if (wasPlaying) {
+      pausePlayback();
+    }
+    setPlaybackPosition(null);
+    if (wasPlaying) {
+      // Small delay to allow state to update, then restart
+      setTimeout(() => startPlayback(), 50);
+    }
+  };
+
+  // Tap tempo - calculates BPM from tap timing
+  const handleTapTempo = () => {
+    const now = Date.now();
+    const taps = tapTimesRef.current;
+
+    // Reset if more than 2 seconds since last tap
+    if (taps.length > 0 && now - taps[taps.length - 1] > 2000) {
+      tapTimesRef.current = [now];
+      return;
+    }
+
+    taps.push(now);
+
+    // Keep only last 8 taps
+    if (taps.length > 8) {
+      taps.shift();
+    }
+
+    // Need at least 2 taps to calculate
+    if (taps.length >= 2) {
+      const intervals = [];
+      for (let i = 1; i < taps.length; i++) {
+        intervals.push(taps[i] - taps[i - 1]);
+      }
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const calculatedBpm = Math.round(60000 / avgInterval);
+      // Clamp to valid range
+      setBpm(Math.max(40, Math.min(300, calculatedBpm)));
     }
   };
 
@@ -1028,6 +1366,9 @@ export default function TabApp() {
       
       sections.forEach(section => {
         text += `[${section.name}]${section.repeat > 1 ? ` x${section.repeat}` : ''}\n`;
+        if (section.notes) {
+          text += `"${section.notes}"\n`;
+        }
         const data = getTabData(section.id, instrument);
         
         if (instrument === 'drums') {
@@ -1060,6 +1401,146 @@ export default function TabApp() {
     a.download = `${projectName.replace(/\s+/g, '_')}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Print formatted tab sheet
+  const printTab = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>${projectName}</title>
+  <style>
+    @page { margin: 0.5in; }
+    body {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #333;
+      max-width: 100%;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #333;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-family: Arial, sans-serif;
+    }
+    .meta {
+      font-size: 12px;
+      color: #666;
+      font-family: Arial, sans-serif;
+    }
+    .part {
+      margin-bottom: 25px;
+      page-break-inside: avoid;
+    }
+    .part-name {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-family: Arial, sans-serif;
+      color: #333;
+      border-left: 3px solid #666;
+      padding-left: 8px;
+    }
+    .tab-grid {
+      white-space: pre;
+      font-size: 11px;
+      line-height: 1.3;
+      background: #fafafa;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .instrument-section {
+      margin-bottom: 30px;
+    }
+    .instrument-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ccc;
+      font-family: Arial, sans-serif;
+    }
+    @media print {
+      .tab-grid { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">${projectName}</div>
+    <div class="meta">${bpm} BPM • ${timeSignature.label} • Key of ${projectKey}</div>
+  </div>
+`;
+
+    ['guitar', 'bass', 'drums'].forEach(instrument => {
+      const data = sections.map(s => getTabData(s.id, instrument));
+      const hasContent = data.some(d => d.some(m => m.some(s => s.some(c => c !== '-'))));
+      if (!hasContent) return;
+
+      const tuningLabel = instrument !== 'drums'
+        ? ` (${tuningConfigs[instrument]?.[stringCounts[instrument]]?.[tunings[instrument]]?.label || 'Standard'})`
+        : '';
+
+      html += `<div class="instrument-section">`;
+      html += `<div class="instrument-title">${instrument.charAt(0).toUpperCase() + instrument.slice(1)}${tuningLabel}</div>`;
+
+      sections.forEach(section => {
+        const sectionData = getTabData(section.id, instrument);
+        const hasNotes = sectionData.some(m => m.some(s => s.some(c => c !== '-')));
+        if (!hasNotes) return;
+
+        html += `<div class="part">`;
+        html += `<div class="part-name">${section.name}${section.repeat > 1 ? ` (×${section.repeat})` : ''}</div>`;
+        if (section.notes) {
+          html += `<div style="color: #666; font-style: italic; font-size: 11px; margin-bottom: 6px; font-family: Arial, sans-serif;">${section.notes}</div>`;
+        }
+        html += `<div class="tab-grid">`;
+
+        if (instrument === 'drums') {
+          instrumentConfigs.drums.lines.forEach((line, idx) => {
+            let row = line.name.padEnd(3) + '│';
+            sectionData.forEach((measure, mIdx) => {
+              row += measure[idx].join('');
+              row += mIdx < sectionData.length - 1 ? '│' : '│';
+            });
+            html += row + '\n';
+          });
+        } else {
+          const strings = getTuningNotes(instrument, stringCounts[instrument], tunings[instrument], projectKey);
+          strings.forEach((string, idx) => {
+            let row = string.padEnd(3) + '│';
+            sectionData.forEach((measure, mIdx) => {
+              row += measure[idx].map(c => c.padStart(2, '-')).join('');
+              row += mIdx < sectionData.length - 1 ? '│' : '│';
+            });
+            html += row + '\n';
+          });
+        }
+
+        html += `</div></div>`;
+      });
+
+      html += `</div>`;
+    });
+
+    html += `</body></html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 250);
   };
 
   const importFromJSON = (e) => {
@@ -1108,7 +1589,6 @@ export default function TabApp() {
     header: {
       backgroundColor: colors.bgAlt,
       padding: '10px 20px',
-      borderBottom: `1px solid ${colors.border}`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -1159,7 +1639,6 @@ export default function TabApp() {
     toolbar: {
       backgroundColor: colors.bgAlt,
       padding: '8px 20px',
-      borderBottom: `1px solid ${colors.border}`,
       display: 'flex',
       alignItems: 'center',
       gap: '20px',
@@ -1189,7 +1668,6 @@ export default function TabApp() {
       display: 'flex',
       backgroundColor: colors.bg,
       borderRadius: '3px',
-      border: `1px solid ${colors.border}`,
       overflow: 'hidden',
     },
     toggleButton: {
@@ -1243,7 +1721,6 @@ export default function TabApp() {
       marginBottom: '20px',
       backgroundColor: colors.bgAlt,
       borderRadius: '3px',
-      border: `1px solid ${colors.border}`,
       overflow: 'hidden',
     },
     sectionHeader: {
@@ -1252,7 +1729,6 @@ export default function TabApp() {
       justifyContent: 'space-between',
       padding: '8px 12px',
       backgroundColor: colors.bgHighlight,
-      borderBottom: `1px solid ${colors.border}`,
     },
     sectionTitle: {
       display: 'flex',
@@ -1328,9 +1804,11 @@ export default function TabApp() {
       flexDirection: 'column',
       borderLeft: `2px solid ${colors.border}`,
       borderRight: `1px solid ${colors.border}`,
+      position: 'relative',
     },
     measureNumber: {
-      textAlign: 'center',
+      textAlign: 'left',
+      paddingLeft: '8px',
       color: colors.textMuted,
       fontSize: '10px',
       marginBottom: '3px',
@@ -1362,10 +1840,18 @@ export default function TabApp() {
       backgroundColor: colors.accent,
       color: colors.bg,
     },
+    playbackCursor: {
+      position: 'absolute',
+      top: '18px',
+      width: '2px',
+      backgroundColor: colors.accent,
+      pointerEvents: 'none',
+      zIndex: 10,
+      boxShadow: `0 0 8px ${colors.accent}`,
+    },
     legend: {
       padding: '12px 20px',
       backgroundColor: colors.bgAlt,
-      borderTop: `1px solid ${colors.border}`,
       display: 'flex',
       flexWrap: 'wrap',
       gap: '24px',
@@ -1373,7 +1859,6 @@ export default function TabApp() {
     legendToggleBar: {
       padding: '8px 20px',
       backgroundColor: colors.bgAlt,
-      borderTop: `1px solid ${colors.border}`,
       display: 'flex',
       alignItems: 'center',
       gap: '16px',
@@ -1386,7 +1871,6 @@ export default function TabApp() {
       fontSize: '11px',
       fontWeight: 'bold',
       marginBottom: '8px',
-      borderBottom: `1px solid ${colors.border}`,
       paddingBottom: '4px',
     },
     legendGrid: {
@@ -1487,31 +1971,73 @@ export default function TabApp() {
 
     return (
       <div style={styles.gridContainer}>
-        <div style={styles.measureContainer}>
-          <div style={styles.stringLabels}>
-            <div style={{ height: '18px' }}></div>
-            {labels.map((label, idx) => (
-              <div key={idx} style={styles.stringLabel}>{label}</div>
-            ))}
-          </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div style={styles.measureContainer}>
+            <div style={styles.stringLabels}>
+              <div style={{ height: '18px' }}></div>
+              {labels.map((label, idx) => (
+                <div key={idx} style={styles.stringLabel}>{label}</div>
+              ))}
+            </div>
           
-          {data.map((measure, measureIdx) => (
+          {data.map((measure, measureIdx) => {
+            const isMeasurePlaying = playbackPosition?.sectionId === section.id &&
+                                     playbackPosition?.measureIdx === measureIdx;
+            const cursorPosition = isMeasurePlaying ? playbackPosition.cellIdx * 20 + 10 : 0;
+            const stringCount = activeInstrument === 'drums' ? instrumentConfigs.drums.lines.length : stringCounts[activeInstrument];
+
+            return (
             <div key={measureIdx} style={styles.measure}>
-              <div style={styles.measureNumber}>{measureIdx + 1}</div>
+              <div style={{ ...styles.measureNumber, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Bar {measureIdx + 1}</span>
+                <span style={{ display: 'flex', gap: '2px' }}>
+                  <button
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: '10px', color: colors.textMuted }}
+                    onClick={() => copyBar(section.id, measureIdx)}
+                    title="Copy bar"
+                  >
+                    📋
+                  </button>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0 2px',
+                      fontSize: '10px',
+                      color: barClipboard ? colors.textMuted : colors.border,
+                    }}
+                    onClick={() => pasteBar(section.id, measureIdx)}
+                    title="Paste bar"
+                    disabled={!barClipboard}
+                  >
+                    📄
+                  </button>
+                </span>
+              </div>
+              {/* Playback cursor */}
+              {isMeasurePlaying && (
+                <div style={{
+                  ...styles.playbackCursor,
+                  left: `${cursorPosition}px`,
+                  height: `${stringCount * 20}px`,
+                }} />
+              )}
               {measure.map((string, stringIdx) => (
                 <div key={stringIdx} style={styles.row}>
                   {string.map((cell, cellIdx) => {
                     const cellKey = `${section.id}-${measureIdx}-${stringIdx}-${cellIdx}`;
                     const isSelected = selectedCells.includes(cellKey);
-                    const isPlaying = playbackPosition?.sectionId === section.id && 
-                                     playbackPosition?.measureIdx === measureIdx && 
+                    const isPlaying = playbackPosition?.sectionId === section.id &&
+                                     playbackPosition?.measureIdx === measureIdx &&
                                      playbackPosition?.cellIdx === cellIdx;
                     const cellsPerBeat = Math.round(noteResolution.perQuarter * (timeSignature.noteValue === 4 ? 1 : 0.5));
                     const isBeat = cellsPerBeat > 0 && (cellIdx + 1) % cellsPerBeat === 0;
-                    
+
                     return (
                       <div
                         key={cellIdx}
+                        className="tab-cell"
                         style={{
                           ...styles.cell,
                           ...(isBeat ? styles.cellBeat : {}),
@@ -1521,6 +2047,7 @@ export default function TabApp() {
                         onMouseDown={(e) => handleMouseDown(section.id, measureIdx, stringIdx, cellIdx, e)}
                         onMouseEnter={() => handleMouseEnter(section.id, measureIdx, stringIdx, cellIdx)}
                         onClick={(e) => {
+                          e.stopPropagation();
                           handleCellClick(section.id, measureIdx, stringIdx, cellIdx, e);
                           openMobileKeyboard(section.id, measureIdx, stringIdx, cellIdx);
                         }}
@@ -1536,14 +2063,38 @@ export default function TabApp() {
                 </div>
               ))}
             </div>
-          ))}
+            );
+          })}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '8px', marginTop: '18px' }}>
+            <button
+              style={{ ...styles.button, padding: '4px 8px', fontSize: '12px' }}
+              onClick={() => updateSection(section.id, { measures: section.measures + 1 })}
+              title="Add bar"
+            >
+              +
+            </button>
+            <button
+              style={{ ...styles.button, padding: '4px 8px', fontSize: '12px' }}
+              onClick={() => handleRemoveBar(section)}
+              title="Remove bar"
+              disabled={section.measures <= 1}
+            >
+              −
+            </button>
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} onClick={() => setSelectedCells([])}>
+      <style>{`
+        .tab-cell:hover {
+          background-color: ${colors.bgHighlight} !important;
+        }
+      `}</style>
       {/* Library modal */}
       {showLibrary && (
         <div style={styles.mobileInputOverlay} onClick={() => setShowLibrary(false)}>
@@ -1592,7 +2143,7 @@ export default function TabApp() {
                         {project.projectName}
                       </div>
                       <div style={{ color: colors.textMuted, fontSize: '10px' }}>
-                        {project.timeSignature?.label || '4/4'} • {project.bpm || 120} BPM • {project.sections?.length || 0} riffs
+                        {project.timeSignature?.label || '4/4'} • {project.bpm || 120} BPM • {project.sections?.length || 0} parts
                       </div>
                     </div>
                     <button
@@ -1614,12 +2165,108 @@ export default function TabApp() {
         </div>
       )}
 
+      {/* Confirm remove bar modal */}
+      {confirmRemoveBar && (
+        <div style={styles.mobileInputOverlay} onClick={() => setConfirmRemoveBar(null)}>
+          <div style={{
+            ...styles.mobileInputBox,
+            maxWidth: '350px',
+            marginBottom: 0,
+            alignSelf: 'center',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ color: colors.textBright, fontSize: '14px', marginBottom: '16px' }}>
+              The last bar contains notes. Remove it anyway?
+            </div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button style={styles.button} onClick={() => setConfirmRemoveBar(null)}>
+                Cancel
+              </button>
+              <button
+                style={{ ...styles.button, backgroundColor: colors.red }}
+                onClick={() => {
+                  const section = sections.find(s => s.id === confirmRemoveBar.sectionId);
+                  if (section) {
+                    updateSection(section.id, { measures: section.measures - 1 });
+                  }
+                  setConfirmRemoveBar(null);
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chord picker modal */}
+      {showChordPicker && (
+        <div style={styles.mobileInputOverlay} onClick={() => { setShowChordPicker(false); setChordSearch(''); }}>
+          <div style={{
+            ...styles.mobileInputBox,
+            maxWidth: '400px',
+            maxHeight: '70vh',
+            marginBottom: 0,
+            alignSelf: 'center',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ color: colors.textBright, fontSize: '14px', fontWeight: 'bold' }}>Select Chord</span>
+              <button style={styles.button} onClick={() => { setShowChordPicker(false); setChordSearch(''); }}>Close</button>
+            </div>
+            <input
+              type="text"
+              placeholder="Search chords... (e.g. Am, G, F#m)"
+              value={chordSearch}
+              onChange={(e) => setChordSearch(e.target.value)}
+              style={{
+                ...styles.input,
+                width: '100%',
+                marginBottom: '12px',
+              }}
+              autoFocus
+            />
+            {selectedCells.length === 0 && (
+              <div style={{ color: colors.orange, fontSize: '12px', marginBottom: '12px' }}>
+                Select a cell first to place the chord
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '45vh' }}>
+              <div style={{ color: colors.textMuted, fontSize: '11px', marginBottom: '4px' }}>Major</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                {KEYS.filter(key => !chordSearch || key.toLowerCase().includes(chordSearch.toLowerCase())).map(key => (
+                  <button
+                    key={key}
+                    style={{ ...styles.button, padding: '6px 12px', fontSize: '12px' }}
+                    onClick={() => applyChord(key)}
+                    disabled={selectedCells.length === 0}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+              <div style={{ color: colors.textMuted, fontSize: '11px', marginBottom: '4px' }}>Minor</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {KEYS.filter(key => !chordSearch || `${key}m`.toLowerCase().includes(chordSearch.toLowerCase())).map(key => (
+                  <button
+                    key={`${key}m`}
+                    style={{ ...styles.button, padding: '6px 12px', fontSize: '12px' }}
+                    onClick={() => applyChord(`${key}m`)}
+                    disabled={selectedCells.length === 0}
+                  >
+                    {key}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile input overlay */}
       {mobileInputCell && (
         <div style={styles.mobileInputOverlay} onClick={closeMobileInput}>
-          <div style={styles.mobileInputBox} onClick={(e) => e.stopPropagation()}>
+          <div style={{...styles.mobileInputBox, maxWidth: '350px'}} onClick={(e) => e.stopPropagation()}>
             <div style={styles.mobileInputLabel}>
-              Enter value: 0-24 or h p / \ b x m ~
+              Enter fret: 0-24 or h p / \ b x m ~
             </div>
             <input
               ref={mobileInputRef}
@@ -1633,15 +2280,39 @@ export default function TabApp() {
               autoCapitalize="off"
               spellCheck="false"
             />
+            {activeInstrument === 'guitar' && (
+              <>
+                <div style={{ color: colors.textMuted, fontSize: '11px', marginTop: '12px', marginBottom: '6px' }}>
+                  Quick chords
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                  {['A', 'Am', 'C', 'D', 'Dm', 'E', 'Em', 'G'].map(chord => (
+                    <button
+                      key={chord}
+                      style={{ ...styles.button, padding: '4px 8px', fontSize: '11px' }}
+                      onClick={() => applyChord(chord)}
+                    >
+                      {chord}
+                    </button>
+                  ))}
+                  <button
+                    style={{ ...styles.button, padding: '4px 8px', fontSize: '11px' }}
+                    onClick={() => setShowChordPicker(true)}
+                  >
+                    More...
+                  </button>
+                </div>
+              </>
+            )}
             <div style={styles.mobileInputButtons}>
-              <button 
-                style={styles.mobileInputButton} 
+              <button
+                style={styles.mobileInputButton}
                 onClick={closeMobileInput}
               >
                 Close
               </button>
-              <button 
-                style={{ ...styles.mobileInputButton, ...styles.mobileInputButtonPrimary }} 
+              <button
+                style={{ ...styles.mobileInputButton, ...styles.mobileInputButtonPrimary }}
                 onClick={() => {
                   const { sectionId, measureIdx, stringIdx, cellIdx } = mobileInputCell;
                   const nextCellIdx = cellIdx + 1;
@@ -1663,218 +2334,344 @@ export default function TabApp() {
           </div>
         </div>
       )}
-      
-      {/* Header */}
+
+      {/* Keyboard shortcuts modal */}
+      {showShortcuts && (
+        <div style={styles.mobileInputOverlay} onClick={() => setShowShortcuts(false)}>
+          <div style={{
+            ...styles.mobileInputBox,
+            maxWidth: '450px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            marginBottom: 0,
+            alignSelf: 'center',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <span style={{ color: colors.textBright, fontSize: '14px', fontWeight: 'bold' }}>Keyboard Shortcuts</span>
+              <button style={styles.button} onClick={() => setShowShortcuts(false)}>Close</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <div style={{ color: colors.accent, fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Playback</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px', fontSize: '12px' }}>
+                  <span style={{ color: colors.textMuted }}>Space</span><span style={{ color: colors.text }}>Play / Pause</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ color: colors.accent, fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Editing</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px', fontSize: '12px' }}>
+                  <span style={{ color: colors.textMuted }}>0-9</span><span style={{ color: colors.text }}>Enter fret number</span>
+                  <span style={{ color: colors.textMuted }}>Arrow keys</span><span style={{ color: colors.text }}>Navigate cells</span>
+                  <span style={{ color: colors.textMuted }}>Delete / ⌫</span><span style={{ color: colors.text }}>Clear selected cells</span>
+                  <span style={{ color: colors.textMuted }}>Ctrl+Z</span><span style={{ color: colors.text }}>Undo</span>
+                  <span style={{ color: colors.textMuted }}>Ctrl+Shift+Z</span><span style={{ color: colors.text }}>Redo</span>
+                  <span style={{ color: colors.textMuted }}>Ctrl+C</span><span style={{ color: colors.text }}>Copy selection</span>
+                  <span style={{ color: colors.textMuted }}>Ctrl+V</span><span style={{ color: colors.text }}>Paste</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ color: colors.accent, fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Special Notes</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px', fontSize: '12px' }}>
+                  <span style={{ color: colors.textMuted }}>h</span><span style={{ color: colors.text }}>Hammer-on</span>
+                  <span style={{ color: colors.textMuted }}>p</span><span style={{ color: colors.text }}>Pull-off</span>
+                  <span style={{ color: colors.textMuted }}>b</span><span style={{ color: colors.text }}>Bend</span>
+                  <span style={{ color: colors.textMuted }}>r</span><span style={{ color: colors.text }}>Release</span>
+                  <span style={{ color: colors.textMuted }}>s</span><span style={{ color: colors.text }}>Slide</span>
+                  <span style={{ color: colors.textMuted }}>m</span><span style={{ color: colors.text }}>Muted note</span>
+                  <span style={{ color: colors.textMuted }}>x</span><span style={{ color: colors.text }}>Dead note / Ghost note</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ color: colors.accent, fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Other</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px', fontSize: '12px' }}>
+                  <span style={{ color: colors.textMuted }}>?</span><span style={{ color: colors.text }}>Show this help</span>
+                  <span style={{ color: colors.textMuted }}>Escape</span><span style={{ color: colors.text }}>Close dialogs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Simplified Header - Dieter Rams inspired */}
       <div style={{...styles.header, ...(focusMode ? { padding: '8px 20px' } : {})}}>
-        <div style={styles.headerLeft}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {focusMode ? (
             <span style={{ color: colors.textBright, fontSize: '12px', fontWeight: 'bold' }}>{projectName}</span>
           ) : (
-            <input
-              style={styles.projectName}
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="Project name"
-            />
-          )}
-        </div>
-        <div style={styles.headerRight}>
-          {!focusMode && (
             <>
-              <button style={styles.button} onClick={() => setShowLibrary(true)}>Library</button>
-              <button style={{ ...styles.button, ...styles.buttonPrimary }} onClick={saveToLibrary}>
-                {currentProjectId ? 'Save' : 'Save to Library'}
+              <button style={{ ...styles.button, height: '28px' }} onClick={() => setShowLibrary(true)} title="Open project library">Library</button>
+              <input
+                style={{ ...styles.projectName, height: '28px' }}
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="Project name"
+                title="Project name"
+              />
+              <button
+                style={{ ...styles.button, ...styles.buttonPrimary, height: '28px', opacity: (currentProjectId && !hasUnsavedChanges) ? 0.5 : 1 }}
+                onClick={saveToLibrary}
+                disabled={currentProjectId && !hasUnsavedChanges}
+                title="Save to library"
+              >
+                Save
               </button>
-              <button style={styles.button} onClick={exportToText}>Export text</button>
+              <button style={{ ...styles.button, height: '28px' }} onClick={exportToText} title="Export as text file">Export</button>
+              <button style={{ ...styles.button, height: '28px' }} onClick={printTab} title="Print tab">Print</button>
             </>
           )}
-          <button
-            style={styles.button}
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? 'Light' : 'Dark'}
-          </button>
-          <button
-            style={{ ...styles.button, ...(focusMode ? styles.buttonPrimary : {}) }}
-            onClick={() => setFocusMode(!focusMode)}
-            title="Focus mode"
-          >
-            {focusMode ? 'Exit focus' : 'Focus'}
-          </button>
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      {!focusMode && (
-        <div style={styles.toolbar}>
-        <div style={styles.toolbarGroup}>
-          <span style={styles.label}>Instrument</span>
-          <div style={styles.tabs}>
-            {['guitar', 'bass', 'drums'].map(inst => (
-              <button
-                key={inst}
-                style={{
-                  ...styles.tab,
-                  ...(activeInstrument === inst ? styles.tabActive : {}),
-                }}
-                onClick={() => setActiveInstrument(inst)}
-              >
-                {inst.charAt(0).toUpperCase() + inst.slice(1)}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {activeInstrument !== 'drums' && (
-          <div style={styles.toolbarGroup}>
-            <span style={styles.label}>Strings</span>
-            <select
-              style={styles.select}
-              value={stringCounts[activeInstrument]}
-              onChange={(e) => setStringCounts({ ...stringCounts, [activeInstrument]: parseInt(e.target.value) })}
+        {!focusMode && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Compact Transport + Click + Tap */}
+            <button
+              style={{ ...styles.button, height: '28px', padding: '0 8px', fontSize: '14px' }}
+              onClick={togglePlayback}
+              title={isPlaying ? 'Pause' : 'Play'}
             >
-              {Object.keys(tuningConfigs[activeInstrument]).map(count => (
-                <option key={count} value={count}>{count}-string</option>
-              ))}
-            </select>
-          </div>
-        )}
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+            <button
+              style={{ ...styles.button, height: '28px', padding: '0 8px', fontSize: '14px' }}
+              onClick={stopPlayback}
+              title="Stop"
+            >
+              ⏹
+            </button>
+            <button
+              style={{
+                ...styles.button,
+                height: '28px',
+                padding: '0 8px',
+                fontSize: '12px',
+                opacity: isLooping ? 1 : 0.5,
+                ...(isLooping ? styles.buttonPrimary : {})
+              }}
+              onClick={() => setIsLooping(!isLooping)}
+              title="Loop"
+            >
+              🔁
+            </button>
+            <button
+              style={{
+                ...styles.button,
+                height: '28px',
+                ...(clickTrack ? styles.buttonPrimary : {}),
+              }}
+              onClick={() => setClickTrack(!clickTrack)}
+              title="Metronome"
+            >
+              Click
+            </button>
+            <button
+              style={{ ...styles.button, height: '28px' }}
+              onClick={handleTapTempo}
+              title="Tap to set tempo"
+            >
+              Tap
+            </button>
 
-        {activeInstrument !== 'drums' && (
-          <div style={styles.toolbarGroup}>
-            <span style={styles.label}>Tuning</span>
-            <div style={styles.toggleContainer}>
-              <button
-                style={{
-                  ...styles.toggleButton,
-                  ...(tunings[activeInstrument] === 'standard' ? styles.toggleButtonActive : {}),
-                }}
-                onClick={() => setTunings({ ...tunings, [activeInstrument]: 'standard' })}
-              >
-                Standard
-              </button>
-              <button
-                style={{
-                  ...styles.toggleButton,
-                  ...(tunings[activeInstrument] === 'drop' ? styles.toggleButtonActive : {}),
-                }}
-                onClick={() => setTunings({ ...tunings, [activeInstrument]: 'drop' })}
-              >
-                Drop
-              </button>
+            {/* BPM */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <input
+                type="number"
+                style={{ ...styles.input, width: '55px', height: '28px', textAlign: 'center' }}
+                value={bpm}
+                onChange={(e) => setBpm(Math.max(40, Math.min(300, parseInt(e.target.value) || 120)))}
+                min="40"
+                max="300"
+                title="Tempo (40-300 BPM)"
+              />
+              <span style={{ color: colors.textMuted, fontSize: '11px', textTransform: 'uppercase' }}>bpm</span>
             </div>
           </div>
         )}
 
-        {activeInstrument !== 'drums' && (
-          <div style={styles.toolbarGroup}>
-            <button
-              style={{
-                ...styles.button,
-                ...(powerChordMode ? styles.buttonPrimary : {}),
-              }}
-              onClick={() => setPowerChordMode(!powerChordMode)}
-              title="Auto-fill power chords (root + 5th + octave)"
-            >
-              Power chord
-            </button>
-          </div>
-        )}
-
-        <div style={styles.toolbarGroup}>
-          <span style={styles.label}>Key</span>
-          <select
-            style={styles.select}
-            value={projectKey}
-            onChange={(e) => setProjectKey(e.target.value)}
-          >
-            {KEYS.map(key => (
-              <option key={key} value={key}>{key}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={styles.toolbarGroup}>
-          <span style={styles.label}>Time</span>
-          <select
-            style={styles.select}
-            value={timeSignature.label}
-            onChange={(e) => {
-              const newTimeSig = TIME_SIGNATURES.find(t => t.label === e.target.value);
-              if (newTimeSig) setTimeSignature(newTimeSig);
-            }}
-          >
-            {TIME_SIGNATURES.map(ts => (
-              <option key={ts.label} value={ts.label}>{ts.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={styles.toolbarGroup}>
-          <span style={styles.label}>Grid</span>
-          <select
-            style={styles.select}
-            value={noteResolution.label}
-            onChange={(e) => {
-              const newRes = NOTE_RESOLUTIONS.find(r => r.label === e.target.value);
-              if (newRes) setNoteResolution(newRes);
-            }}
-          >
-            {NOTE_RESOLUTIONS.map(res => (
-              <option key={res.label} value={res.label}>{res.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={styles.toolbarGroup}>
-          <span style={styles.label}>BPM</span>
-          <input
-            type="number"
-            style={styles.input}
-            value={bpm}
-            onChange={(e) => setBpm(Math.max(40, Math.min(300, parseInt(e.target.value) || 120)))}
-            min="40"
-            max="300"
-          />
-        </div>
-
-        <div style={styles.toolbarGroup}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
-            style={{ ...styles.button, ...(isPlaying ? styles.buttonDanger : styles.buttonPrimary) }}
-            onClick={startPlayback}
+            style={{ ...styles.button, height: '28px' }}
+            onClick={() => setShowSettings(!showSettings)}
+            title="Toggle advanced settings"
           >
-            {isPlaying ? 'Stop' : 'Play'}
+            Advanced
           </button>
           <button
-            style={{ ...styles.button, opacity: isMuted ? 0.5 : 1 }}
-            onClick={() => setIsMuted(!isMuted)}
+            style={{ ...styles.button, height: '28px', ...(theme === 'dark' ? {} : styles.buttonPrimary) }}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {isMuted ? 'Unmute' : 'Mute'}
+            Dark Mode
           </button>
           <button
-            style={{
-              ...styles.button,
-              ...(clickTrack ? styles.buttonPrimary : {}),
-            }}
-            onClick={() => setClickTrack(!clickTrack)}
-            title="Metronome click on each beat"
+            style={{ ...styles.button, height: '28px', ...(focusMode ? styles.buttonPrimary : {}) }}
+            onClick={() => setFocusMode(!focusMode)}
+            title="Focus mode"
           >
-            Click
+            {focusMode ? 'Exit' : 'Focus'}
           </button>
-        </div>
-
-        <div style={styles.toolbarGroup}>
-          <button style={styles.button} onClick={addSection}>Add riff</button>
         </div>
       </div>
+
+      {/* Settings Panel */}
+      {!focusMode && showSettings && (
+        <div style={{
+          backgroundColor: colors.bg,
+          padding: '12px 20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '16px',
+          alignItems: 'flex-end',
+        }}>
+          {/* Instrument Select */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Instrument</span>
+            <select
+              style={styles.select}
+              value={activeInstrument}
+              onChange={(e) => setActiveInstrument(e.target.value)}
+              title="Select instrument"
+            >
+              <option value="guitar">Guitar</option>
+              <option value="bass">Bass</option>
+              <option value="drums">Drums</option>
+            </select>
+          </div>
+
+          {/* Strings */}
+          {activeInstrument !== 'drums' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ ...styles.label, textTransform: 'uppercase' }}>Strings</span>
+              <select
+                style={styles.select}
+                value={stringCounts[activeInstrument]}
+                onChange={(e) => setStringCounts({ ...stringCounts, [activeInstrument]: parseInt(e.target.value) })}
+                title="Number of strings"
+              >
+                {Object.keys(tuningConfigs[activeInstrument]).map(count => (
+                  <option key={count} value={count}>{count}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Tuning - Radio Buttons */}
+          {activeInstrument !== 'drums' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ ...styles.label, textTransform: 'uppercase' }}>Tuning</span>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', height: '26px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: colors.text, fontSize: '12px' }}>
+                  <input
+                    type="radio"
+                    name={`tuning-${activeInstrument}`}
+                    checked={tunings[activeInstrument] === 'standard'}
+                    onChange={() => setTunings({ ...tunings, [activeInstrument]: 'standard' })}
+                    title="Standard tuning"
+                  />
+                  Standard
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: colors.text, fontSize: '12px' }}>
+                  <input
+                    type="radio"
+                    name={`tuning-${activeInstrument}`}
+                    checked={tunings[activeInstrument] === 'drop'}
+                    onChange={() => setTunings({ ...tunings, [activeInstrument]: 'drop' })}
+                    title="Drop tuning"
+                  />
+                  Drop
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Key */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Key</span>
+            <select
+              style={styles.select}
+              value={projectKey}
+              onChange={(e) => setProjectKey(e.target.value)}
+              title="Song key"
+            >
+              {KEYS.map(key => (
+                <option key={key} value={key}>{key}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Time Signature */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Time</span>
+            <select
+              style={styles.select}
+              value={timeSignature.label}
+              onChange={(e) => {
+                const newTimeSig = TIME_SIGNATURES.find(t => t.label === e.target.value);
+                if (newTimeSig) setTimeSignature(newTimeSig);
+              }}
+              title="Time signature"
+            >
+              {TIME_SIGNATURES.map(ts => (
+                <option key={ts.label} value={ts.label}>{ts.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Grid Resolution */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ ...styles.label, textTransform: 'uppercase' }}>Grid</span>
+            <select
+              style={styles.select}
+              value={noteResolution.label}
+              onChange={(e) => {
+                const newRes = NOTE_RESOLUTIONS.find(r => r.label === e.target.value);
+                if (newRes) setNoteResolution(newRes);
+              }}
+              title="Grid resolution"
+            >
+              {NOTE_RESOLUTIONS.map(res => (
+                <option key={res.label} value={res.label}>{res.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Power Chord - Checkbox */}
+          {activeInstrument !== 'drums' && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: colors.text, fontSize: '12px' }}>
+              <input
+                type="checkbox"
+                checked={powerChordMode}
+                onChange={() => setPowerChordMode(!powerChordMode)}
+                title="Auto-fill power chords (root + 5th + octave)"
+              />
+              Power Chord
+            </label>
+          )}
+        </div>
       )}
 
       {/* Content */}
       <div style={styles.content}>
         {sections.map((section, idx) => (
-          <div key={section.id} style={styles.section}>
-            <div style={styles.sectionHeader}>
+          <div key={section.id} style={{
+            ...styles.section,
+            borderLeft: section.color ? `4px solid ${section.color}` : undefined,
+          }}>
+            <div style={{
+              ...styles.sectionHeader,
+              backgroundColor: section.color ? `${section.color}15` : undefined,
+            }}>
               <div style={styles.sectionTitle}>
+                {section.color && (
+                  <span style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: section.color,
+                    marginRight: '8px',
+                    flexShrink: 0,
+                  }} />
+                )}
                 {editingSection === section.id ? (
                   <input
                     style={{ ...styles.sectionName, ...styles.sectionNameEditing }}
@@ -1908,19 +2705,38 @@ export default function TabApp() {
                 <span style={{ color: colors.textMuted, fontSize: '12px' }}>
                   {section.repeat > 1 && `×${section.repeat}`}
                 </span>
+                {/* Notes/Lyrics field */}
+                <input
+                  style={{
+                    ...styles.sectionName,
+                    color: colors.textMuted,
+                    fontWeight: 'normal',
+                    fontStyle: 'italic',
+                    fontSize: '11px',
+                    marginLeft: '12px',
+                    minWidth: '150px',
+                    flex: 1,
+                  }}
+                  value={section.notes || ''}
+                  onChange={(e) => updateSection(section.id, { notes: e.target.value })}
+                  placeholder="lyrics / notes..."
+                  onClick={(e) => e.stopPropagation()}
+                  title="Add lyrics or notes for this part"
+                />
               </div>
-              
+
               {!focusMode && (
               <div style={styles.sectionControls}>
-                <span style={styles.label}>Measures</span>
+                <span style={styles.label}>Bars</span>
                 <input
                   type="number"
                   style={styles.smallInput}
                   value={section.measures}
                   onChange={(e) => updateSection(section.id, { measures: Math.max(1, parseInt(e.target.value) || 1) })}
                   min="1"
+                  title="Number of bars"
                 />
-                
+
                 <span style={{ ...styles.label, marginLeft: '8px' }}>Repeat</span>
                 <input
                   type="number"
@@ -1928,8 +2744,21 @@ export default function TabApp() {
                   value={section.repeat}
                   onChange={(e) => updateSection(section.id, { repeat: Math.max(1, parseInt(e.target.value) || 1) })}
                   min="1"
+                  title="Repeat count"
                 />
-                
+
+                <span style={{ ...styles.label, marginLeft: '8px' }}>Color</span>
+                <select
+                  style={{ ...styles.select, width: 'auto', padding: '2px 4px' }}
+                  value={section.color || ''}
+                  onChange={(e) => updateSection(section.id, { color: e.target.value || null })}
+                  title="Section color"
+                >
+                  {SECTION_COLORS.map(c => (
+                    <option key={c.name} value={c.value || ''}>{c.name}</option>
+                  ))}
+                </select>
+
                 <button
                   style={styles.smallButton}
                   onClick={() => duplicateSection(section.id)}
@@ -1954,6 +2783,27 @@ export default function TabApp() {
             {renderGrid(section)}
           </div>
         ))}
+
+        {/* Add Part Button - at bottom of content area */}
+        {!focusMode && (
+          <button
+            style={{
+              ...styles.button,
+              width: '100%',
+              padding: '12px',
+              marginTop: '8px',
+              opacity: 0.6,
+              border: `1px dashed ${colors.border}`,
+              backgroundColor: 'transparent',
+            }}
+            onClick={addSection}
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+            title="Add a new part"
+          >
+            + Add Part
+          </button>
+        )}
       </div>
 
       {/* Legend Toggle & Panel */}
@@ -1961,6 +2811,7 @@ export default function TabApp() {
         <button
           style={{ ...styles.button, display: 'flex', alignItems: 'center', gap: '6px' }}
           onClick={() => setShowLegend(!showLegend)}
+          title="Show notation reference"
         >
           <span>{showLegend ? 'Hide legend' : 'Show legend'}</span>
         </button>
@@ -2083,3 +2934,6 @@ export default function TabApp() {
     </div>
   );
 }
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<TabApp />);
