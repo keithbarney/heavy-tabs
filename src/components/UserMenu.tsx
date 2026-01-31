@@ -86,12 +86,12 @@ export default function UserMenu({ auth, onSignIn, onShowLibrary, onShare, canSh
               </div>
 
               <p className={styles.menuDescription}>
-                Sign in to sync your tabs across devices and share with a link.
+                Sign in or create an account to sync your tabs across devices and share with a link.
               </p>
 
               <button className={`${styles.menuItem} ${styles.primary}`} onClick={() => { onSignIn(); setIsOpen(false) }}>
                 <LogIn size={16} />
-                Sign In
+                Sign In / Sign Up
               </button>
 
               <div className={styles.menuDivider} />

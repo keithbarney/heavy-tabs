@@ -13,7 +13,7 @@ import {
   DEFAULT_BPM, TIME_SIGNATURES, NOTE_RESOLUTIONS, SECTION_COLORS,
   CHORD_SHAPES, getTuningNotes, getCellsPerMeasure
 } from '@/lib/constants'
-import { generateId, getLocalProjects, saveLocalProject, deleteLocalProject } from '@/lib/storage'
+import { generateId, saveLocalProject } from '@/lib/storage'
 import styles from './TabEditor.module.scss'
 
 interface TabEditorProps {
@@ -80,9 +80,10 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   const [editingSectionName, setEditingSectionName] = useState('')
   const [confirmRemoveBar, setConfirmRemoveBar] = useState<{ sectionId: string; sectionName: string } | null>(null)
   const [mobileInputCell, setMobileInputCell] = useState<CellPosition | null>(null)
+  const [editingField, setEditingField] = useState<string | null>(null)
+  const [editingFieldValue, setEditingFieldValue] = useState('')
 
   // Library state
-  const [savedProjects, setSavedProjects] = useState<LocalProject[]>([])
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProject?.id || null)
   const [currentCloudId, setCurrentCloudId] = useState<string | undefined>(initialProject?.cloudId)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -102,6 +103,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   const tapTimesRef = useRef<number[]>([])
   const mobileInputRef = useRef<HTMLInputElement>(null)
   const isInitialMount = useRef(true)
+  const justFinishedSelectingRef = useRef(false)
 
   const cellsPerMeasure = getCellsPerMeasure(timeSignature, noteResolution)
 
@@ -160,11 +162,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     }
   }, [history, historyIndex])
 
-  // Load saved projects
-  useEffect(() => {
-    setSavedProjects(getLocalProjects())
-  }, [])
-
   // Get current project data
   const getCurrentProject = useCallback((): LocalProject => ({
     id: currentProjectId || generateId(),
@@ -213,7 +210,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       setCurrentProjectId(project.id)
     }
     saveLocalProject(project)
-    setSavedProjects(getLocalProjects())
     setHasUnsavedChanges(false)
     const result = await onSave?.(project)
     // Update cloudId if returned from save
@@ -237,7 +233,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       }
 
       saveLocalProject(project)
-      setSavedProjects(getLocalProjects())
       setHasUnsavedChanges(false)
       const result = await onSave?.(project) // Sync to cloud
       // Update cloudId if returned from save
@@ -259,49 +254,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     if (currentProjectId) setHasUnsavedChanges(true)
     onProjectChange?.(getCurrentProject())
   }, [projectName, bpm, timeSignature, noteResolution, projectKey, tunings, stringCounts, sections, tabData])
-
-  // Load project
-  const loadFromLibrary = (project: LocalProject) => {
-    setProjectName(project.projectName || 'Untitled Project')
-    setBpm(project.bpm || DEFAULT_BPM)
-    setTimeSignature(project.timeSignature || TIME_SIGNATURES[0])
-    setNoteResolution(project.noteResolution || NOTE_RESOLUTIONS[1])
-    setProjectKey(project.projectKey || 'E')
-    setTunings(project.tunings || { guitar: 'standard', bass: 'standard' })
-    setStringCounts(project.stringCounts || { guitar: 6, bass: 4 })
-    setSections(project.sections || [createSection('Intro')])
-    setTabData(project.tabData || {})
-    setCurrentProjectId(project.id)
-    setShowLibrary(false)
-    setHistory([])
-    setHistoryIndex(-1)
-    setHasUnsavedChanges(false)
-    isInitialMount.current = true
-  }
-
-  // Delete project
-  const deleteFromLibraryHandler = (projectId: string) => {
-    deleteLocalProject(projectId)
-    setSavedProjects(getLocalProjects())
-    if (currentProjectId === projectId) setCurrentProjectId(null)
-  }
-
-  // New project
-  const newProject = () => {
-    setProjectName('Untitled Project')
-    setBpm(DEFAULT_BPM)
-    setTimeSignature(TIME_SIGNATURES[0])
-    setNoteResolution(NOTE_RESOLUTIONS[1])
-    setProjectKey('E')
-    setTunings({ guitar: 'standard', bass: 'standard' })
-    setStringCounts({ guitar: 6, bass: 4 })
-    setSections([createSection('Intro')])
-    setTabData({})
-    setCurrentProjectId(null)
-    setHistory([])
-    setHistoryIndex(-1)
-    setShowLibrary(false)
-  }
 
   // Initialize tab data when sections change
   useEffect(() => {
@@ -398,16 +350,42 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     }
   }
 
-  // Cell selection
+  const duplicateBar = (section: Section) => {
+    // Duplicate the last bar for all instruments
+    (['guitar', 'bass', 'drums'] as Instrument[]).forEach(instrument => {
+      const key = `${section.id}-${instrument}`
+      const data = tabData[key] || []
+      if (data.length > 0) {
+        const lastBar = JSON.parse(JSON.stringify(data[data.length - 1]))
+        setTabData(prev => ({ ...prev, [key]: [...(prev[key] || []), lastBar] }))
+      }
+    })
+    // Update the section measure count
+    setSections(sections.map(s => s.id === section.id ? { ...s, measures: s.measures + 1 } : s))
+  }
+
+  // Get string count for current instrument
+  const getStringCount = () => activeInstrument === 'drums' ? drumLines.length : stringCounts[activeInstrument]
+
+  // Select all strings at a given position (full column)
+  const getColumnCells = (sectionId: string, measureIdx: number, cellIdx: number): string[] => {
+    const stringCount = getStringCount()
+    const cells: string[] = []
+    for (let s = 0; s < stringCount; s++) {
+      cells.push(`${sectionId}-${measureIdx}-${s}-${cellIdx}`)
+    }
+    return cells
+  }
+
+  // Cell selection - always selects full columns
   const handleCellClick = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number, e: React.MouseEvent) => {
     if (readOnly) return
-    const cellKey = `${sectionId}-${measureIdx}-${stringIdx}-${cellIdx}`
     if (e.shiftKey && selectionStart) {
       const cells = getCellsBetween(selectionStart, { sectionId, measureIdx, stringIdx, cellIdx })
       setSelectedCells(cells)
     } else {
       setSelectionStart({ sectionId, measureIdx, stringIdx, cellIdx })
-      setSelectedCells([cellKey])
+      setSelectedCells(getColumnCells(sectionId, measureIdx, cellIdx))
       // Open input modal on click
       setMobileInputCell({ sectionId, measureIdx, stringIdx, cellIdx })
     }
@@ -415,9 +393,10 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
 
   const handleMouseDown = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number, e: React.MouseEvent) => {
     if (readOnly || e.button !== 0) return
+    e.preventDefault() // Prevent text selection while dragging
     setIsSelecting(true)
     setSelectionStart({ sectionId, measureIdx, stringIdx, cellIdx })
-    setSelectedCells([`${sectionId}-${measureIdx}-${stringIdx}-${cellIdx}`])
+    setSelectedCells(getColumnCells(sectionId, measureIdx, cellIdx))
   }
 
   const handleMouseEnter = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number) => {
@@ -426,25 +405,32 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     setSelectedCells(cells)
   }
 
-  const handleMouseUp = () => setIsSelecting(false)
+  const handleMouseUp = () => {
+    if (isSelecting) {
+      justFinishedSelectingRef.current = true
+      setTimeout(() => { justFinishedSelectingRef.current = false }, 100)
+    }
+    setIsSelecting(false)
+  }
 
+  // Get all cells between two positions - always selects full columns
   const getCellsBetween = (start: CellPosition, end: CellPosition): string[] => {
     if (start.sectionId !== end.sectionId) {
-      return [`${end.sectionId}-${end.measureIdx}-${end.stringIdx}-${end.cellIdx}`]
+      return getColumnCells(end.sectionId, end.measureIdx, end.cellIdx)
     }
+    const stringCount = getStringCount()
     const cells: string[] = []
     const minMeasure = Math.min(start.measureIdx, end.measureIdx)
     const maxMeasure = Math.max(start.measureIdx, end.measureIdx)
-    const minString = Math.min(start.stringIdx, end.stringIdx)
-    const maxString = Math.max(start.stringIdx, end.stringIdx)
     const minCell = Math.min(start.cellIdx, end.cellIdx)
     const maxCell = Math.max(start.cellIdx, end.cellIdx)
 
     for (let m = minMeasure; m <= maxMeasure; m++) {
-      for (let s = minString; s <= maxString; s++) {
-        const startCell = m === minMeasure ? minCell : 0
-        const endCell = m === maxMeasure ? maxCell : cellsPerMeasure - 1
-        for (let c = startCell; c <= endCell; c++) {
+      const startCell = m === minMeasure ? minCell : 0
+      const endCell = m === maxMeasure ? maxCell : cellsPerMeasure - 1
+      for (let c = startCell; c <= endCell; c++) {
+        // Always select all strings (full column)
+        for (let s = 0; s < stringCount; s++) {
           cells.push(`${start.sectionId}-${m}-${s}-${c}`)
         }
       }
@@ -983,8 +969,11 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           </div>
           {!readOnly && (
             <div className={styles.barButtons}>
-              <button className={styles.iconButton} onClick={() => updateSection(section.id, { measures: section.measures + 1 })} title="Add bar">
+              <button className={`${styles.iconButton} ${styles.add}`} onClick={() => updateSection(section.id, { measures: section.measures + 1 })} title="Add bar">
                 <Plus size={14} />
+              </button>
+              <button className={styles.iconButton} onClick={() => duplicateBar(section)} title="Duplicate last bar">
+                <Copy size={14} />
               </button>
               <button className={styles.iconButton} onClick={() => handleRemoveBar(section)} title="Remove bar" disabled={section.measures <= 1}>
                 <Minus size={14} />
@@ -997,7 +986,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   }
 
   return (
-    <div className={styles.container} data-theme={theme} onClick={() => setSelectedCells([])}>
+    <div className={styles.container} data-theme={theme} onClick={() => { if (!justFinishedSelectingRef.current) setSelectedCells([]) }}>
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
@@ -1008,7 +997,33 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
               {!readOnly && (
                 <>
                   <button className={styles.button} onClick={onOpenLibrary}><FolderOpen size={16} /><span>Library</span></button>
-                  <input className={styles.projectInput} value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name" />
+                  {editingField === 'projectName' ? (
+                    <input
+                      className={styles.projectInput}
+                      value={editingFieldValue}
+                      onChange={(e) => setEditingFieldValue(e.target.value)}
+                      onBlur={() => {
+                        setProjectName(editingFieldValue || 'Untitled Project')
+                        setEditingField(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setProjectName(editingFieldValue || 'Untitled Project')
+                          setEditingField(null)
+                        }
+                      }}
+                      placeholder="Project name"
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      className={styles.projectTitle}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => { setEditingField('projectName'); setEditingFieldValue(projectName) }}
+                    >
+                      {projectName}
+                    </span>
+                  )}
                   <button
                     className={`${styles.button} ${saveStatus === 'success' ? styles.buttonSuccess : styles.buttonPrimary}`}
                     onClick={saveToLibrary}
@@ -1028,24 +1043,50 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
 
         {!focusMode && (
           <div className={styles.playbackControls}>
-            <button className={styles.iconButton} onClick={togglePlayback}>{isPlaying ? <Pause size={16} /> : <Play size={16} />}</button>
-            <button className={styles.iconButton} onClick={stopPlayback}><Square size={16} /></button>
-            <button className={`${styles.iconButton} ${isLooping ? styles.active : ''}`} onClick={() => setIsLooping(!isLooping)}><Repeat size={16} /></button>
-            <button className={`${styles.iconButton} ${clickTrack ? styles.active : ''}`} onClick={() => setClickTrack(!clickTrack)}><Volume2 size={16} /></button>
-            <button className={styles.iconButton} onClick={handleTapTempo}><Hand size={16} /></button>
-            <div className={styles.bpmControl}>
-              <input type="number" value={bpm} onChange={(e) => setBpm(Math.max(40, Math.min(300, parseInt(e.target.value) || 120)))} min="40" max="300" />
-              <span>bpm</span>
-            </div>
+            <button className={styles.iconButton} onClick={togglePlayback} title={isPlaying ? 'Pause' : 'Play'}>{isPlaying ? <Pause size={16} /> : <Play size={16} />}</button>
+            <button className={styles.iconButton} onClick={stopPlayback} title="Stop"><Square size={16} /></button>
+            <button className={`${styles.iconButton} ${isLooping ? styles.active : ''}`} onClick={() => setIsLooping(!isLooping)} title="Loop"><Repeat size={16} /></button>
+            <button className={`${styles.iconButton} ${clickTrack ? styles.active : ''}`} onClick={() => setClickTrack(!clickTrack)} title="Click track"><Volume2 size={16} /></button>
+            <button className={styles.iconButton} onClick={handleTapTempo} title="Tap tempo"><Hand size={16} /></button>
+            {editingField === 'bpm' ? (
+              <div className={styles.bpmControl}>
+                <input
+                  type="number"
+                  value={editingFieldValue}
+                  onChange={(e) => setEditingFieldValue(e.target.value)}
+                  onBlur={() => {
+                    setBpm(Math.max(40, Math.min(300, parseInt(editingFieldValue) || 120)))
+                    setEditingField(null)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setBpm(Math.max(40, Math.min(300, parseInt(editingFieldValue) || 120)))
+                      setEditingField(null)
+                    }
+                  }}
+                  min="40"
+                  max="300"
+                  autoFocus
+                />
+                <span>bpm</span>
+              </div>
+            ) : (
+              <span
+                className={styles.inlineEditable}
+                onClick={() => { setEditingField('bpm'); setEditingFieldValue(String(bpm)) }}
+              >
+                <span className={styles.inlineValue}>{bpm}</span> bpm
+              </span>
+            )}
           </div>
         )}
 
         <div className={styles.headerRight}>
           {!readOnly && (
-            <button className={`${styles.iconButton} ${showSettings ? styles.active : ''}`} onClick={() => setShowSettings(!showSettings)}><Settings size={16} /></button>
+            <button className={`${styles.iconButton} ${showSettings ? styles.active : ''}`} onClick={() => setShowSettings(!showSettings)} title="Settings"><Settings size={16} /></button>
           )}
-          <button className={styles.iconButton} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}</button>
-          <button className={`${styles.iconButton} ${focusMode ? styles.active : ''}`} onClick={() => setFocusMode(!focusMode)}>
+          <button className={styles.iconButton} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>{theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}</button>
+          <button className={`${styles.iconButton} ${focusMode ? styles.active : ''}`} onClick={() => setFocusMode(!focusMode)} title={focusMode ? 'Exit focus mode' : 'Focus mode'}>
             {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
@@ -1106,7 +1147,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       {/* Content */}
       <main className={styles.content}>
         {sections.map((section) => (
-          <section key={section.id} className={styles.section} style={{ borderLeftColor: section.color || undefined }}>
+          <section key={section.id} className={styles.section} style={section.color ? { borderLeft: `4px solid ${section.color}` } : undefined}>
             <div className={styles.sectionHeader} style={{ backgroundColor: section.color ? `${section.color}15` : undefined }}>
               <div className={styles.sectionTitle}>
                 {section.color && <span className={styles.colorDot} style={{ backgroundColor: section.color }} />}
@@ -1120,25 +1161,106 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                     autoFocus
                   />
                 ) : (
-                  <span className={styles.sectionName} onDoubleClick={() => { if (!focusMode && !readOnly) { setEditingSection(section.id); setEditingSectionName(section.name) } }}>
+                  <span
+                    className={styles.sectionName}
+                    onClick={(e) => { e.stopPropagation(); if (!focusMode && !readOnly) { setEditingSection(section.id); setEditingSectionName(section.name) } }}
+                  >
                     {section.name}
                   </span>
                 )}
                 {section.repeat > 1 && <span className={styles.repeatBadge}>×{section.repeat}</span>}
                 {!readOnly && (
-                  <input
-                    className={styles.notesInput}
-                    value={section.notes || ''}
-                    onChange={(e) => updateSection(section.id, { notes: e.target.value })}
-                    placeholder="lyrics / notes..."
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  editingField === `notes-${section.id}` ? (
+                    <input
+                      className={styles.notesInput}
+                      value={editingFieldValue}
+                      onChange={(e) => setEditingFieldValue(e.target.value)}
+                      onBlur={() => {
+                        updateSection(section.id, { notes: editingFieldValue })
+                        setEditingField(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          updateSection(section.id, { notes: editingFieldValue })
+                          setEditingField(null)
+                        }
+                      }}
+                      placeholder="lyrics / notes..."
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      className={styles.notesDisplay}
+                      onClick={(e) => { e.stopPropagation(); setEditingField(`notes-${section.id}`); setEditingFieldValue(section.notes || '') }}
+                    >
+                      {section.notes || 'lyrics / notes...'}
+                    </span>
+                  )
                 )}
               </div>
               {!focusMode && !readOnly && (
                 <div className={styles.sectionControls}>
-                  <label>Bars <input type="number" value={section.measures} onChange={(e) => updateSection(section.id, { measures: Math.max(1, parseInt(e.target.value) || 1) })} min="1" /></label>
-                  <label>Repeat <input type="number" value={section.repeat} onChange={(e) => updateSection(section.id, { repeat: Math.max(1, parseInt(e.target.value) || 1) })} min="1" /></label>
+                  {editingField === `bars-${section.id}` ? (
+                    <span className={styles.inlineEditable}>
+                      Bars
+                      <input
+                        type="number"
+                        value={editingFieldValue}
+                        onChange={(e) => setEditingFieldValue(e.target.value)}
+                        onBlur={() => {
+                          updateSection(section.id, { measures: Math.max(1, parseInt(editingFieldValue) || 1) })
+                          setEditingField(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            updateSection(section.id, { measures: Math.max(1, parseInt(editingFieldValue) || 1) })
+                            setEditingField(null)
+                          }
+                        }}
+                        min="1"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </span>
+                  ) : (
+                    <span
+                      className={styles.inlineEditable}
+                      onClick={(e) => { e.stopPropagation(); setEditingField(`bars-${section.id}`); setEditingFieldValue(String(section.measures)) }}
+                    >
+                      Bars <span className={styles.inlineValue}>{section.measures}</span>
+                    </span>
+                  )}
+                  {editingField === `repeat-${section.id}` ? (
+                    <span className={styles.inlineEditable}>
+                      Repeat
+                      <input
+                        type="number"
+                        value={editingFieldValue}
+                        onChange={(e) => setEditingFieldValue(e.target.value)}
+                        onBlur={() => {
+                          updateSection(section.id, { repeat: Math.max(1, parseInt(editingFieldValue) || 1) })
+                          setEditingField(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            updateSection(section.id, { repeat: Math.max(1, parseInt(editingFieldValue) || 1) })
+                            setEditingField(null)
+                          }
+                        }}
+                        min="1"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </span>
+                  ) : (
+                    <span
+                      className={styles.inlineEditable}
+                      onClick={(e) => { e.stopPropagation(); setEditingField(`repeat-${section.id}`); setEditingFieldValue(String(section.repeat)) }}
+                    >
+                      Repeat <span className={styles.inlineValue}>{section.repeat}</span>
+                    </span>
+                  )}
                   <label>Color
                     <select value={section.color || ''} onChange={(e) => updateSection(section.id, { color: e.target.value || null })}>
                       {SECTION_COLORS.map(c => <option key={c.name} value={c.value || ''}>{c.name}</option>)}
@@ -1153,46 +1275,48 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           </section>
         ))}
         {!focusMode && !readOnly && (
-          <button className={styles.addPartButton} onClick={addSection}><Plus size={16} />Add Part</button>
+          <button className={styles.addPartButton} onClick={addSection} title="Add part"><Plus size={16} />Add Part</button>
         )}
       </main>
 
       {/* Legend */}
-      <div className={styles.legendBar}>
-        <button className={styles.button} onClick={() => setShowLegend(!showLegend)}><HelpCircle size={16} />{showLegend ? 'Hide legend' : 'Show legend'}</button>
-        {!showLegend && (
-          <div className={styles.quickHelp}>
-            <span>Ctrl+C copy</span><span>Ctrl+V paste</span><span>Del clear</span><span>Arrows navigate</span>
+      <div className={styles.legendWrapper}>
+        {showLegend && (
+          <div className={styles.legend}>
+            <div className={styles.legendSection}>
+              <h4>Guitar and bass</h4>
+              <div className={styles.legendGrid}>
+                <div><span className={styles.legendKey}>0-24</span>Fret number</div>
+                {Object.entries(techniques).map(([key, desc]) => <div key={key}><span className={styles.legendKey}>{key}</span>{desc}</div>)}
+              </div>
+            </div>
+            <div className={styles.legendSection}>
+              <h4>Drums</h4>
+              <div className={styles.legendGrid}>
+                <div><span className={styles.legendKey}>x / X</span>Hit</div>
+                <div><span className={styles.legendKey}>o / O</span>Accent</div>
+                <div><span className={styles.legendKey}>f</span>Flam</div>
+                <div><span className={styles.legendKey}>g</span>Ghost note</div>
+                <div><span className={styles.legendKey}>-</span>Rest</div>
+              </div>
+            </div>
+            <div className={styles.legendSection}>
+              <h4>Drum kit</h4>
+              <div className={styles.legendGrid}>
+                {drumLines.map(line => <div key={line.id}><span className={styles.legendKey}>{line.name}</span>{line.fullName}</div>)}
+              </div>
+            </div>
           </div>
         )}
-      </div>
-      {showLegend && (
-        <div className={styles.legend}>
-          <div className={styles.legendSection}>
-            <h4>Guitar and bass</h4>
-            <div className={styles.legendGrid}>
-              <div><span className={styles.legendKey}>0-24</span>Fret number</div>
-              {Object.entries(techniques).map(([key, desc]) => <div key={key}><span className={styles.legendKey}>{key}</span>{desc}</div>)}
+        <div className={styles.legendBar}>
+          <button className={styles.button} onClick={() => setShowLegend(!showLegend)}><HelpCircle size={16} />{showLegend ? 'Hide legend' : 'Show legend'}</button>
+          {!showLegend && (
+            <div className={styles.quickHelp}>
+              <span>Ctrl+C copy</span><span>Ctrl+V paste</span><span>Del clear</span><span>Arrows navigate</span>
             </div>
-          </div>
-          <div className={styles.legendSection}>
-            <h4>Drums</h4>
-            <div className={styles.legendGrid}>
-              <div><span className={styles.legendKey}>x / X</span>Hit</div>
-              <div><span className={styles.legendKey}>o / O</span>Accent</div>
-              <div><span className={styles.legendKey}>f</span>Flam</div>
-              <div><span className={styles.legendKey}>g</span>Ghost note</div>
-              <div><span className={styles.legendKey}>-</span>Rest</div>
-            </div>
-          </div>
-          <div className={styles.legendSection}>
-            <h4>Drum kit</h4>
-            <div className={styles.legendGrid}>
-              {drumLines.map(line => <div key={line.id}><span className={styles.legendKey}>{line.name}</span>{line.fullName}</div>)}
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Modals */}
       {showShortcuts && (
@@ -1200,7 +1324,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Keyboard Shortcuts</h3>
-              <button className={styles.iconButton} onClick={() => setShowShortcuts(false)}><X size={16} /></button>
+              <button className={styles.iconButton} onClick={() => setShowShortcuts(false)} title="Close"><X size={16} /></button>
             </div>
             <div className={styles.shortcutList}>
               <div><strong>Playback</strong></div>
@@ -1227,7 +1351,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Select Chord</h3>
-              <button className={styles.iconButton} onClick={() => { setShowChordPicker(false); setChordSearch('') }}><X size={16} /></button>
+              <button className={styles.iconButton} onClick={() => { setShowChordPicker(false); setChordSearch('') }} title="Close"><X size={16} /></button>
             </div>
             <input className={styles.searchInput} placeholder="Search chords..." value={chordSearch} onChange={(e) => setChordSearch(e.target.value)} autoFocus />
             {selectedCells.length === 0 && <p className={styles.warning}>Select a cell first</p>}
@@ -1268,8 +1392,11 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       {mobileInputCell && (
         <div className={styles.modalOverlay} onClick={closeMobileInput}>
           <div className={styles.mobileInputBox} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.modalCloseButton} onClick={closeMobileInput} aria-label="Close">
+              <X size={18} />
+            </button>
             <label>Enter fret: 0-24 or h p / \ b x m ~</label>
-            <input ref={mobileInputRef} type="tel" inputMode="numeric" value={getMobileInputValue()} onChange={handleMobileInput} autoComplete="off" />
+            <input ref={mobileInputRef} type="tel" inputMode="numeric" value={getMobileInputValue()} onChange={handleMobileInput} onKeyDown={(e) => { if (e.key === 'Enter') closeMobileInput() }} autoComplete="off" />
             {activeInstrument === 'guitar' && (
               <div className={styles.quickChords}>
                 <span>Quick chords</span>
@@ -1281,7 +1408,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
               </div>
             )}
             <div className={styles.mobileInputActions}>
-              <button className={styles.button} onClick={closeMobileInput}><X size={14} />Close</button>
+              <button className={styles.buttonPrimary} onClick={closeMobileInput}>Done</button>
             </div>
           </div>
         </div>

@@ -220,7 +220,7 @@ interface MainViewProps {
   projectNotFoundMessage: string | null
   onSelectProject: (project: LocalProject) => void
   onNewProject: () => void
-  onSaveProject: (project: LocalProject) => void
+  onSaveProject: (project: LocalProject) => Promise<{ project?: LocalProject } | void>
   onProjectChange: (project: LocalProject) => void
   onShare: () => void
   setShowLibrary: (show: boolean) => void

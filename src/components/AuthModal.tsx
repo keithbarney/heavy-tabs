@@ -48,7 +48,7 @@ export default function AuthModal({ isOpen, onClose, auth }: AuthModalProps) {
   return (
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={handleClose}>
+        <button className={styles.closeButton} onClick={handleClose} title="Close">
           <X size={20} />
         </button>
 
@@ -56,8 +56,8 @@ export default function AuthModal({ isOpen, onClose, auth }: AuthModalProps) {
           <>
             <div className={styles.header}>
               <Mail size={32} className={styles.icon} />
-              <h2>Sign in to Heavy Tabs</h2>
-              <p>We'll send you a magic link to sign in. No password needed.</p>
+              <h2>Sign in or create account</h2>
+              <p>Enter your email and we'll send you a magic link. No password needed — new accounts are created automatically.</p>
             </div>
 
             <form onSubmit={handleSubmit} className={styles.form}>
@@ -102,7 +102,7 @@ export default function AuthModal({ isOpen, onClose, auth }: AuthModalProps) {
             <CheckCircle size={48} className={styles.successIcon} />
             <h2>Check your email</h2>
             <p>
-              We sent a magic link to <strong>{email}</strong>. Click the link in the email to sign in.
+              We sent a magic link to <strong>{email}</strong>. Click the link to sign in or create your account.
             </p>
             <p className={styles.hint}>
               Didn't receive it? Check your spam folder or{' '}

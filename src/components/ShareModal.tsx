@@ -62,7 +62,7 @@ export default function ShareModal({ isOpen, onClose, projectId, projectName, sh
             <Share2 size={20} />
             <h2>Share "{projectName}"</h2>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>
+          <button className={styles.closeButton} onClick={onClose} title="Close">
             <X size={20} />
           </button>
         </div>

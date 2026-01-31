@@ -145,6 +145,19 @@
     background-color: $color-accent;
     color: $color-bg;
   }
+
+  &.add {
+    color: $color-green;
+    border: 1px solid rgba($color-green, 0.5);
+    opacity: 0.7;
+    background-color: rgba($color-green, 0.1);
+
+    &:hover:not(:disabled) {
+      opacity: 1;
+      background-color: rgba($color-green, 0.2);
+      border-color: $color-green;
+    }
+  }
 }
 
 .smallButton {
@@ -221,6 +234,7 @@
 // Content
 .content {
   padding: $space-lg;
+  padding-bottom: 60px; // Space for fixed footer
   overflow-x: auto;
 }
 
@@ -230,7 +244,6 @@
   background-color: $color-bg-alt;
   border-radius: $radius-sm;
   overflow: hidden;
-  border-left: 4px solid transparent;
 }
 
 .sectionHeader {
@@ -292,6 +305,21 @@
   font-size: $font-size-sm;
 }
 
+.notesDisplay {
+  flex: 1;
+  min-width: 150px;
+  font-style: italic;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba($color-accent, 0.1);
+  }
+}
+
 .sectionControls {
   display: flex;
   align-items: center;
@@ -316,6 +344,36 @@
     select {
       width: auto;
     }
+  }
+}
+
+.inlineEditable {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+
+  &:hover {
+    background-color: rgba($color-accent, 0.1);
+  }
+
+  .inlineValue {
+    color: $color-text-bright;
+    font-weight: 500;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  input {
+    @include input-base;
+    width: 50px;
+    text-align: center;
+    padding: $space-xs $space-sm;
+    font-size: $font-size-sm;
   }
 }
 
@@ -388,6 +446,7 @@
   border-left: 2px solid $color-border;
   border-right: 1px solid $color-border;
   position: relative;
+  user-select: none;
 }
 
 .playbackCursor {
@@ -455,22 +514,35 @@
   width: 100%;
   padding: $space-md;
   margin-top: $space-sm;
-  opacity: 0.6;
-  border: 1px dashed $color-border;
+  color: $color-green;
+  border: 1px solid rgba($color-green, 0.5);
   justify-content: center;
+  opacity: 0.7;
+  background-color: rgba($color-green, 0.1);
 
   &:hover {
     opacity: 1;
+    background-color: rgba($color-green, 0.2);
+    border-color: $color-green;
   }
 }
 
 // Legend
+.legendWrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
 .legendBar {
   padding: $space-sm $space-xl;
   background-color: $color-bg-alt;
   display: flex;
   align-items: center;
   gap: $space-lg;
+  border-top: 1px solid $color-border;
 }
 
 .quickHelp {
@@ -487,6 +559,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: $space-2xl;
+  border-top: 1px solid $color-border;
+  max-height: 50vh;
+  overflow-y: auto;
 }
 
 .legendSection {
@@ -660,7 +735,9 @@
 // Mobile input
 .mobileInputBox {
   @include card;
+  position: relative;
   padding: $space-lg;
+  padding-top: $space-xl;
   width: 100%;
   max-width: 350px;
   margin-bottom: $space-xl;
@@ -678,6 +755,19 @@
     font-size: $font-size-lg;
     padding: $space-md;
     text-align: center;
+  }
+}
+
+.modalCloseButton {
+  @include button-ghost;
+  position: absolute;
+  top: $space-sm;
+  right: $space-sm;
+  padding: $space-xs;
+  color: $color-text-muted;
+
+  &:hover {
+    color: $color-text;
   }
 }
 

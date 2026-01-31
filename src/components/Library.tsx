@@ -115,7 +115,7 @@ export default function Library({
             <FolderOpen size={20} />
             <h2>Project Library</h2>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>
+          <button className={styles.closeButton} onClick={onClose} title="Close">
             <X size={20} />
           </button>
         </div>
@@ -136,7 +136,7 @@ export default function Library({
             />
           </div>
 
-          <button className={styles.iconButton} onClick={handleRefresh} disabled={projects.loading}>
+          <button className={styles.iconButton} onClick={handleRefresh} disabled={projects.loading} title="Refresh">
             <RefreshCw size={16} className={projects.loading ? 'spinner' : ''} />
           </button>
         </div>
