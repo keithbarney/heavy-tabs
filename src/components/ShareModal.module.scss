@@ -1,0 +1,191 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.overlay {
+  @include modal-overlay;
+}
+
+.modal {
+  @include modal-content;
+  max-width: 520px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-lg;
+  border-bottom: 1px solid $color-border;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-md;
+    font-weight: 600;
+    @include truncate;
+  }
+
+  svg {
+    color: $color-accent;
+    flex-shrink: 0;
+  }
+}
+
+.closeButton {
+  @include button-ghost;
+  padding: $space-sm;
+}
+
+.content {
+  padding: $space-lg;
+}
+
+.empty {
+  text-align: center;
+  padding: $space-xl 0;
+
+  svg {
+    color: $color-text-muted;
+    margin-bottom: $space-md;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+  }
+}
+
+.linkList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.linkCard {
+  @include card;
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  @include sm {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.linkInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.linkUrl {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-bottom: $space-xs;
+
+  svg {
+    color: $color-accent;
+    flex-shrink: 0;
+  }
+
+  span {
+    color: $color-text;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    @include truncate;
+  }
+}
+
+.linkMeta {
+  display: flex;
+  gap: $space-md;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+  }
+}
+
+.linkActions {
+  display: flex;
+  gap: $space-xs;
+}
+
+.copyButton {
+  @include button-primary;
+  padding: $space-sm $space-md;
+  font-size: $font-size-sm;
+}
+
+.openButton, .revokeButton {
+  @include button-ghost;
+  padding: $space-sm;
+}
+
+.revokeButton {
+  color: $color-text-muted;
+
+  &:hover {
+    color: $color-red;
+    background-color: rgba($color-red, 0.1);
+  }
+}
+
+.createButton {
+  @include button-secondary;
+  width: 100%;
+  padding: $space-md;
+  justify-content: center;
+}
+
+.revokedSection {
+  margin-top: $space-xl;
+  padding-top: $space-lg;
+  border-top: 1px solid $color-border;
+
+  h4 {
+    color: $color-text-muted;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+    margin-bottom: $space-sm;
+  }
+}
+
+.revokedList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.revokedLink {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  padding: $space-xs 0;
+
+  span:first-child {
+    font-family: $font-mono;
+    text-decoration: line-through;
+  }
+}
+
+.error {
+  padding: $space-md $space-lg;
+  background-color: rgba($color-red, 0.1);
+  color: $color-red;
+  font-size: $font-size-sm;
+  border-top: 1px solid rgba($color-red, 0.2);
+}

@@ -1,0 +1,50 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: $space-2xl;
+  text-align: center;
+  background-color: $color-bg;
+  color: $color-text;
+}
+
+.icon {
+  color: $color-red;
+  margin-bottom: $space-lg;
+}
+
+h1 {
+  color: $color-text-bright;
+  font-size: $font-size-xl;
+  font-weight: 600;
+  margin-bottom: $space-sm;
+}
+
+p {
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  max-width: 400px;
+  margin-bottom: $space-xl;
+}
+
+.errorMessage {
+  background-color: $color-bg-alt;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  color: $color-red;
+  max-width: 500px;
+  overflow-x: auto;
+  margin-bottom: $space-xl;
+}
+
+.reloadButton {
+  @include button-primary;
+}

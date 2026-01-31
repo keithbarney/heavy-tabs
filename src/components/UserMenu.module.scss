@@ -1,0 +1,108 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  position: fixed;
+  top: $space-sm;
+  right: $space-sm;
+  z-index: $z-dropdown;
+}
+
+.trigger {
+  @include button-base;
+  padding: $space-sm;
+  min-width: 32px;
+  height: 32px;
+}
+
+.email {
+  max-width: 120px;
+  @include truncate;
+
+  @include md {
+    max-width: 180px;
+  }
+}
+
+.cloudIcon {
+  color: $color-green;
+}
+
+.offlineIcon {
+  color: $color-text-muted;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + $space-sm);
+  right: 0;
+  width: 280px;
+  @include card;
+  padding: $space-md;
+  box-shadow: $shadow-lg;
+}
+
+.menuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-sm;
+}
+
+.menuEmail {
+  font-size: $font-size-sm;
+  color: $color-text-bright;
+  font-weight: 500;
+  @include truncate;
+}
+
+.menuTitle {
+  font-size: $font-size-sm;
+  color: $color-text-bright;
+  font-weight: 600;
+}
+
+.syncBadge, .localBadge {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  font-size: $font-size-xs;
+  padding: 2px $space-sm;
+  border-radius: $radius-full;
+  white-space: nowrap;
+}
+
+.syncBadge {
+  background-color: rgba($color-green, 0.15);
+  color: $color-green;
+}
+
+.localBadge {
+  background-color: rgba($color-text-muted, 0.15);
+  color: $color-text-muted;
+}
+
+.menuDescription {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  line-height: 1.5;
+  margin-bottom: $space-md;
+}
+
+.menuDivider {
+  height: 1px;
+  background-color: $color-border;
+  margin: $space-sm 0;
+}
+
+.menuItem {
+  @include button-base;
+  width: 100%;
+  justify-content: flex-start;
+  padding: $space-sm $space-md;
+
+  &.primary {
+    @include button-primary;
+    justify-content: center;
+  }
+}

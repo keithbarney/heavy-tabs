@@ -1,0 +1,129 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.overlay {
+  @include modal-overlay;
+}
+
+.modal {
+  @include modal-content;
+  padding: $space-2xl;
+  position: relative;
+  text-align: center;
+}
+
+.closeButton {
+  position: absolute;
+  top: $space-md;
+  right: $space-md;
+  @include button-ghost;
+  padding: $space-sm;
+}
+
+.header {
+  margin-bottom: $space-2xl;
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-xl;
+    font-weight: 600;
+    margin: $space-lg 0 $space-sm;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+  }
+}
+
+.icon {
+  color: $color-accent;
+}
+
+.form {
+  text-align: left;
+}
+
+.inputGroup {
+  margin-bottom: $space-lg;
+
+  label {
+    display: block;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-sm;
+  }
+
+  input {
+    @include input-base;
+    width: 100%;
+    padding: $space-md;
+    font-size: $font-size-base;
+  }
+}
+
+.submitButton {
+  @include button-primary;
+  width: 100%;
+  padding: $space-md;
+  font-size: $font-size-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
+.terms {
+  margin-top: $space-lg;
+  color: $color-text-muted;
+  font-size: $font-size-xs;
+}
+
+.success, .error {
+  padding: $space-lg 0;
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    margin: $space-lg 0 $space-md;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-md;
+
+    strong {
+      color: $color-text;
+    }
+  }
+}
+
+.successIcon {
+  color: $color-green;
+}
+
+.hint {
+  font-size: $font-size-xs;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: $color-accent;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-accent-alt;
+  }
+}
+
+.error {
+  h2 {
+    color: $color-red;
+  }
+}

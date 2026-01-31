@@ -1,0 +1,98 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading, .error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-3xl;
+  text-align: center;
+
+  svg {
+    color: $color-text-muted;
+    margin-bottom: $space-lg;
+  }
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-xl;
+    font-weight: 600;
+    margin-bottom: $space-sm;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    max-width: 300px;
+    margin-bottom: $space-xl;
+  }
+}
+
+.homeLink {
+  @include button-primary;
+  text-decoration: none;
+}
+
+.banner {
+  background-color: $color-accent;
+  color: $color-bg;
+  padding: $space-sm $space-lg;
+}
+
+.bannerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-md;
+}
+
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+
+.bannerRight {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.copyButton {
+  @include button-base;
+  background-color: rgba($color-bg, 0.2);
+  border-color: transparent;
+  color: $color-bg;
+
+  &:hover:not(:disabled) {
+    background-color: rgba($color-bg, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.8;
+  }
+}
+
+.createLink {
+  color: $color-bg;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  text-decoration: underline;
+
+  &:hover {
+    text-decoration: none;
+  }
+}

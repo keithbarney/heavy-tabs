@@ -1,0 +1,75 @@
+// Heavy Tabs Design Tokens
+// Based on Spacegray / Base16 Ocean Dark
+
+// Color palette
+$color-bg: #2b303b;
+$color-bg-alt: #343d46;
+$color-bg-highlight: #4f5b66;
+$color-border: #65737e;
+$color-text: #c0c5ce;
+$color-text-muted: #a7adba;
+$color-text-bright: #eff1f5;
+$color-accent: #8fa1b3;
+$color-accent-alt: #96b5b4;
+$color-red: #bf616a;
+$color-orange: #d08770;
+$color-yellow: #ebcb8b;
+$color-green: #a3be8c;
+$color-purple: #b48ead;
+$color-selection: #4f5b66;
+
+// Light theme colors
+$color-light-bg: #eff1f5;
+$color-light-bg-alt: #dfe1e8;
+$color-light-bg-highlight: #c0c5ce;
+$color-light-border: #a7adba;
+$color-light-text: #343d46;
+$color-light-text-muted: #65737e;
+$color-light-text-bright: #2b303b;
+$color-light-selection: #c0c5ce;
+
+// Typography
+$font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+$font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+$font-size-xs: 10px;
+$font-size-sm: 11px;
+$font-size-base: 13px;
+$font-size-md: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+
+// Spacing
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 12px;
+$space-lg: 16px;
+$space-xl: 20px;
+$space-2xl: 24px;
+$space-3xl: 32px;
+
+// Radii
+$radius-sm: 3px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$radius-full: 9999px;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+
+// Transitions
+$transition-fast: 100ms ease;
+$transition-base: 150ms ease;
+$transition-slow: 300ms ease;
+
+// Z-index
+$z-dropdown: 100;
+$z-modal: 1000;
+$z-tooltip: 1100;
+
+// Tab grid
+$cell-width: 20px;
+$cell-height: 20px;

@@ -1,0 +1,136 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.overlay {
+  @include modal-overlay;
+}
+
+.modal {
+  @include modal-content;
+  padding: $space-2xl;
+  max-width: 420px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $space-xl;
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-xl;
+    font-weight: 600;
+    margin-bottom: $space-sm;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    line-height: 1.5;
+
+    strong {
+      color: $color-text;
+    }
+  }
+}
+
+.iconRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.iconBox {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-bg-highlight;
+  border-radius: $radius-md;
+  color: $color-accent;
+}
+
+.arrow {
+  color: $color-text-muted;
+}
+
+.benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 $space-xl 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: $space-sm 0;
+    color: $color-text;
+    font-size: $font-size-sm;
+
+    svg {
+      color: $color-green;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $space-sm;
+}
+
+.skipButton {
+  @include button-secondary;
+  flex: 1;
+  padding: $space-md;
+}
+
+.migrateButton {
+  @include button-primary;
+  flex: 1;
+  padding: $space-md;
+}
+
+.migrating, .complete, .error {
+  text-align: center;
+  padding: $space-xl 0;
+
+  svg {
+    margin-bottom: $space-lg;
+  }
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    margin-bottom: $space-sm;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-xl;
+
+    strong {
+      color: $color-text;
+    }
+  }
+}
+
+.migrating svg {
+  color: $color-accent;
+}
+
+.successIcon {
+  color: $color-green;
+}
+
+.errorIcon {
+  color: $color-red;
+}
+
+.errorText {
+  color: $color-red;
+}

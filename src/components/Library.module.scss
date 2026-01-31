@@ -1,0 +1,427 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.overlay {
+  @include modal-overlay;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.panel {
+  background-color: $color-bg-alt;
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.2s ease-out;
+
+  @include md {
+    margin-left: auto;
+    border-left: 1px solid $color-border;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-lg;
+  border-bottom: 1px solid $color-border;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+
+  h2 {
+    color: $color-text-bright;
+    font-size: $font-size-lg;
+    font-weight: 600;
+  }
+
+  svg {
+    color: $color-accent;
+  }
+}
+
+.closeButton {
+  @include button-ghost;
+  padding: $space-sm;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid $color-border;
+}
+
+.newButton {
+  @include button-primary;
+  white-space: nowrap;
+}
+
+.searchBox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  background-color: $color-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  padding: $space-sm $space-md;
+
+  svg {
+    color: $color-text-muted;
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: $color-text;
+    font-size: $font-size-sm;
+    outline: none;
+
+    &::placeholder {
+      color: $color-text-muted;
+    }
+  }
+}
+
+.iconButton {
+  @include button-ghost;
+  padding: $space-sm;
+}
+
+.message {
+  padding: $space-md $space-lg;
+  background-color: rgba($color-orange, 0.15);
+  color: $color-orange;
+  font-size: $font-size-sm;
+  border-bottom: 1px solid $color-border;
+}
+
+.storageInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm $space-lg;
+  background-color: $color-bg;
+}
+
+.cloudBadge, .localBadge {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  font-size: $font-size-xs;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-full;
+}
+
+.cloudBadge {
+  background-color: rgba($color-green, 0.15);
+  color: $color-green;
+}
+
+.localBadge {
+  background-color: rgba($color-text-muted, 0.15);
+  color: $color-text-muted;
+}
+
+.count {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+}
+
+.projectList {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-md;
+}
+
+.loading, .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-3xl;
+  color: $color-text-muted;
+  text-align: center;
+
+  svg {
+    margin-bottom: $space-md;
+    opacity: 0.5;
+  }
+
+  p {
+    margin-bottom: $space-lg;
+  }
+}
+
+.projectCard {
+  display: flex;
+  align-items: center;
+  background-color: $color-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  margin-bottom: $space-sm;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: $color-accent;
+  }
+
+  &.active {
+    border-color: $color-accent;
+    background-color: rgba($color-accent, 0.05);
+  }
+}
+
+.projectInfo {
+  flex: 1;
+  padding: $space-md;
+  cursor: pointer;
+  min-width: 0;
+
+  h3 {
+    color: $color-text-bright;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    margin-bottom: $space-xs;
+    @include truncate;
+  }
+}
+
+.projectMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-sm;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+
+  span {
+    &::after {
+      content: '•';
+      margin-left: $space-sm;
+      opacity: 0.5;
+    }
+
+    &:last-child::after {
+      display: none;
+    }
+  }
+}
+
+.deleteButton {
+  @include button-ghost;
+  padding: $space-md;
+  color: $color-text-muted;
+  border-left: 1px solid $color-border;
+  border-radius: 0 $radius-md $radius-md 0;
+
+  &:hover {
+    color: $color-red;
+    background-color: rgba($color-red, 0.1);
+  }
+}
+
+.confirmDelete {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-sm $space-md;
+  font-size: $font-size-sm;
+
+  span {
+    color: $color-text-muted;
+  }
+}
+
+.confirmYes, .confirmNo {
+  @include button-ghost;
+  padding: $space-xs $space-sm;
+  font-size: $font-size-xs;
+}
+
+.confirmYes {
+  color: $color-red;
+
+  &:hover {
+    background-color: rgba($color-red, 0.1);
+  }
+}
+
+// Selection toolbar
+.selectionToolbar {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-lg;
+  background-color: $color-bg;
+  border-bottom: 1px solid $color-border;
+}
+
+.selectAllButton {
+  @include button-ghost;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+
+  &:hover {
+    color: $color-text;
+  }
+}
+
+.selectionCount {
+  font-size: $font-size-sm;
+  color: $color-accent;
+  font-weight: 600;
+}
+
+.bulkDeleteButton {
+  @include button-danger;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  font-size: $font-size-sm;
+  margin-left: auto;
+}
+
+.clearSelectionButton {
+  @include button-ghost;
+  padding: $space-xs;
+  color: $color-text-muted;
+
+  &:hover {
+    color: $color-text;
+  }
+}
+
+// Checkbox in project card
+.checkbox {
+  @include button-ghost;
+  padding: $space-sm;
+  color: $color-text-muted;
+  flex-shrink: 0;
+
+  &:hover {
+    color: $color-accent;
+  }
+}
+
+.projectCard.selected {
+  border-color: $color-accent;
+  background-color: rgba($color-accent, 0.08);
+
+  .checkbox {
+    color: $color-accent;
+  }
+}
+
+// Bulk delete modal
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background-color: $color-bg-alt;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $space-xl;
+  max-width: 400px;
+  width: 90%;
+  animation: scaleIn 0.15s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  margin-bottom: $space-md;
+
+  h3 {
+    color: $color-text-bright;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.warningIcon {
+  color: $color-orange;
+  flex-shrink: 0;
+}
+
+.modalBody {
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  margin-bottom: $space-xl;
+}
+
+.modalActions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  @include button-ghost;
+  padding: $space-sm $space-md;
+  font-size: $font-size-sm;
+}
+
+.deleteConfirmButton {
+  @include button-danger;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-sm $space-md;
+  font-size: $font-size-sm;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

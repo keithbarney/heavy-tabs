@@ -1,0 +1,728 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  background-color: $color-bg;
+  color: $color-text;
+  min-height: 100vh;
+  font-family: $font-sans;
+  font-size: $font-size-base;
+
+  &[data-theme='light'] {
+    background-color: $color-light-bg;
+    color: $color-light-text;
+
+    .header, .settingsPanel, .legendBar, .legend {
+      background-color: $color-light-bg-alt;
+    }
+
+    .section {
+      background-color: $color-light-bg-alt;
+    }
+
+    .sectionHeader {
+      background-color: $color-light-bg-highlight;
+    }
+
+    .cell {
+      border-right-color: $color-light-bg;
+    }
+
+    .button, .iconButton, .smallButton {
+      background-color: $color-light-bg-highlight;
+      border-color: $color-light-border;
+      color: $color-light-text;
+    }
+
+    input, select {
+      background-color: $color-light-bg;
+      border-color: $color-light-border;
+      color: $color-light-text;
+    }
+  }
+}
+
+// Header
+.header {
+  background-color: $color-bg-alt;
+  padding: $space-sm $space-xl;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-md;
+}
+
+.headerLeft, .headerRight {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.headerRight {
+  padding-right: 48px; // Room for fixed UserMenu
+}
+
+.playbackControls {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.projectTitle {
+  color: $color-text-bright;
+  font-size: $font-size-base;
+  font-weight: 600;
+}
+
+.projectInput {
+  @include input-base;
+  font-weight: 600;
+  color: $color-text-bright;
+}
+
+.bpmControl {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+
+  input {
+    @include input-base;
+    width: 55px;
+    text-align: center;
+  }
+
+  span {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    text-transform: uppercase;
+  }
+}
+
+// Buttons
+.button {
+  @include button-base;
+}
+
+.buttonPrimary {
+  @include button-primary;
+}
+
+.buttonDanger {
+  @include button-danger;
+
+  &:hover:not(:disabled) {
+    background-color: darken($color-red, 10%);
+  }
+}
+
+.buttonSuccess {
+  @include button-base;
+  background-color: $color-green;
+  color: $color-bg;
+
+  &:hover:not(:disabled) {
+    background-color: $color-green;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.iconButton {
+  @include button-base;
+  padding: $space-sm;
+  min-width: 32px;
+  min-height: 32px;
+
+  &.active {
+    background-color: $color-accent;
+    color: $color-bg;
+  }
+}
+
+.smallButton {
+  @include button-base;
+  padding: $space-xs $space-sm;
+  font-size: $font-size-sm;
+
+  &.danger {
+    @include button-danger;
+    padding: $space-xs $space-sm;
+    font-size: $font-size-sm;
+  }
+}
+
+.fullWidth {
+  width: 100%;
+  margin-bottom: $space-lg;
+}
+
+// Settings Panel
+.settingsPanel {
+  background-color: $color-bg;
+  padding: $space-md $space-xl;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+  align-items: flex-start;
+}
+
+.settingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  > label, > legend {
+    color: $color-text-muted;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+    padding: 0;
+  }
+
+  select {
+    @include select-base;
+  }
+
+  .checkbox {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    color: $color-text;
+    text-transform: none;
+  }
+}
+
+.radioGroup {
+  display: flex;
+  gap: $space-md;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    color: $color-text;
+  }
+}
+
+// Content
+.content {
+  padding: $space-lg;
+  overflow-x: auto;
+}
+
+// Section
+.section {
+  margin-bottom: $space-xl;
+  background-color: $color-bg-alt;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  border-left: 4px solid transparent;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-md;
+  padding: $space-sm $space-md;
+  background-color: $color-bg-highlight;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex: 1;
+  min-width: 0;
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sectionName {
+  color: $color-text-bright;
+  font-size: $font-size-base;
+  font-weight: 600;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba($color-accent, 0.1);
+  }
+}
+
+.sectionNameInput {
+  @include input-base;
+  font-weight: 600;
+  color: $color-text-bright;
+  border-color: $color-accent;
+}
+
+.repeatBadge {
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.notesInput {
+  @include input-base;
+  flex: 1;
+  min-width: 150px;
+  font-style: italic;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.sectionControls {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-wrap: wrap;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+
+    input, select {
+      @include input-base;
+      width: 50px;
+      text-align: center;
+      padding: $space-xs $space-sm;
+      font-size: $font-size-sm;
+    }
+
+    select {
+      width: auto;
+    }
+  }
+}
+
+// Grid
+.gridContainer {
+  padding: $space-md;
+  overflow-x: auto;
+}
+
+.gridWrapper {
+  display: flex;
+  align-items: flex-start;
+}
+
+.measureContainer {
+  display: flex;
+  gap: $space-xs;
+}
+
+.stringLabels {
+  display: flex;
+  flex-direction: column;
+  margin-right: $space-sm;
+
+  > div:first-child {
+    height: 18px;
+  }
+}
+
+.stringLabel {
+  height: $cell-height;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: $space-sm;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  font-family: $font-mono;
+}
+
+.measure {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.measureHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: $space-sm;
+  color: $color-text-muted;
+  font-size: $font-size-xs;
+  margin-bottom: $space-xs;
+}
+
+.barActions {
+  display: flex;
+  gap: 2px;
+
+  button {
+    @include button-ghost;
+    padding: 0 2px;
+    min-width: auto;
+    min-height: auto;
+  }
+}
+
+.measureGrid {
+  border-left: 2px solid $color-border;
+  border-right: 1px solid $color-border;
+  position: relative;
+}
+
+.playbackCursor {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  background-color: $color-accent;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 8px $color-accent;
+}
+
+.row {
+  display: flex;
+  border-bottom: 1px solid $color-border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.cell {
+  width: $cell-width;
+  height: $cell-height;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  font-family: $font-mono;
+  cursor: pointer;
+  border-right: 1px solid $color-bg;
+  user-select: none;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: $color-bg-highlight;
+  }
+
+  &.cellBeat {
+    border-right-color: $color-border;
+  }
+
+  &.cellSelected {
+    background-color: $color-selection;
+    outline: 1px solid $color-accent;
+  }
+
+  &.cellPlaying {
+    background-color: $color-accent;
+    color: $color-bg;
+  }
+}
+
+.barButtons {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-left: $space-sm;
+  margin-top: 18px;
+}
+
+// Add Part Button
+.addPartButton {
+  @include button-ghost;
+  width: 100%;
+  padding: $space-md;
+  margin-top: $space-sm;
+  opacity: 0.6;
+  border: 1px dashed $color-border;
+  justify-content: center;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Legend
+.legendBar {
+  padding: $space-sm $space-xl;
+  background-color: $color-bg-alt;
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+}
+
+.quickHelp {
+  margin-left: auto;
+  display: flex;
+  gap: $space-lg;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.legend {
+  padding: $space-md $space-xl;
+  background-color: $color-bg-alt;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2xl;
+}
+
+.legendSection {
+  min-width: 180px;
+
+  h4 {
+    color: $color-text-bright;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    margin-bottom: $space-sm;
+  }
+}
+
+.legendGrid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+
+  > div {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+  }
+}
+
+.legendKey {
+  background-color: $color-bg-highlight;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 600;
+  font-family: $font-mono;
+  color: $color-text-bright;
+  min-width: 24px;
+  text-align: center;
+}
+
+// Modals
+.modalOverlay {
+  @include modal-overlay;
+}
+
+.modal {
+  @include modal-content;
+  padding: $space-lg;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-lg;
+
+  h3 {
+    color: $color-text-bright;
+    font-size: $font-size-md;
+    font-weight: 600;
+  }
+}
+
+.modalActions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-end;
+  margin-top: $space-lg;
+}
+
+.emptyState {
+  color: $color-text-muted;
+  text-align: center;
+  padding: $space-xl;
+}
+
+.warning {
+  color: $color-orange;
+  font-size: $font-size-sm;
+  margin-bottom: $space-md;
+}
+
+.projectList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.projectItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm $space-md;
+  background-color: $color-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+
+  &.active {
+    background-color: $color-selection;
+  }
+}
+
+.projectInfo {
+  cursor: pointer;
+  flex: 1;
+
+  strong {
+    display: block;
+    color: $color-text-bright;
+  }
+
+  small {
+    color: $color-text-muted;
+    font-size: $font-size-xs;
+  }
+}
+
+.shortcutList {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: $space-xs $space-md;
+  font-size: $font-size-sm;
+
+  span {
+    color: $color-text-muted;
+    font-family: $font-mono;
+  }
+
+  strong {
+    grid-column: 1 / -1;
+    color: $color-accent;
+    margin-top: $space-md;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+}
+
+.searchInput {
+  @include input-base;
+  width: 100%;
+  margin-bottom: $space-md;
+}
+
+.chordGrid {
+  max-height: 45vh;
+  overflow-y: auto;
+
+  h4 {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-sm;
+    margin-top: $space-md;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+}
+
+.chordButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-sm;
+}
+
+.chordButton {
+  @include button-secondary;
+  padding: $space-sm $space-md;
+}
+
+// Mobile input
+.mobileInputBox {
+  @include card;
+  padding: $space-lg;
+  width: 100%;
+  max-width: 350px;
+  margin-bottom: $space-xl;
+
+  > label {
+    display: block;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-sm;
+  }
+
+  > input {
+    @include input-base;
+    width: 100%;
+    font-size: $font-size-lg;
+    padding: $space-md;
+    text-align: center;
+  }
+}
+
+.quickChords {
+  margin-top: $space-md;
+
+  > span {
+    display: block;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-sm;
+  }
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-xs;
+  }
+}
+
+.mobileInputActions {
+  display: flex;
+  gap: $space-sm;
+  margin-top: $space-md;
+
+  button {
+    flex: 1;
+  }
+}
+
+// Responsive
+@include md {
+  .header {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (pointer: coarse) {
+  .button, .iconButton, .smallButton, input, select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .cell {
+    width: 28px;
+    height: 28px;
+  }
+}

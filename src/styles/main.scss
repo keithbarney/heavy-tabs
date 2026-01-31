@@ -1,0 +1,94 @@
+@use './tokens' as *;
+@use './mixins' as *;
+
+// Reset
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-sans;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  background-color: $color-bg;
+  color: $color-text;
+  min-height: 100vh;
+}
+
+// Light theme
+[data-theme='light'] {
+  background-color: $color-light-bg;
+  color: $color-light-text;
+}
+
+// Links
+a {
+  color: $color-accent;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Focus visible
+:focus-visible {
+  @include focus-ring;
+}
+
+// Remove focus outline for mouse users
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// Button reset
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+// Input reset
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+// Code/monospace
+code,
+pre,
+.mono {
+  font-family: $font-mono;
+}
+
+// Utility classes
+.visually-hidden {
+  @include visually-hidden;
+}
+
+.truncate {
+  @include truncate;
+}
+
+// Spinner animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
