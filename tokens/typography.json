@@ -1,42 +1,38 @@
 {
-  "font-size": {
-    "xs": {
-      "$value": "10px",
-      "$type": "dimension"
-    },
-    "sm": {
-      "$value": "11px",
-      "$type": "dimension"
-    },
-    "base": {
-      "$value": "13px",
-      "$type": "dimension"
-    },
-    "md": {
-      "$value": "14px",
-      "$type": "dimension"
-    },
-    "lg": {
-      "$value": "16px",
-      "$type": "dimension"
-    },
-    "xl": {
-      "$value": "20px",
-      "$type": "dimension"
-    },
-    "2xl": {
-      "$value": "24px",
-      "$type": "dimension"
-    }
+  "font-size-xs": {
+    "$type": "number",
+    "$value": 10
   },
-  "font-family": {
-    "sans": {
-      "$value": "Inter",
-      "$type": "fontFamily"
-    },
-    "mono": {
-      "$value": "JetBrains Mono",
-      "$type": "fontFamily"
-    }
+  "font-size-sm": {
+    "$type": "number",
+    "$value": 11
+  },
+  "font-size-base": {
+    "$type": "number",
+    "$value": 13
+  },
+  "font-size-md": {
+    "$type": "number",
+    "$value": 14
+  },
+  "font-size-lg": {
+    "$type": "number",
+    "$value": 16
+  },
+  "font-size-xl": {
+    "$type": "number",
+    "$value": 20
+  },
+  "font-size-2xl": {
+    "$type": "number",
+    "$value": 24
+  },
+  "font-family-sans": {
+    "$type": "fontFamily",
+    "$value": "Inter"
+  },
+  "font-family-mono": {
+    "$type": "fontFamily",
+    "$value": "JetBrains Mono"
   }
 }

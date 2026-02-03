@@ -1,70 +1,62 @@
 {
-  "color": {
-    "bg": {
-      "$value": "#2b303b",
-      "$type": "color",
-      "$description": "Primary background"
-    },
-    "bg-alt": {
-      "$value": "#343d46",
-      "$type": "color",
-      "$description": "Secondary/elevated background"
-    },
-    "bg-highlight": {
-      "$value": "#4f5b66",
-      "$type": "color",
-      "$description": "Highlighted background"
-    },
-    "border": {
-      "$value": "#65737e",
-      "$type": "color"
-    },
-    "text": {
-      "$value": "#c0c5ce",
-      "$type": "color",
-      "$description": "Primary text"
-    },
-    "text-muted": {
-      "$value": "#a7adba",
-      "$type": "color",
-      "$description": "Secondary text"
-    },
-    "text-bright": {
-      "$value": "#eff1f5",
-      "$type": "color",
-      "$description": "Emphasized text"
-    },
-    "selection": {
-      "$value": "#4f5b66",
-      "$type": "color"
-    },
-    "accent": {
-      "$value": "#8fa1b3",
-      "$type": "color"
-    },
-    "accent-alt": {
-      "$value": "#96b5b4",
-      "$type": "color"
-    },
-    "red": {
-      "$value": "#bf616a",
-      "$type": "color"
-    },
-    "orange": {
-      "$value": "#d08770",
-      "$type": "color"
-    },
-    "yellow": {
-      "$value": "#ebcb8b",
-      "$type": "color"
-    },
-    "green": {
-      "$value": "#a3be8c",
-      "$type": "color"
-    },
-    "purple": {
-      "$value": "#b48ead",
-      "$type": "color"
-    }
+  "color-bg": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.169, 0.188, 0.231], "alpha": 1, "hex": "#2b303b"}
+  },
+  "color-bg-alt": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.204, 0.239, 0.275], "alpha": 1, "hex": "#343d46"}
+  },
+  "color-bg-highlight": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.310, 0.357, 0.400], "alpha": 1, "hex": "#4f5b66"}
+  },
+  "color-border": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.396, 0.451, 0.494], "alpha": 1, "hex": "#65737e"}
+  },
+  "color-text": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.753, 0.773, 0.808], "alpha": 1, "hex": "#c0c5ce"}
+  },
+  "color-text-muted": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.655, 0.678, 0.729], "alpha": 1, "hex": "#a7adba"}
+  },
+  "color-text-bright": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.937, 0.945, 0.961], "alpha": 1, "hex": "#eff1f5"}
+  },
+  "color-selection": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.310, 0.357, 0.400], "alpha": 1, "hex": "#4f5b66"}
+  },
+  "color-accent": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.561, 0.631, 0.702], "alpha": 1, "hex": "#8fa1b3"}
+  },
+  "color-accent-alt": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.588, 0.710, 0.706], "alpha": 1, "hex": "#96b5b4"}
+  },
+  "color-red": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.749, 0.380, 0.416], "alpha": 1, "hex": "#bf616a"}
+  },
+  "color-orange": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.816, 0.529, 0.439], "alpha": 1, "hex": "#d08770"}
+  },
+  "color-yellow": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.922, 0.796, 0.545], "alpha": 1, "hex": "#ebcb8b"}
+  },
+  "color-green": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.639, 0.745, 0.549], "alpha": 1, "hex": "#a3be8c"}
+  },
+  "color-purple": {
+    "$type": "color",
+    "$value": {"colorSpace": "srgb", "components": [0.706, 0.557, 0.678], "alpha": 1, "hex": "#b48ead"}
   }
 }
