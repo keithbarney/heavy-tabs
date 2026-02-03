@@ -63,6 +63,22 @@
   padding-right: 48px; // Room for fixed UserMenu
 }
 
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding-right: $space-sm;
+  border-right: 1px solid $color-border;
+  margin-right: $space-xs;
+}
+
+.zoomLevel {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  min-width: 36px;
+  text-align: center;
+}
+
 .playbackControls {
   display: flex;
   align-items: center;

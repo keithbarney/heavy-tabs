@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Play, Pause, Square, Repeat, Save, Download, FolderOpen,
   Settings, Moon, Sun, Maximize2, Minimize2, Plus, Minus, Copy,
-  ClipboardPaste, Trash2, X, HelpCircle, Hand, Volume2, Check, Loader2
+  ClipboardPaste, Trash2, X, HelpCircle, Hand, Volume2, Check, Loader2,
+  ZoomIn, ZoomOut
 } from 'lucide-react'
 import type {
   LocalProject, Section, TabData, Instrument, TimeSignature, NoteResolution,
@@ -72,6 +73,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   // UI state
   const [focusMode, setFocusMode] = useState(false)
   const [showSettings, setShowSettings] = useState(true)
+  const [zoom, setZoom] = useState(1)
   const [showLegend, setShowLegend] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showChordPicker, setShowChordPicker] = useState(false)
@@ -379,6 +381,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
 
   // Cell selection - always selects full columns
   const handleCellClick = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent container click from clearing selection
     if (readOnly) return
     if (e.shiftKey && selectionStart) {
       const cells = getCellsBetween(selectionStart, { sectionId, measureIdx, stringIdx, cellIdx })
@@ -910,7 +913,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       : getTuningNotes(activeInstrument, stringCounts[activeInstrument], tunings[activeInstrument], projectKey)
 
     return (
-      <div className={styles.gridContainer}>
+      <div className={styles.gridContainer} style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
         <div className={styles.gridWrapper}>
           <div className={styles.measureContainer}>
             <div className={styles.stringLabels}>
@@ -953,7 +956,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                               className={`${styles.cell} ${isBeat ? styles.cellBeat : ''} ${isSelected ? styles.cellSelected : ''} ${isPlaying ? styles.cellPlaying : ''}`}
                               onMouseDown={(e) => handleMouseDown(section.id, measureIdx, stringIdx, cellIdx, e)}
                               onMouseEnter={() => handleMouseEnter(section.id, measureIdx, stringIdx, cellIdx)}
-                              onClick={(e) => { e.stopPropagation(); handleCellClick(section.id, measureIdx, stringIdx, cellIdx, e) }}
+                              onClick={(e) => handleCellClick(section.id, measureIdx, stringIdx, cellIdx, e)}
                               onTouchEnd={(e) => { e.preventDefault(); openMobileKeyboard(section.id, measureIdx, stringIdx, cellIdx) }}
                             >
                               {cell}
@@ -1082,6 +1085,11 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
         )}
 
         <div className={styles.headerRight}>
+          <div className={styles.zoomControls}>
+            <button className={styles.iconButton} onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title="Zoom out"><ZoomOut size={16} /></button>
+            <span className={styles.zoomLevel}>{Math.round(zoom * 100)}%</span>
+            <button className={styles.iconButton} onClick={() => setZoom(z => Math.min(2, z + 0.1))} title="Zoom in"><ZoomIn size={16} /></button>
+          </div>
           {!readOnly && (
             <button className={`${styles.iconButton} ${showSettings ? styles.active : ''}`} onClick={() => setShowSettings(!showSettings)} title="Settings"><Settings size={16} /></button>
           )}
@@ -1163,7 +1171,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                 ) : (
                   <span
                     className={styles.sectionName}
-                    onClick={(e) => { e.stopPropagation(); if (!focusMode && !readOnly) { setEditingSection(section.id); setEditingSectionName(section.name) } }}
+                    onClick={() => { if (!focusMode && !readOnly) { setEditingSection(section.id); setEditingSectionName(section.name) } }}
                   >
                     {section.name}
                   </span>
@@ -1186,13 +1194,12 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                         }
                       }}
                       placeholder="lyrics / notes..."
-                      onClick={(e) => e.stopPropagation()}
                       autoFocus
                     />
                   ) : (
                     <span
                       className={styles.notesDisplay}
-                      onClick={(e) => { e.stopPropagation(); setEditingField(`notes-${section.id}`); setEditingFieldValue(section.notes || '') }}
+                      onClick={() => { setEditingField(`notes-${section.id}`); setEditingFieldValue(section.notes || '') }}
                     >
                       {section.notes || 'lyrics / notes...'}
                     </span>
@@ -1220,13 +1227,12 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                         }}
                         min="1"
                         autoFocus
-                        onClick={(e) => e.stopPropagation()}
                       />
                     </span>
                   ) : (
                     <span
                       className={styles.inlineEditable}
-                      onClick={(e) => { e.stopPropagation(); setEditingField(`bars-${section.id}`); setEditingFieldValue(String(section.measures)) }}
+                      onClick={() => { setEditingField(`bars-${section.id}`); setEditingFieldValue(String(section.measures)) }}
                     >
                       Bars <span className={styles.inlineValue}>{section.measures}</span>
                     </span>
@@ -1250,13 +1256,12 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                         }}
                         min="1"
                         autoFocus
-                        onClick={(e) => e.stopPropagation()}
                       />
                     </span>
                   ) : (
                     <span
                       className={styles.inlineEditable}
-                      onClick={(e) => { e.stopPropagation(); setEditingField(`repeat-${section.id}`); setEditingFieldValue(String(section.repeat)) }}
+                      onClick={() => { setEditingField(`repeat-${section.id}`); setEditingFieldValue(String(section.repeat)) }}
                     >
                       Repeat <span className={styles.inlineValue}>{section.repeat}</span>
                     </span>
