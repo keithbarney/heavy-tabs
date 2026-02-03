@@ -95,7 +95,7 @@
 }
 
 .newButton {
-  @include button-primary;
+  @include button-ghost;
   white-space: nowrap;
 }
 
@@ -253,15 +253,15 @@
 }
 
 .deleteButton {
-  @include button-ghost;
   padding: $space-md;
+  background: none;
+  border: none;
   color: $color-text-muted;
-  border-left: 1px solid $color-border;
-  border-radius: 0 $radius-md $radius-md 0;
+  cursor: pointer;
+  transition: color $transition-fast;
 
   &:hover {
     color: $color-red;
-    background-color: rgba($color-red, 0.1);
   }
 }
 
