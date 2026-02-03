@@ -1,0 +1,70 @@
+{
+  "color": {
+    "bg": {
+      "$value": "#f5f6f7",
+      "$type": "color",
+      "$description": "Primary background"
+    },
+    "bg-alt": {
+      "$value": "#e8eaed",
+      "$type": "color",
+      "$description": "Secondary/elevated background"
+    },
+    "bg-highlight": {
+      "$value": "#d3d6db",
+      "$type": "color",
+      "$description": "Highlighted background"
+    },
+    "border": {
+      "$value": "#b0b5bd",
+      "$type": "color"
+    },
+    "text": {
+      "$value": "#2b303b",
+      "$type": "color",
+      "$description": "Primary text"
+    },
+    "text-muted": {
+      "$value": "#4f5b66",
+      "$type": "color",
+      "$description": "Secondary text"
+    },
+    "text-bright": {
+      "$value": "#1a1d23",
+      "$type": "color",
+      "$description": "Emphasized text"
+    },
+    "selection": {
+      "$value": "#d3d6db",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "#8fa1b3",
+      "$type": "color"
+    },
+    "accent-alt": {
+      "$value": "#96b5b4",
+      "$type": "color"
+    },
+    "red": {
+      "$value": "#bf616a",
+      "$type": "color"
+    },
+    "orange": {
+      "$value": "#d08770",
+      "$type": "color"
+    },
+    "yellow": {
+      "$value": "#ebcb8b",
+      "$type": "color"
+    },
+    "green": {
+      "$value": "#a3be8c",
+      "$type": "color"
+    },
+    "purple": {
+      "$value": "#b48ead",
+      "$type": "color"
+    }
+  }
+}

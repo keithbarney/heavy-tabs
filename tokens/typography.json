@@ -1,0 +1,42 @@
+{
+  "font-size": {
+    "xs": {
+      "$value": "10px",
+      "$type": "dimension"
+    },
+    "sm": {
+      "$value": "11px",
+      "$type": "dimension"
+    },
+    "base": {
+      "$value": "13px",
+      "$type": "dimension"
+    },
+    "md": {
+      "$value": "14px",
+      "$type": "dimension"
+    },
+    "lg": {
+      "$value": "16px",
+      "$type": "dimension"
+    },
+    "xl": {
+      "$value": "20px",
+      "$type": "dimension"
+    },
+    "2xl": {
+      "$value": "24px",
+      "$type": "dimension"
+    }
+  },
+  "font-family": {
+    "sans": {
+      "$value": "Inter",
+      "$type": "fontFamily"
+    },
+    "mono": {
+      "$value": "JetBrains Mono",
+      "$type": "fontFamily"
+    }
+  }
+}
