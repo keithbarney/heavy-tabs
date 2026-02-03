@@ -191,6 +191,13 @@
   font-size: $font-size-base;
   font-weight: 600;
   margin-right: $space-md;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba($color-accent, 0.1);
+  }
 }
 
 .projectInput {
