@@ -420,7 +420,7 @@
 }
 
 .stringLabel {
-  height: $cell-height;
+  height: var(--cell-size, $cell-height);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -485,12 +485,12 @@
 }
 
 .cell {
-  width: $cell-width;
-  height: $cell-height;
+  width: var(--cell-size, $cell-width);
+  height: var(--cell-size, $cell-height);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: $font-size-xs;
+  font-size: calc(var(--cell-size, $cell-width) * 0.5);
   font-family: $font-mono;
   cursor: pointer;
   border-right: 1px solid $color-bg;

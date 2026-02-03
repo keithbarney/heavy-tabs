@@ -379,7 +379,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     return cells
   }
 
-  // Cell selection - always selects full columns
+  // Cell selection - single click = single cell, drag = columns
   const handleCellClick = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent container click from clearing selection
     if (readOnly) return
@@ -388,7 +388,9 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       setSelectedCells(cells)
     } else {
       setSelectionStart({ sectionId, measureIdx, stringIdx, cellIdx })
-      setSelectedCells(getColumnCells(sectionId, measureIdx, cellIdx))
+      // Single click = single cell
+      const clickedCellKey = `${sectionId}-${measureIdx}-${stringIdx}-${cellIdx}`
+      setSelectedCells([clickedCellKey])
       // Open input modal on click
       setMobileInputCell({ sectionId, measureIdx, stringIdx, cellIdx })
     }
@@ -399,7 +401,9 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     e.preventDefault() // Prevent text selection while dragging
     setIsSelecting(true)
     setSelectionStart({ sectionId, measureIdx, stringIdx, cellIdx })
-    setSelectedCells(getColumnCells(sectionId, measureIdx, cellIdx))
+    // Start with single cell, will expand to columns on drag
+    const clickedCellKey = `${sectionId}-${measureIdx}-${stringIdx}-${cellIdx}`
+    setSelectedCells([clickedCellKey])
   }
 
   const handleMouseEnter = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number) => {
@@ -913,7 +917,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       : getTuningNotes(activeInstrument, stringCounts[activeInstrument], tunings[activeInstrument], projectKey)
 
     return (
-      <div className={styles.gridContainer} style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
+      <div className={styles.gridContainer} style={{ '--cell-size': `${20 * zoom}px` } as React.CSSProperties}>
         <div className={styles.gridWrapper}>
           <div className={styles.measureContainer}>
             <div className={styles.stringLabels}>
@@ -939,7 +943,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                   </div>
                   <div className={styles.measureGrid}>
                     {isMeasurePlaying && (
-                      <div className={styles.playbackCursor} style={{ left: `${playbackPosition!.cellIdx * 20 + 10}px`, height: `${stringCount * 20}px` }} />
+                      <div className={styles.playbackCursor} style={{ left: `${playbackPosition!.cellIdx * 20 * zoom + 10 * zoom}px`, height: `${stringCount * 20 * zoom}px` }} />
                     )}
                     {measure.map((string, stringIdx) => (
                       <div key={stringIdx} className={styles.row}>
