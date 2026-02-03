@@ -89,8 +89,8 @@
 .toolbar {
   display: flex;
   align-items: center;
-  gap: $space-sm;
-  padding: $space-md $space-lg;
+  gap: $space-md;
+  padding: $space-lg;
   border-bottom: 1px solid $color-border;
 }
 
@@ -176,7 +176,7 @@
 .projectList {
   flex: 1;
   overflow-y: auto;
-  padding: $space-md;
+  padding: $space-md $space-lg;
 }
 
 .loading, .empty {
@@ -204,7 +204,7 @@
   background-color: $color-bg;
   border: 1px solid $color-border;
   border-radius: $radius-md;
-  margin-bottom: $space-sm;
+  margin-bottom: $space-md;
   transition: border-color $transition-fast;
 
   &:hover {
@@ -214,6 +214,10 @@
   &.active {
     border-color: $color-accent;
     background-color: rgba($color-accent, 0.05);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
   }
 }
 
