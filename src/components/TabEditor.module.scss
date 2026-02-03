@@ -13,31 +13,132 @@
     color: $color-light-text;
 
     .header, .settingsPanel, .legendBar, .legend {
-      background-color: $color-light-bg-alt;
+      background-color: white;
+      border-bottom: 1px solid $color-light-border;
     }
 
     .section {
-      background-color: $color-light-bg-alt;
+      background-color: white;
+      border: 1px solid $color-light-border;
     }
 
     .sectionHeader {
-      background-color: $color-light-bg-highlight;
+      background-color: $color-light-bg-alt;
+      border-bottom: 1px solid $color-light-border;
+    }
+
+    .measureGrid {
+      background-color: white;
+      border: 1px solid $color-light-border;
+    }
+
+    .row {
+      border-bottom-color: $color-light-border;
     }
 
     .cell {
-      border-right-color: $color-light-bg;
+      border-right-color: $color-light-bg-alt;
+      color: $color-light-text-bright;
+
+      &:hover {
+        background-color: $color-light-bg-alt;
+      }
+
+      &.cellBeat {
+        border-right-color: $color-light-border;
+      }
+
+      &.cellSelected {
+        background-color: rgba($color-accent, 0.2);
+        outline-color: $color-accent;
+      }
     }
 
     .button, .iconButton, .smallButton {
-      background-color: $color-light-bg-highlight;
-      border-color: $color-light-border;
+      background-color: white;
+      border: 1px solid $color-light-border;
       color: $color-light-text;
+
+      &:hover {
+        background-color: $color-light-bg-alt;
+      }
+
+      &.active {
+        background-color: $color-accent;
+        color: white;
+        border-color: $color-accent;
+      }
+    }
+
+    .addPartButton {
+      background-color: white;
+      border: 1px solid $color-green;
+      color: $color-green;
+
+      &:hover {
+        background-color: rgba($color-green, 0.1);
+      }
+    }
+
+    .barButtons .iconButton.add {
+      background-color: white;
+      border-color: $color-green;
+      color: $color-green;
     }
 
     input, select {
-      background-color: $color-light-bg;
-      border-color: $color-light-border;
+      background-color: white;
+      border: 1px solid $color-light-border;
       color: $color-light-text;
+    }
+
+    .stringLabel {
+      color: $color-light-text;
+    }
+
+    .measureHeader {
+      color: $color-light-text-muted;
+    }
+
+    .sectionName {
+      color: $color-light-text-bright;
+    }
+
+    .inlineEditable {
+      color: $color-light-text;
+    }
+
+    .notesDisplay {
+      color: $color-light-text-muted;
+    }
+
+    .inlineValue {
+      color: $color-light-text-bright;
+      font-weight: 600;
+    }
+
+    .zoomControls {
+      border-right-color: $color-light-border;
+    }
+
+    .zoomLevel {
+      color: $color-light-text;
+    }
+
+    .projectTitle {
+      color: $color-light-text-bright;
+    }
+
+    .sectionControls label {
+      color: $color-light-text;
+    }
+
+    .barActions button {
+      color: $color-light-text-muted;
+
+      &:hover {
+        color: $color-light-text;
+      }
     }
   }
 }

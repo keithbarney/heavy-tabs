@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { FolderOpen, Plus, Trash2, Search, RefreshCw, Cloud, HardDrive, X, Square, CheckSquare, AlertTriangle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FolderOpen, Plus, Trash2, Search, RefreshCw, X } from 'lucide-react'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
 import styles from './Library.module.scss'
@@ -11,7 +11,6 @@ interface LibraryProps {
   currentProjectId: string | null
   onSelectProject: (project: LocalProject) => void
   onNewProject: () => void
-  isAuthenticated: boolean
   message?: string | null
 }
 
@@ -22,16 +21,27 @@ export default function Library({
   currentProjectId,
   onSelectProject,
   onNewProject,
-  isAuthenticated,
   message,
 }: LibraryProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
-  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set())
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
 
-  if (!isOpen) return null
+  // Handle close with animation
+  const handleClose = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsClosing(false)
+      onClose()
+    }, 200) // Match animation duration
+  }
+
+  // Reset closing state when opened
+  useEffect(() => {
+    if (isOpen) setIsClosing(false)
+  }, [isOpen])
+
+  if (!isOpen && !isClosing) return null
 
   const filteredProjects = projects.projects.filter(project =>
     project.projectName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -42,65 +52,6 @@ export default function Library({
     setConfirmDelete(null)
   }
 
-  const handleRefresh = () => {
-    projects.refresh()
-  }
-
-  // Selection handlers
-  const toggleSelect = (key: string) => {
-    const newSelected = new Set(selectedProjects)
-    if (newSelected.has(key)) {
-      newSelected.delete(key)
-    } else {
-      newSelected.add(key)
-    }
-    setSelectedProjects(newSelected)
-  }
-
-  // Use cloudId for selection if available (guaranteed unique), otherwise fallback to id
-  const getSelectionKey = (project: LocalProject) => project.cloudId || project.id
-
-  const toggleSelectAll = () => {
-    if (selectedProjects.size === filteredProjects.length) {
-      setSelectedProjects(new Set())
-    } else {
-      // Get all valid project keys
-      const allKeys = filteredProjects
-        .map(getSelectionKey)
-        .filter((key): key is string => Boolean(key))
-      setSelectedProjects(new Set(allKeys))
-    }
-  }
-
-  const clearSelection = () => {
-    setSelectedProjects(new Set())
-  }
-
-  const handleBulkDelete = async () => {
-    setIsDeleting(true)
-    try {
-      // Collect all cloudIds to delete (selection keys are cloudIds)
-      const cloudIds = Array.from(selectedProjects).filter((key): key is string => Boolean(key))
-
-      // Use bulk delete for efficiency
-      const result = await projects.bulkDeleteByCloudIds(cloudIds)
-
-      if (!result.success) {
-        console.error('Bulk delete failed:', result.error)
-      }
-
-      setSelectedProjects(new Set())
-      setShowBulkDeleteModal(false)
-    } catch (error) {
-      console.error('Bulk delete failed:', error)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  const isAllSelected = filteredProjects.length > 0 && selectedProjects.size === filteredProjects.length
-  const hasSelection = selectedProjects.size > 0
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return ''
     const date = new Date(dateString)
@@ -108,20 +59,20 @@ export default function Library({
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
+    <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`} onClick={handleClose}>
+      <div className={`${styles.panel} ${isClosing ? styles.panelClosing : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <div className={styles.headerTitle}>
             <FolderOpen size={20} />
             <h2>Project Library</h2>
           </div>
-          <button className={styles.closeButton} onClick={onClose} title="Close">
+          <button className={styles.closeButton} onClick={handleClose} title="Close">
             <X size={20} />
           </button>
         </div>
 
         <div className={styles.toolbar}>
-          <button className={styles.newButton} onClick={() => { onNewProject(); onClose() }}>
+          <button className={styles.newButton} onClick={() => { onNewProject(); handleClose() }}>
             <Plus size={16} />
             New Project
           </button>
@@ -135,67 +86,13 @@ export default function Library({
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-
-          <button className={styles.iconButton} onClick={handleRefresh} disabled={projects.loading} title="Refresh">
-            <RefreshCw size={16} className={projects.loading ? 'spinner' : ''} />
-          </button>
         </div>
-
-        {/* Selection toolbar - shown when projects exist */}
-        {filteredProjects.length > 0 && (
-          <div className={styles.selectionToolbar}>
-            <button
-              className={styles.selectAllButton}
-              onClick={toggleSelectAll}
-              title={isAllSelected ? 'Deselect all' : 'Select all'}
-            >
-              {isAllSelected ? <CheckSquare size={16} /> : <Square size={16} />}
-              <span>{isAllSelected ? 'Deselect all' : 'Select all'}</span>
-            </button>
-
-            {hasSelection && (
-              <>
-                <span className={styles.selectionCount}>
-                  {selectedProjects.size} selected
-                </span>
-                <button
-                  className={styles.bulkDeleteButton}
-                  onClick={() => setShowBulkDeleteModal(true)}
-                >
-                  <Trash2 size={16} />
-                  Delete selected
-                </button>
-                <button
-                  className={styles.clearSelectionButton}
-                  onClick={clearSelection}
-                >
-                  <X size={14} />
-                </button>
-              </>
-            )}
-          </div>
-        )}
 
         {message && (
           <div className={styles.message}>
             {message}
           </div>
         )}
-
-        <div className={styles.storageInfo}>
-          {isAuthenticated ? (
-            <span className={styles.cloudBadge}>
-              <Cloud size={14} />
-              Synced to cloud
-            </span>
-          ) : (
-            <span className={styles.localBadge}>
-              <HardDrive size={14} />
-              Stored locally
-            </span>
-          )}
-          <span className={styles.count}>{filteredProjects.length} projects</span>
-        </div>
 
         <div className={styles.projectList}>
           {projects.loading ? (
@@ -211,7 +108,7 @@ export default function Library({
                 <>
                   <FolderOpen size={48} />
                   <p>No projects yet</p>
-                  <button className={styles.newButton} onClick={() => { onNewProject(); onClose() }}>
+                  <button className={styles.newButton} onClick={() => { onNewProject(); handleClose() }}>
                     <Plus size={16} />
                     Create your first project
                   </button>
@@ -219,27 +116,12 @@ export default function Library({
               )}
             </div>
           ) : (
-            filteredProjects.map(project => {
-              const selectionKey = getSelectionKey(project)
-              const isSelected = selectedProjects.has(selectionKey)
-              return (
+            filteredProjects.map(project => (
               <div
-                key={selectionKey}
-                className={`${styles.projectCard} ${project.id === currentProjectId ? styles.active : ''} ${isSelected ? styles.selected : ''}`}
+                key={project.cloudId || project.id}
+                className={`${styles.projectCard} ${project.id === currentProjectId ? styles.active : ''}`}
               >
-                <button
-                  className={styles.checkbox}
-                  onClick={() => toggleSelect(selectionKey)}
-                  title={isSelected ? 'Deselect' : 'Select'}
-                >
-                  {isSelected ? (
-                    <CheckSquare size={18} />
-                  ) : (
-                    <Square size={18} />
-                  )}
-                </button>
-
-                <div className={styles.projectInfo} onClick={() => { onSelectProject(project); onClose() }}>
+                <div className={styles.projectInfo} onClick={() => { onSelectProject(project); handleClose() }}>
                   <h3>{project.projectName}</h3>
                   <div className={styles.projectMeta}>
                     <span>{project.timeSignature?.label || '4/4'}</span>
@@ -265,55 +147,10 @@ export default function Library({
                   </button>
                 )}
               </div>
-              )
-            })
+            ))
           )}
         </div>
       </div>
-
-      {/* Bulk delete confirmation modal */}
-      {showBulkDeleteModal && (
-        <div className={styles.modalOverlay} onClick={() => !isDeleting && setShowBulkDeleteModal(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <AlertTriangle size={24} className={styles.warningIcon} />
-              <h3>Delete {selectedProjects.size} project{selectedProjects.size !== 1 ? 's' : ''}?</h3>
-            </div>
-            <p className={styles.modalBody}>
-              This action cannot be undone. {selectedProjects.size === 1
-                ? 'This project'
-                : `These ${selectedProjects.size} projects`} will be permanently deleted
-              {isAuthenticated ? ' from the cloud' : ' from local storage'}.
-            </p>
-            <div className={styles.modalActions}>
-              <button
-                className={styles.cancelButton}
-                onClick={() => setShowBulkDeleteModal(false)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                className={styles.deleteConfirmButton}
-                onClick={handleBulkDelete}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <>
-                    <RefreshCw size={16} className="spinner" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={16} />
-                    Delete {selectedProjects.size} project{selectedProjects.size !== 1 ? 's' : ''}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  Play, Pause, Square, Repeat, Save, Download, FolderOpen,
+  Play, Pause, Square, Repeat, Save, Download, Menu,
   Settings, Moon, Sun, Maximize2, Minimize2, Plus, Minus, Copy,
   ClipboardPaste, Trash2, X, HelpCircle, Hand, Volume2, Check, Loader2,
   ZoomIn, ZoomOut
@@ -1003,7 +1003,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
             <>
               {!readOnly && (
                 <>
-                  <button className={styles.button} onClick={onOpenLibrary}><FolderOpen size={16} /><span>Library</span></button>
+                  <button className={styles.iconButton} onClick={onOpenLibrary} title="Menu"><Menu size={16} /></button>
                   {editingField === 'projectName' ? (
                     <input
                       className={styles.projectInput}
@@ -1043,8 +1043,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                   </button>
                 </>
               )}
-              <button className={styles.button} onClick={exportToText}><Download size={16} /><span>Export</span></button>
-            </>
+              </>
           )}
         </div>
 
@@ -1101,6 +1100,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           <button className={`${styles.iconButton} ${focusMode ? styles.active : ''}`} onClick={() => setFocusMode(!focusMode)} title={focusMode ? 'Exit focus mode' : 'Focus mode'}>
             {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
+          <button className={styles.button} onClick={exportToText} title="Export"><Download size={16} /><span>Export</span></button>
         </div>
       </header>
 

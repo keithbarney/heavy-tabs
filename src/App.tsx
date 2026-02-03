@@ -277,7 +277,6 @@ function MainView({
         currentProjectId={currentProject?.id || null}
         onSelectProject={onSelectProject}
         onNewProject={onNewProject}
-        isAuthenticated={auth.isAuthenticated}
         message={projectNotFoundMessage}
       />
 
