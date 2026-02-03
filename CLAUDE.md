@@ -2,6 +2,37 @@
 
 Guitar/bass/drum tablature editor with cloud sync and public sharing.
 
+**Repo:** github.com/keithbarney/heavy-tabs
+**Domain:** heavytabs.app
+**Live:** Deployed on Vercel (auto-deploys from main)
+
+---
+
+## Current Status
+
+### Complete
+- ✅ Tab editor (guitar, bass, drums)
+- ✅ Cloud sync with Supabase
+- ✅ Magic link authentication
+- ✅ Public sharing via slug URLs
+- ✅ Project library with search and bulk delete
+- ✅ Offline support (localStorage fallback)
+- ✅ Playback with click track
+- ✅ Light/dark theme
+- ✅ Mobile-friendly input modal
+
+### Complete (Recent)
+- ✅ Custom domain (heavytabs.app) on Vercel
+- ✅ SendGrid email authentication (SPF/DKIM verified)
+- ✅ Custom magic link email template (light theme)
+- ✅ Supabase sender: noreply@heavytabs.app
+
+### Next Priorities
+1. Landing page for conversions
+2. Payment integration (Lemon Squeezy or Stripe)
+3. PDF export
+4. Get feedback from initial users
+
 ---
 
 ## Tech Stack
@@ -14,7 +45,7 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 | Routing | React Router |
 | Backend | Supabase (Postgres + Auth + RLS) |
 | Auth | Magic link (no passwords) |
-| Hosting | Vercel (planned) |
+| Hosting | Vercel (deployed, auto-deploys from GitHub) |
 
 ---
 
@@ -120,6 +151,23 @@ All buttons use `@include button-base` which provides:
 - Consistent padding and border-radius
 - `button-primary` for accent-colored actions
 - `button-danger` for destructive actions
+- Add buttons use green (`$color-green`) with solid border
+
+### Inline Editable Fields
+Most input fields show as text until clicked:
+- Project name, BPM, section name, lyrics, bars count, repeat count
+- Single-click to edit, Enter or blur to save
+- Uses `editingField` state and `editingFieldValue` pattern
+
+### Cell Selection
+- Click/drag selects full columns (all strings at a position)
+- Selection persists until clicking away
+- `user-select: none` prevents browser text selection while dragging
+
+### Fixed Footer
+- Legend bar fixed to bottom of screen
+- Legend panel opens upward as overlay
+- Main content has bottom padding to account for footer
 
 ---
 
@@ -182,3 +230,20 @@ All three have generous free tiers - this project costs $0/month to run.
 | Ctrl+Shift+Z | Redo |
 | Ctrl+C/V | Copy/Paste |
 | ? | Show shortcuts |
+
+---
+
+## Monetization Plan
+
+**Model:** Lifetime purchase ($29)
+- Free: 3 projects, no sharing
+- Paid: Unlimited projects, cloud sync, sharing
+
+**Target users:** Hobbyist guitarists, band members, music teachers
+
+**Launch strategy:**
+1. ~~Fix email deliverability~~ ✅ Done
+2. Create landing page
+3. Add payment gate (Lemon Squeezy)
+4. Post on Reddit (r/guitar, r/Bass), guitar Discord servers
+5. SEO for "free tab editor", "online tab maker"
