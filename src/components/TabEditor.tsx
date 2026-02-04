@@ -1,17 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  Play, Pause, Square, Repeat, Save, Download, Menu,
-  Settings, Moon, Sun, Maximize2, Minimize2, Plus, Minus, Copy,
-  ClipboardPaste, Trash2, X, HelpCircle, Hand, Volume2, Check, Loader2,
-  ZoomIn, ZoomOut
+  Play, Pause, Square, Repeat, Save, Menu,
+  Settings, Plus, Minus, Copy, CopyPlus,
+  ClipboardPaste, Trash2, X, HelpCircle, Volume2, Check, Loader2, Music,
+  Drum, Printer
 } from 'lucide-react'
+import UiButton from './UiButton'
+import UiInput from './UiInput'
+import UiCheckbox from './UiCheckbox'
+import PageHeader from './PageHeader'
+import PageFooter, { LegendColumn, LegendItem } from './PageFooter'
+import PageAdvancedSettings from './PageAdvancedSettings'
 import type {
   LocalProject, Section, TabData, Instrument, TimeSignature, NoteResolution,
-  Tunings, StringCounts, PlaybackPosition, CellPosition, CellClipboard, Theme
+  Tunings, StringCounts, PlaybackPosition, CellPosition, CellClipboard
 } from '@/types'
 import {
   KEYS, tuningConfigs, drumLines, validInputs, techniques,
-  DEFAULT_BPM, TIME_SIGNATURES, NOTE_RESOLUTIONS, SECTION_COLORS,
+  DEFAULT_BPM, TIME_SIGNATURES, NOTE_RESOLUTIONS,
   CHORD_SHAPES, getTuningNotes, getCellsPerMeasure
 } from '@/lib/constants'
 import { generateId, saveLocalProject } from '@/lib/storage'
@@ -40,9 +46,6 @@ const createEmptyMeasure = (instrument: Instrument, stringCount: number, cellsPe
 }
 
 export default function TabEditor({ initialProject, onSave, onProjectChange, onOpenLibrary, readOnly = false }: TabEditorProps) {
-  // Theme
-  const [theme, setTheme] = useState<Theme>('dark')
-
   // Project state
   const [projectName, setProjectName] = useState(initialProject?.projectName || 'Untitled Project')
   const [bpm, setBpm] = useState(initialProject?.bpm || DEFAULT_BPM)
@@ -67,23 +70,17 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLooping, setIsLooping] = useState(false)
   const [clickTrack, setClickTrack] = useState(true)
-  const [isMuted] = useState(false)
+  const isMuted = false
   const [playbackPosition, setPlaybackPosition] = useState<PlaybackPosition | null>(null)
 
   // UI state
-  const [focusMode, setFocusMode] = useState(false)
-  const [showSettings, setShowSettings] = useState(true)
-  const [zoom, setZoom] = useState(1)
+  const focusMode = false
+  const [showSettings, setShowSettings] = useState(false)
   const [showLegend, setShowLegend] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
-  const [editingSection, setEditingSection] = useState<string | null>(null)
-  const [editingSectionName, setEditingSectionName] = useState('')
   const [confirmRemoveBar, setConfirmRemoveBar] = useState<{ sectionId: string; sectionName: string } | null>(null)
-  const [mobileInputCell, setMobileInputCell] = useState<CellPosition | null>(null)
-  const [editingField, setEditingField] = useState<string | null>(null)
-  const [editingFieldValue, setEditingFieldValue] = useState('')
 
   // Library state
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProject?.id || null)
@@ -102,8 +99,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   const loopingRef = useRef(false)
   const audioContextRef = useRef<AudioContext | null>(null)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const tapTimesRef = useRef<number[]>([])
-  const mobileInputRef = useRef<HTMLInputElement>(null)
   const isInitialMount = useRef(true)
   const justFinishedSelectingRef = useRef(false)
 
@@ -293,16 +288,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   // Section management
   const addSection = () => setSections([...sections, createSection(`Part ${sections.length + 1}`)])
 
-  const deleteSection = (sectionId: string) => {
-    if (sections.length <= 1) return
-    setSections(sections.filter(s => s.id !== sectionId))
-    const newTabData = { ...tabData };
-    (['guitar', 'bass', 'drums'] as Instrument[]).forEach(instrument => {
-      delete newTabData[`${sectionId}-${instrument}`]
-    })
-    setTabData(newTabData)
-  }
-
   const duplicateSection = (sectionId: string) => {
     const section = sections.find(s => s.id === sectionId)
     if (!section) return
@@ -391,8 +376,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       // Single click = single cell
       const clickedCellKey = `${sectionId}-${measureIdx}-${stringIdx}-${cellIdx}`
       setSelectedCells([clickedCellKey])
-      // Open input modal on click
-      setMobileInputCell({ sectionId, measureIdx, stringIdx, cellIdx })
     }
   }
 
@@ -598,11 +581,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   const applyChord = (chordName: string) => {
     if (activeInstrument !== 'guitar' || stringCounts.guitar !== 6 || readOnly) return
     let sectionId: string, measureIdx: number, cellIdx: number
-    if (mobileInputCell) {
-      sectionId = mobileInputCell.sectionId
-      measureIdx = mobileInputCell.measureIdx
-      cellIdx = mobileInputCell.cellIdx
-    } else if (selectedCells.length > 0) {
+    if (selectedCells.length > 0) {
       const parts = selectedCells[0].split('-')
       sectionId = parts[0]
       measureIdx = parseInt(parts[1])
@@ -780,19 +759,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     setPlaybackPosition(null)
   }
 
-  const handleTapTempo = () => {
-    const now = Date.now()
-    const taps = tapTimesRef.current
-    if (taps.length > 0 && now - taps[taps.length - 1] > 2000) { tapTimesRef.current = [now]; return }
-    taps.push(now)
-    if (taps.length > 8) taps.shift()
-    if (taps.length >= 2) {
-      const intervals = taps.slice(1).map((t, i) => t - taps[i])
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
-      setBpm(Math.max(40, Math.min(300, Math.round(60000 / avgInterval))))
-    }
-  }
-
   // Export
   const exportToText = () => {
     let text = `${projectName}\nBPM: ${bpm}\nTime: ${timeSignature.label}\nGrid: ${noteResolution.label}\nKey: ${projectKey}\n\n`;
@@ -835,50 +801,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     URL.revokeObjectURL(url)
   }
 
-  // Mobile input
-  const openMobileKeyboard = (sectionId: string, measureIdx: number, stringIdx: number, cellIdx: number) => {
-    if (readOnly) return
-    setSelectionStart({ sectionId, measureIdx, stringIdx, cellIdx })
-    setSelectedCells([`${sectionId}-${measureIdx}-${stringIdx}-${cellIdx}`])
-    setMobileInputCell({ sectionId, measureIdx, stringIdx, cellIdx })
-  }
-
-  const closeMobileInput = () => setMobileInputCell(null)
-
-  const getMobileInputValue = () => {
-    if (!mobileInputCell) return ''
-    const { sectionId, measureIdx, stringIdx, cellIdx } = mobileInputCell
-    const data = getTabData(sectionId, activeInstrument)
-    const value = data[measureIdx]?.[stringIdx]?.[cellIdx]
-    return value === '-' ? '' : value || ''
-  }
-
-  const handleMobileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!mobileInputCell || readOnly) return
-    const value = e.target.value
-    const { sectionId, measureIdx, stringIdx, cellIdx } = mobileInputCell
-    const data = getTabData(sectionId, activeInstrument)
-    const currentValue = data[measureIdx]?.[stringIdx]?.[cellIdx] || '-'
-    const newChar = value.length > currentValue.length || currentValue === '-' ? value.slice(-1) : value
-    if (newChar) {
-      const chars = validInputs[activeInstrument]
-      if (chars.includes(newChar) || (newChar >= '0' && newChar <= '9')) {
-        if (data[measureIdx]) {
-          const newData = data.map((measure, mIdx) =>
-            measure.map((string, sIdx) =>
-              string.map((cell, cIdx) => (mIdx === measureIdx && sIdx === stringIdx && cIdx === cellIdx) ? newChar : cell)
-            )
-          )
-          updateTabData(sectionId, activeInstrument, newData)
-        }
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (mobileInputCell && mobileInputRef.current) mobileInputRef.current.focus()
-  }, [mobileInputCell])
-
   // Keyboard handler
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return }
@@ -887,17 +809,17 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     if (e.key === '?' && !(e.target as HTMLElement).matches('input, textarea, select')) { e.preventDefault(); setShowShortcuts(true); return }
     if (e.key === 'Escape') {
       if (showShortcuts) { setShowShortcuts(false); return }
-      closeMobileInput()
       return
     }
-    if (selectedCells.length === 0 || editingSection || readOnly) return
+    if ((e.target as HTMLElement).matches('input, textarea, select')) return
+    if (selectedCells.length === 0 || readOnly) return
     if ((e.ctrlKey || e.metaKey) && e.key === 'c') { e.preventDefault(); copySelection(); return }
     if ((e.ctrlKey || e.metaKey) && e.key === 'v') { e.preventDefault(); pasteSelection(); return }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelection(); return }
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); navigateSelection(e.key); return }
     const chars = validInputs[activeInstrument]
     if (chars.includes(e.key) || (e.key >= '0' && e.key <= '9')) { e.preventDefault(); inputValue(e.key) }
-  }, [selectedCells, activeInstrument, editingSection, undo, redo, showShortcuts, readOnly])
+  }, [selectedCells, activeInstrument, undo, redo, showShortcuts, readOnly])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -917,7 +839,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       : getTuningNotes(activeInstrument, stringCounts[activeInstrument], tunings[activeInstrument], projectKey)
 
     return (
-      <div className={styles.gridContainer} style={{ '--cell-size': `${20 * zoom}px` } as React.CSSProperties}>
+      <div className={styles.gridContainer}>
         <div className={styles.gridWrapper}>
           <div className={styles.measureContainer}>
             <div className={styles.stringLabels}>
@@ -943,7 +865,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                   </div>
                   <div className={styles.measureGrid}>
                     {isMeasurePlaying && (
-                      <div className={styles.playbackCursor} style={{ left: `${playbackPosition!.cellIdx * 20 * zoom + 10 * zoom}px`, height: `${stringCount * 20 * zoom}px` }} />
+                      <div className={styles.playbackCursor} style={{ left: `${playbackPosition!.cellIdx * 20 + 10}px`, height: `${stringCount * 20}px` }} />
                     )}
                     {measure.map((string, stringIdx) => (
                       <div key={stringIdx} className={styles.row}>
@@ -961,7 +883,6 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
                               onMouseDown={(e) => handleMouseDown(section.id, measureIdx, stringIdx, cellIdx, e)}
                               onMouseEnter={() => handleMouseEnter(section.id, measureIdx, stringIdx, cellIdx)}
                               onClick={(e) => handleCellClick(section.id, measureIdx, stringIdx, cellIdx, e)}
-                              onTouchEnd={(e) => { e.preventDefault(); openMobileKeyboard(section.id, measureIdx, stringIdx, cellIdx) }}
                             >
                               {cell}
                             </div>
@@ -976,15 +897,15 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           </div>
           {!readOnly && (
             <div className={styles.barButtons}>
-              <button className={`${styles.iconButton} ${styles.add}`} onClick={() => updateSection(section.id, { measures: section.measures + 1 })} title="Add bar">
-                <Plus size={14} />
-              </button>
-              <button className={styles.iconButton} onClick={() => duplicateBar(section)} title="Duplicate last bar">
-                <Copy size={14} />
-              </button>
-              <button className={styles.iconButton} onClick={() => handleRemoveBar(section)} title="Remove bar" disabled={section.measures <= 1}>
-                <Minus size={14} />
-              </button>
+              <UiButton variant="action" size="small" onClick={() => updateSection(section.id, { measures: section.measures + 1 })} title="Add bar">
+                <Plus size={12} />
+              </UiButton>
+              <UiButton variant="secondary" size="small" onClick={() => handleRemoveBar(section)} title="Remove bar" disabled={section.measures <= 1}>
+                <Minus size={12} />
+              </UiButton>
+              <UiButton variant="secondary" size="small" onClick={() => duplicateBar(section)} title="Duplicate bar">
+                <CopyPlus size={12} />
+              </UiButton>
             </div>
           )}
         </div>
@@ -993,165 +914,103 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   }
 
   return (
-    <div className={styles.container} data-theme={theme} onClick={() => { if (!justFinishedSelectingRef.current) setSelectedCells([]) }}>
+    <div className={styles.container} onClick={() => { if (!justFinishedSelectingRef.current) setSelectedCells([]) }}>
       {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          {focusMode ? (
-            <span className={styles.projectTitle}>{projectName}</span>
-          ) : (
-            <>
-              {!readOnly && (
-                <>
-                  <button className={styles.iconButton} onClick={onOpenLibrary} title="Menu"><Menu size={16} /></button>
-                  {editingField === 'projectName' ? (
-                    <input
-                      className={styles.projectInput}
-                      value={editingFieldValue}
-                      onChange={(e) => setEditingFieldValue(e.target.value)}
-                      onBlur={() => {
-                        setProjectName(editingFieldValue || 'Untitled Project')
-                        setEditingField(null)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          setProjectName(editingFieldValue || 'Untitled Project')
-                          setEditingField(null)
-                        }
-                      }}
-                      placeholder="Project name"
-                      autoFocus
-                    />
-                  ) : (
-                    <span
-                      className={styles.projectTitle}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => { setEditingField('projectName'); setEditingFieldValue(projectName) }}
-                    >
-                      {projectName}
-                    </span>
-                  )}
-                  <button
-                    className={`${styles.button} ${saveStatus === 'success' ? styles.buttonSuccess : styles.buttonPrimary}`}
-                    onClick={saveToLibrary}
-                    disabled={saveStatus === 'saving' || isProjectEmpty(getCurrentProject()) || (saveStatus === 'idle' && currentProjectId !== null && !hasUnsavedChanges)}
-                  >
-                    {saveStatus === 'saving' && <Loader2 size={16} className={styles.spinner} />}
-                    {saveStatus === 'success' && <Check size={16} />}
-                    {saveStatus === 'idle' && <Save size={16} />}
-                    <span>{saveStatus === 'saving' ? 'Saving...' : saveStatus === 'success' ? 'Saved' : 'Save'}</span>
-                  </button>
-                </>
-              )}
-              </>
-          )}
-        </div>
-
-        {!focusMode && (
-          <div className={styles.playbackControls}>
-            <button className={styles.iconButton} onClick={togglePlayback} title={isPlaying ? 'Pause' : 'Play'}>{isPlaying ? <Pause size={16} /> : <Play size={16} />}</button>
-            <button className={styles.iconButton} onClick={stopPlayback} title="Stop"><Square size={16} /></button>
-            <button className={`${styles.iconButton} ${isLooping ? styles.active : ''}`} onClick={() => setIsLooping(!isLooping)} title="Loop"><Repeat size={16} /></button>
-            <button className={`${styles.iconButton} ${clickTrack ? styles.active : ''}`} onClick={() => setClickTrack(!clickTrack)} title="Click track"><Volume2 size={16} /></button>
-            <button className={styles.iconButton} onClick={handleTapTempo} title="Tap tempo"><Hand size={16} /></button>
-            {editingField === 'bpm' ? (
-              <div className={styles.bpmControl}>
-                <input
-                  type="number"
-                  value={editingFieldValue}
-                  onChange={(e) => setEditingFieldValue(e.target.value)}
-                  onBlur={() => {
-                    setBpm(Math.max(40, Math.min(300, parseInt(editingFieldValue) || 120)))
-                    setEditingField(null)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      setBpm(Math.max(40, Math.min(300, parseInt(editingFieldValue) || 120)))
-                      setEditingField(null)
-                    }
-                  }}
-                  min="40"
-                  max="300"
-                  autoFocus
+      <PageHeader
+        left={
+          <>
+            {!readOnly && (
+              <>
+                <UiButton variant="secondary" onClick={onOpenLibrary} title="Menu"><Menu size={16} /></UiButton>
+                <UiInput
+                  placeholder="Project Name"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value || 'Untitled Project')}
+                  className={styles.projectInput}
                 />
-                <span>bpm</span>
-              </div>
-            ) : (
-              <span
-                className={styles.inlineEditable}
-                onClick={() => { setEditingField('bpm'); setEditingFieldValue(String(bpm)) }}
-              >
-                <span className={styles.inlineValue}>{bpm}</span> bpm
-              </span>
+                <UiButton
+                  variant="primary"
+                  onClick={saveToLibrary}
+                  disabled={saveStatus === 'saving' || isProjectEmpty(getCurrentProject()) || (saveStatus === 'idle' && currentProjectId !== null && !hasUnsavedChanges)}
+                  label={saveStatus === 'saving' ? 'Saving...' : saveStatus === 'success' ? 'Saved' : 'Save'}
+                >
+                  {saveStatus === 'saving' && <Loader2 size={16} className={styles.spinner} />}
+                  {saveStatus === 'success' && <Check size={16} />}
+                  {saveStatus === 'idle' && <Save size={16} />}
+                </UiButton>
+              </>
             )}
-          </div>
-        )}
-
-        <div className={styles.headerRight}>
-          <div className={styles.zoomControls}>
-            <button className={styles.iconButton} onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title="Zoom out"><ZoomOut size={16} /></button>
-            <span className={styles.zoomLevel}>{Math.round(zoom * 100)}%</span>
-            <button className={styles.iconButton} onClick={() => setZoom(z => Math.min(2, z + 0.1))} title="Zoom in"><ZoomIn size={16} /></button>
-          </div>
-          {!readOnly && (
-            <button className={`${styles.iconButton} ${showSettings ? styles.active : ''}`} onClick={() => setShowSettings(!showSettings)} title="Settings"><Settings size={16} /></button>
-          )}
-          <button className={styles.iconButton} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>{theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}</button>
-          <button className={`${styles.iconButton} ${focusMode ? styles.active : ''}`} onClick={() => setFocusMode(!focusMode)} title={focusMode ? 'Exit focus mode' : 'Focus mode'}>
-            {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
-          <button className={styles.button} onClick={exportToText} title="Export"><Download size={16} /><span>Export</span></button>
-        </div>
-      </header>
+          </>
+        }
+        center={
+          !focusMode ? (
+            <>
+              <UiButton variant="secondary" onClick={togglePlayback} title={isPlaying ? 'Pause' : 'Play'}>{isPlaying ? <Pause size={16} /> : <Play size={16} />}</UiButton>
+              <UiButton variant="secondary" onClick={stopPlayback} title="Stop"><Square size={16} /></UiButton>
+              <UiButton variant="secondary" selected={isLooping} onClick={() => setIsLooping(!isLooping)} title="Loop"><Repeat size={16} /></UiButton>
+              <UiButton variant="secondary" selected={clickTrack} onClick={() => setClickTrack(!clickTrack)} title="Click track"><Volume2 size={16} /></UiButton>
+              <UiInput
+                inputType="number"
+                value={String(bpm)}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value)
+                  if (!isNaN(val)) setBpm(Math.max(40, Math.min(300, val)))
+                }}
+                icon={<Drum size={14} />}
+                className={styles.bpmInput}
+              />
+            </>
+          ) : undefined
+        }
+        right={
+          <>
+            {!readOnly && (
+              <UiButton variant="secondary" selected={showSettings} onClick={() => setShowSettings(!showSettings)} title="Settings"><Settings size={16} /></UiButton>
+            )}
+            <UiButton variant="secondary" onClick={exportToText} title="Export"><Printer size={16} /></UiButton>
+          </>
+        }
+      />
 
       {/* Settings Panel */}
       {!focusMode && showSettings && !readOnly && (
-        <div className={styles.settingsPanel}>
-          <div className={styles.settingGroup}>
-            <label>Instrument</label>
-            <select value={activeInstrument} onChange={(e) => setActiveInstrument(e.target.value as Instrument)}>
-              <option value="guitar">Guitar</option>
-              <option value="bass">Bass</option>
-              <option value="drums">Drums</option>
-            </select>
-          </div>
+        <PageAdvancedSettings
+          instrument={activeInstrument}
+          strings={String(stringCounts[activeInstrument as 'guitar' | 'bass'])}
+          tuning={tunings[activeInstrument as 'guitar' | 'bass']}
+          keySignature={projectKey}
+          time={timeSignature.label}
+          grid={noteResolution.label}
+          instrumentOptions={[
+            { value: 'guitar', label: 'Guitar' },
+            { value: 'bass', label: 'Bass' },
+            { value: 'drums', label: 'Drums' },
+          ]}
+          stringsOptions={Object.keys(tuningConfigs[activeInstrument as 'guitar' | 'bass'] || {}).map(count => ({ value: count, label: count }))}
+          tuningOptions={[
+            { value: 'standard', label: 'Standard' },
+            { value: 'drop', label: 'Drop' },
+          ]}
+          keyOptions={KEYS.map(key => ({ value: key, label: key }))}
+          timeOptions={TIME_SIGNATURES.map(ts => ({ value: ts.label, label: ts.label }))}
+          gridOptions={NOTE_RESOLUTIONS.map(res => ({ value: res.label, label: res.label }))}
+          onInstrumentChange={(val) => setActiveInstrument(val as Instrument)}
+          onStringsChange={(val) => setStringCounts({ ...stringCounts, [activeInstrument]: parseInt(val) as 4 | 5 | 6 | 7 | 8 })}
+          onTuningChange={(val) => setTunings({ ...tunings, [activeInstrument]: val })}
+          onKeyChange={setProjectKey}
+          onTimeChange={(val) => { const ts = TIME_SIGNATURES.find(t => t.label === val); if (ts) setTimeSignature(ts) }}
+          onGridChange={(val) => { const nr = NOTE_RESOLUTIONS.find(r => r.label === val); if (nr) setNoteResolution(nr) }}
+        />
+      )}
+
+      {/* Editing Toolbar */}
+      {!focusMode && !readOnly && (
+        <div className={styles.editingToolbar}>
           {activeInstrument !== 'drums' && (
-            <>
-              <div className={styles.settingGroup}>
-                <label>Strings</label>
-                <select value={stringCounts[activeInstrument]} onChange={(e) => setStringCounts({ ...stringCounts, [activeInstrument]: parseInt(e.target.value) as 4 | 5 | 6 | 7 | 8 })}>
-                  {Object.keys(tuningConfigs[activeInstrument]).map(count => <option key={count} value={count}>{count}</option>)}
-                </select>
-              </div>
-              <fieldset className={styles.settingGroup}>
-                <legend>Tuning</legend>
-                <div className={styles.radioGroup}>
-                  <label><input type="radio" checked={tunings[activeInstrument] === 'standard'} onChange={() => setTunings({ ...tunings, [activeInstrument]: 'standard' })} />Standard</label>
-                  <label><input type="radio" checked={tunings[activeInstrument] === 'drop'} onChange={() => setTunings({ ...tunings, [activeInstrument]: 'drop' })} />Drop</label>
-                </div>
-              </fieldset>
-            </>
+            <UiCheckbox checked={powerChordMode} onChange={setPowerChordMode} label="Power Chord" />
           )}
-          <div className={styles.settingGroup}>
-            <label>Key</label>
-            <select value={projectKey} onChange={(e) => setProjectKey(e.target.value)}>{KEYS.map(key => <option key={key} value={key}>{key}</option>)}</select>
-          </div>
-          <div className={styles.settingGroup}>
-            <label>Time</label>
-            <select value={timeSignature.label} onChange={(e) => { const ts = TIME_SIGNATURES.find(t => t.label === e.target.value); if (ts) setTimeSignature(ts) }}>
-              {TIME_SIGNATURES.map(ts => <option key={ts.label} value={ts.label}>{ts.label}</option>)}
-            </select>
-          </div>
-          <div className={styles.settingGroup}>
-            <label>Grid</label>
-            <select value={noteResolution.label} onChange={(e) => { const nr = NOTE_RESOLUTIONS.find(r => r.label === e.target.value); if (nr) setNoteResolution(nr) }}>
-              {NOTE_RESOLUTIONS.map(res => <option key={res.label} value={res.label}>{res.label}</option>)}
-            </select>
-          </div>
-          {activeInstrument !== 'drums' && (
-            <div className={styles.settingGroup}>
-              <label className={styles.checkbox}><input type="checkbox" checked={powerChordMode} onChange={() => setPowerChordMode(!powerChordMode)} />Power Chord</label>
-            </div>
+          {activeInstrument === 'guitar' && stringCounts.guitar === 6 && (
+            <UiButton variant="secondary" onClick={(e) => { e.stopPropagation(); setShowChordPicker(true) }} title="Insert chord" label="Chords"><Music size={16} /></UiButton>
           )}
         </div>
       )}
@@ -1160,172 +1019,69 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
       <main className={styles.content}>
         {sections.map((section) => (
           <section key={section.id} className={styles.section} style={section.color ? { borderLeft: `4px solid ${section.color}` } : undefined}>
-            <div className={styles.sectionHeader} style={{ backgroundColor: section.color ? `${section.color}15` : undefined }}>
+            <div className={styles.sectionHeader}>
               <div className={styles.sectionTitle}>
-                {section.color && <span className={styles.colorDot} style={{ backgroundColor: section.color }} />}
-                {editingSection === section.id ? (
-                  <input
-                    className={styles.sectionNameInput}
-                    value={editingSectionName}
-                    onChange={(e) => setEditingSectionName(e.target.value)}
-                    onBlur={() => { updateSection(section.id, { name: editingSectionName }); setEditingSection(null) }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { updateSection(section.id, { name: editingSectionName }); setEditingSection(null) } }}
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    className={styles.sectionName}
-                    onClick={() => { if (!focusMode && !readOnly) { setEditingSection(section.id); setEditingSectionName(section.name) } }}
-                  >
-                    {section.name}
-                  </span>
-                )}
-                {section.repeat > 1 && <span className={styles.repeatBadge}>×{section.repeat}</span>}
+                <UiInput
+                  className={styles.sectionNameInput}
+                  value={section.name}
+                  onChange={(e) => updateSection(section.id, { name: e.target.value })}
+                  placeholder="Title"
+                  readOnly={readOnly}
+                />
                 {!readOnly && (
-                  editingField === `notes-${section.id}` ? (
-                    <input
-                      className={styles.notesInput}
-                      value={editingFieldValue}
-                      onChange={(e) => setEditingFieldValue(e.target.value)}
-                      onBlur={() => {
-                        updateSection(section.id, { notes: editingFieldValue })
-                        setEditingField(null)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          updateSection(section.id, { notes: editingFieldValue })
-                          setEditingField(null)
-                        }
-                      }}
-                      placeholder="lyrics / notes..."
-                      autoFocus
-                    />
-                  ) : (
-                    <span
-                      className={styles.notesDisplay}
-                      onClick={() => { setEditingField(`notes-${section.id}`); setEditingFieldValue(section.notes || '') }}
-                    >
-                      {section.notes || 'lyrics / notes...'}
-                    </span>
-                  )
+                  <UiInput
+                    className={styles.notesInput}
+                    value={section.notes || ''}
+                    onChange={(e) => updateSection(section.id, { notes: e.target.value })}
+                    placeholder="Lyrics"
+                    readOnly={readOnly}
+                  />
                 )}
               </div>
               {!focusMode && !readOnly && (
-                <div className={styles.sectionControls}>
-                  {editingField === `bars-${section.id}` ? (
-                    <span className={styles.inlineEditable}>
-                      Bars
-                      <input
-                        type="number"
-                        value={editingFieldValue}
-                        onChange={(e) => setEditingFieldValue(e.target.value)}
-                        onBlur={() => {
-                          updateSection(section.id, { measures: Math.max(1, parseInt(editingFieldValue) || 1) })
-                          setEditingField(null)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            updateSection(section.id, { measures: Math.max(1, parseInt(editingFieldValue) || 1) })
-                            setEditingField(null)
-                          }
-                        }}
-                        min="1"
-                        autoFocus
-                      />
-                    </span>
-                  ) : (
-                    <span
-                      className={styles.inlineEditable}
-                      onClick={() => { setEditingField(`bars-${section.id}`); setEditingFieldValue(String(section.measures)) }}
-                    >
-                      Bars <span className={styles.inlineValue}>{section.measures}</span>
-                    </span>
-                  )}
-                  {editingField === `repeat-${section.id}` ? (
-                    <span className={styles.inlineEditable}>
-                      Repeat
-                      <input
-                        type="number"
-                        value={editingFieldValue}
-                        onChange={(e) => setEditingFieldValue(e.target.value)}
-                        onBlur={() => {
-                          updateSection(section.id, { repeat: Math.max(1, parseInt(editingFieldValue) || 1) })
-                          setEditingField(null)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            updateSection(section.id, { repeat: Math.max(1, parseInt(editingFieldValue) || 1) })
-                            setEditingField(null)
-                          }
-                        }}
-                        min="1"
-                        autoFocus
-                      />
-                    </span>
-                  ) : (
-                    <span
-                      className={styles.inlineEditable}
-                      onClick={() => { setEditingField(`repeat-${section.id}`); setEditingFieldValue(String(section.repeat)) }}
-                    >
-                      Repeat <span className={styles.inlineValue}>{section.repeat}</span>
-                    </span>
-                  )}
-                  <label>Color
-                    <select value={section.color || ''} onChange={(e) => updateSection(section.id, { color: e.target.value || null })}>
-                      {SECTION_COLORS.map(c => <option key={c.name} value={c.value || ''}>{c.name}</option>)}
-                    </select>
-                  </label>
-                  <button className={styles.smallButton} onClick={() => duplicateSection(section.id)}><Copy size={12} />Duplicate</button>
-                  {sections.length > 1 && <button className={`${styles.smallButton} ${styles.danger}`} onClick={() => deleteSection(section.id)}><Trash2 size={12} />Delete</button>}
-                </div>
+                <UiButton variant="secondary" onClick={() => duplicateSection(section.id)} title="Duplicate section"><CopyPlus size={16} /></UiButton>
               )}
             </div>
             {renderGrid(section)}
           </section>
         ))}
         {!focusMode && !readOnly && (
-          <button className={styles.addPartButton} onClick={addSection} title="Add part"><Plus size={16} />Add Part</button>
+          <UiButton variant="action" onClick={addSection} title="Add part" label="Add Part"><Plus size={16} /></UiButton>
         )}
       </main>
 
       {/* Legend */}
-      <div className={styles.legendWrapper}>
-        {showLegend && (
-          <div className={styles.legend}>
-            <div className={styles.legendSection}>
-              <h4>Guitar and bass</h4>
-              <div className={styles.legendGrid}>
-                <div><span className={styles.legendKey}>0-24</span>Fret number</div>
-                {Object.entries(techniques).map(([key, desc]) => <div key={key}><span className={styles.legendKey}>{key}</span>{desc}</div>)}
-              </div>
-            </div>
-            <div className={styles.legendSection}>
-              <h4>Drums</h4>
-              <div className={styles.legendGrid}>
-                <div><span className={styles.legendKey}>x / X</span>Hit</div>
-                <div><span className={styles.legendKey}>o / O</span>Accent</div>
-                <div><span className={styles.legendKey}>f</span>Flam</div>
-                <div><span className={styles.legendKey}>g</span>Ghost note</div>
-                <div><span className={styles.legendKey}>-</span>Rest</div>
-              </div>
-            </div>
-            <div className={styles.legendSection}>
-              <h4>Drum kit</h4>
-              <div className={styles.legendGrid}>
-                {drumLines.map(line => <div key={line.id}><span className={styles.legendKey}>{line.name}</span>{line.fullName}</div>)}
-              </div>
-            </div>
-          </div>
-        )}
-        <div className={styles.legendBar}>
-          <button className={styles.button} onClick={() => setShowLegend(!showLegend)}><HelpCircle size={16} />{showLegend ? 'Hide legend' : 'Show legend'}</button>
-          {!showLegend && (
+      <PageFooter
+        expanded={showLegend}
+        left={
+          <UiButton variant="secondary" onClick={() => setShowLegend(!showLegend)} label="Legend"><HelpCircle size={16} /></UiButton>
+        }
+        right={
+          !showLegend ? (
             <div className={styles.quickHelp}>
               <span>Ctrl+C copy</span><span>Ctrl+V paste</span><span>Del clear</span><span>Arrows navigate</span>
             </div>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+        legendPanel={
+          <>
+            <LegendColumn title="Guitar/Bass">
+              <LegendItem keyChar="0-24" label="Fret number" />
+              {Object.entries(techniques).map(([key, desc]) => <LegendItem key={key} keyChar={key} label={desc} />)}
+            </LegendColumn>
+            <LegendColumn title="Drums">
+              <LegendItem keyChar="x / X" label="Hit" />
+              <LegendItem keyChar="o / O" label="Accent" />
+              <LegendItem keyChar="f" label="Flam" />
+              <LegendItem keyChar="g" label="Ghost note" />
+              <LegendItem keyChar="-" label="Rest" />
+            </LegendColumn>
+            <LegendColumn title="Drum Kit">
+              {drumLines.map(line => <LegendItem key={line.id} keyChar={line.name} label={line.fullName} />)}
+            </LegendColumn>
+          </>
+        }
+      />
 
       {/* Modals */}
       {showShortcuts && (
@@ -1333,7 +1089,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Keyboard Shortcuts</h3>
-              <button className={styles.iconButton} onClick={() => setShowShortcuts(false)} title="Close"><X size={16} /></button>
+              <UiButton variant="secondary" onClick={() => setShowShortcuts(false)} title="Close"><X size={16} /></UiButton>
             </div>
             <div className={styles.shortcutList}>
               <div><strong>Playback</strong></div>
@@ -1360,9 +1116,9 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Select Chord</h3>
-              <button className={styles.iconButton} onClick={() => { setShowChordPicker(false); setChordSearch('') }} title="Close"><X size={16} /></button>
+              <UiButton variant="secondary" onClick={() => { setShowChordPicker(false); setChordSearch('') }} title="Close"><X size={16} /></UiButton>
             </div>
-            <input className={styles.searchInput} placeholder="Search chords..." value={chordSearch} onChange={(e) => setChordSearch(e.target.value)} autoFocus />
+            <UiInput className={styles.searchInput} placeholder="Search chords..." value={chordSearch} onChange={(e) => setChordSearch(e.target.value)} autoFocus />
             {selectedCells.length === 0 && <p className={styles.warning}>Select a cell first</p>}
             <div className={styles.chordGrid}>
               <h4>Major</h4>
@@ -1387,41 +1143,17 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <p>The last bar contains notes. Remove it anyway?</p>
             <div className={styles.modalActions}>
-              <button className={styles.button} onClick={() => setConfirmRemoveBar(null)}><X size={14} />Cancel</button>
-              <button className={`${styles.button} ${styles.buttonDanger}`} onClick={() => {
+              <UiButton variant="secondary" onClick={() => setConfirmRemoveBar(null)} label="Cancel"><X size={14} /></UiButton>
+              <UiButton variant="danger" onClick={() => {
                 const section = sections.find(s => s.id === confirmRemoveBar.sectionId)
                 if (section) updateSection(section.id, { measures: section.measures - 1 })
                 setConfirmRemoveBar(null)
-              }}><Trash2 size={14} />Remove</button>
+              }} label="Remove"><Trash2 size={14} /></UiButton>
             </div>
           </div>
         </div>
       )}
 
-      {mobileInputCell && (
-        <div className={styles.modalOverlay} onClick={closeMobileInput}>
-          <div className={styles.mobileInputBox} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalCloseButton} onClick={closeMobileInput} aria-label="Close">
-              <X size={18} />
-            </button>
-            <label>Enter fret: 0-24 or h p / \ b x m ~</label>
-            <input ref={mobileInputRef} type="tel" inputMode="numeric" value={getMobileInputValue()} onChange={handleMobileInput} onKeyDown={(e) => { if (e.key === 'Enter') closeMobileInput() }} autoComplete="off" />
-            {activeInstrument === 'guitar' && (
-              <div className={styles.quickChords}>
-                <span>Quick chords</span>
-                <div>{['A', 'Am', 'C', 'D', 'Dm', 'E', 'Em', 'G'].map(chord => (
-                  <button key={chord} className={styles.chordButton} onClick={() => applyChord(chord)}>{chord}</button>
-                ))}
-                <button className={styles.chordButton} onClick={() => setShowChordPicker(true)}>More...</button>
-                </div>
-              </div>
-            )}
-            <div className={styles.mobileInputActions}>
-              <button className={styles.buttonPrimary} onClick={closeMobileInput}>Done</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

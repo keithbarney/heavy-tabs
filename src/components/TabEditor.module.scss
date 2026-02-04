@@ -7,247 +7,15 @@
   min-height: 100vh;
   font-family: $font-sans;
   font-size: $font-size-base;
-
-  &[data-theme='light'] {
-    background-color: $color-light-bg;
-    color: $color-light-text;
-
-    .header, .settingsPanel, .legendBar, .legend {
-      background-color: white;
-      border-bottom: 1px solid $color-light-border;
-    }
-
-    .section {
-      background-color: white;
-      border: 1px solid $color-light-border;
-    }
-
-    .sectionHeader {
-      background-color: $color-light-bg-alt;
-      border-bottom: 1px solid $color-light-border;
-    }
-
-    .measureGrid {
-      background-color: white;
-      border: 1px solid $color-light-border;
-    }
-
-    .row {
-      border-bottom-color: $color-light-border;
-    }
-
-    .cell {
-      border-right-color: $color-light-bg-alt;
-      color: $color-light-text-bright;
-
-      &:hover {
-        background-color: $color-light-bg-alt;
-      }
-
-      &.cellBeat {
-        border-right-color: $color-light-border;
-      }
-
-      &.cellSelected {
-        background-color: rgba($color-accent, 0.2);
-        outline-color: $color-accent;
-      }
-    }
-
-    .button, .iconButton, .smallButton {
-      background-color: white;
-      border: 1px solid $color-light-border;
-      color: $color-light-text;
-
-      &:hover {
-        background-color: $color-light-bg-alt;
-      }
-
-      &.active {
-        background-color: $color-accent;
-        color: white;
-        border-color: $color-accent;
-      }
-    }
-
-    .addPartButton {
-      background-color: white;
-      border: 1px solid $color-green;
-      color: $color-green;
-
-      &:hover {
-        background-color: rgba($color-green, 0.1);
-      }
-    }
-
-    .barButtons .iconButton.add {
-      background-color: white;
-      border-color: $color-green;
-      color: $color-green;
-    }
-
-    input, select {
-      background-color: white;
-      border: 1px solid $color-light-border;
-      color: $color-light-text;
-    }
-
-    .stringLabel {
-      color: $color-light-text;
-    }
-
-    .measureHeader {
-      color: $color-light-text-muted;
-    }
-
-    .sectionName {
-      color: $color-light-text-bright;
-    }
-
-    .inlineEditable {
-      color: $color-light-text;
-    }
-
-    .notesDisplay {
-      color: $color-light-text-muted;
-    }
-
-    .inlineValue {
-      color: $color-light-text-bright;
-      font-weight: 600;
-    }
-
-    .zoomControls {
-      border-right-color: $color-light-border;
-    }
-
-    .zoomLevel {
-      color: $color-light-text;
-    }
-
-    .projectTitle {
-      color: $color-light-text-bright;
-    }
-
-    .sectionControls label {
-      color: $color-light-text;
-    }
-
-    .barActions button {
-      color: $color-light-text-muted;
-
-      &:hover {
-        color: $color-light-text;
-      }
-    }
-  }
-}
-
-// Header
-.header {
-  background-color: $color-bg-alt;
-  padding: $space-sm $space-xl;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: $space-md;
-}
-
-.headerLeft, .headerRight {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-}
-
-.headerRight {
-  padding-right: 48px; // Room for fixed UserMenu
-}
-
-.zoomControls {
-  display: flex;
-  align-items: center;
-  gap: $space-xs;
-  padding-right: $space-sm;
-  border-right: 1px solid $color-border;
-  margin-right: $space-xs;
-}
-
-.zoomLevel {
-  font-size: $font-size-xs;
-  color: $color-text-muted;
-  min-width: 36px;
-  text-align: center;
-}
-
-.playbackControls {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-}
-
-.projectTitle {
-  color: $color-text-bright;
-  font-size: $font-size-base;
-  font-weight: 600;
-  padding: $space-sm $space-md;
-  border-radius: $radius-sm;
-  cursor: pointer;
-
-  &:hover {
-    background-color: rgba($color-accent, 0.1);
-  }
 }
 
 .projectInput {
-  @include input-base;
-  font-weight: 600;
-  color: $color-text-bright;
+  width: 160px;
 }
 
-.bpmControl {
-  display: flex;
-  align-items: center;
-  gap: $space-xs;
-
-  input {
-    @include input-base;
-    width: 55px;
-    text-align: center;
-  }
-
-  span {
-    color: $color-text-muted;
-    font-size: $font-size-sm;
-    text-transform: uppercase;
-  }
-}
-
-// Buttons
-.button {
-  @include button-base;
-}
-
-.buttonPrimary {
-  @include button-primary;
-}
-
-.buttonDanger {
-  @include button-danger;
-
-  &:hover:not(:disabled) {
-    background-color: darken($color-red, 10%);
-  }
-}
-
-.buttonSuccess {
-  @include button-base;
-  background-color: $color-green;
-  color: $color-bg;
-
-  &:hover:not(:disabled) {
-    background-color: $color-green;
-  }
+.bpmInput {
+  width: 60px;
+  text-align: center;
 }
 
 .spinner {
@@ -259,100 +27,25 @@
   to { transform: rotate(360deg); }
 }
 
-.iconButton {
-  @include button-base;
-  padding: $space-sm;
-  min-width: 32px;
-  min-height: 32px;
-
-  &.active {
-    background-color: $color-accent;
-    color: $color-bg;
-  }
-
-  &.add {
-    color: $color-green;
-    border: 1px solid rgba($color-green, 0.5);
-    opacity: 0.7;
-    background-color: rgba($color-green, 0.1);
-
-    &:hover:not(:disabled) {
-      opacity: 1;
-      background-color: rgba($color-green, 0.2);
-      border-color: $color-green;
-    }
-  }
-}
-
-.smallButton {
-  @include button-base;
-  padding: $space-xs $space-sm;
-  font-size: $font-size-sm;
-
-  &.danger {
-    @include button-danger;
-    padding: $space-xs $space-sm;
-    font-size: $font-size-sm;
-  }
-}
-
-.fullWidth {
-  width: 100%;
-  margin-bottom: $space-lg;
+// Editing Toolbar
+.editingToolbar {
+  padding: $space-sm $space-xl;
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  border-top: 1px solid $color-border;
+  background-color: $color-bg;
 }
 
 // Settings Panel
 .settingsPanel {
-  background-color: $color-bg;
-  padding: $space-md $space-xl;
+  background-color: $color-bg-alt;
   display: flex;
   flex-wrap: wrap;
-  gap: $space-lg;
-  align-items: flex-start;
-}
-
-.settingGroup {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-  border: none;
-  padding: 0;
-  margin: 0;
-
-  > label, > legend {
-    color: $color-text-muted;
-    font-size: $font-size-xs;
-    text-transform: uppercase;
-    padding: 0;
-  }
-
-  select {
-    @include select-base;
-  }
-
-  .checkbox {
-    display: flex;
-    align-items: center;
-    gap: $space-sm;
-    cursor: pointer;
-    font-size: $font-size-sm;
-    color: $color-text;
-    text-transform: none;
-  }
-}
-
-.radioGroup {
-  display: flex;
-  gap: $space-md;
-
-  label {
-    display: flex;
-    align-items: center;
-    gap: $space-xs;
-    cursor: pointer;
-    font-size: $font-size-sm;
-    color: $color-text;
-  }
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-lg;
+  border-top: 1px solid $color-bg;
 }
 
 // Content
@@ -372,12 +65,10 @@
 
 .sectionHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: $space-md;
-  padding: $space-sm $space-md;
-  background-color: $color-bg-highlight;
+  align-items: flex-start;
+  gap: $space-sm;
+  padding: $space-sm $space-sm 0;
+  width: 100%;
 }
 
 .sectionTitle {
@@ -395,110 +86,14 @@
   flex-shrink: 0;
 }
 
-.sectionName {
-  color: $color-text-bright;
-  font-size: $font-size-base;
-  font-weight: 600;
-  padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
-  cursor: pointer;
-
-  &:hover {
-    background-color: rgba($color-accent, 0.1);
-  }
-}
-
 .sectionNameInput {
-  @include input-base;
-  font-weight: 600;
-  color: $color-text-bright;
-  border-color: $color-accent;
-}
-
-.repeatBadge {
-  color: $color-text-muted;
-  font-size: $font-size-sm;
+  flex-shrink: 0;
+  width: 80px;
 }
 
 .notesInput {
-  @include input-base;
   flex: 1;
-  min-width: 150px;
-  font-style: italic;
-  color: $color-text-muted;
-  font-size: $font-size-sm;
-}
-
-.notesDisplay {
-  flex: 1;
-  min-width: 150px;
-  font-style: italic;
-  color: $color-text-muted;
-  font-size: $font-size-sm;
-  padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
-  cursor: pointer;
-
-  &:hover {
-    background-color: rgba($color-accent, 0.1);
-  }
-}
-
-.sectionControls {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  flex-wrap: wrap;
-
-  label {
-    display: flex;
-    align-items: center;
-    gap: $space-xs;
-    color: $color-text-muted;
-    font-size: $font-size-sm;
-
-    input, select {
-      @include input-base;
-      width: 50px;
-      text-align: center;
-      padding: $space-xs $space-sm;
-      font-size: $font-size-sm;
-    }
-
-    select {
-      width: auto;
-    }
-  }
-}
-
-.inlineEditable {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-xs;
-  color: $color-text-muted;
-  font-size: $font-size-sm;
-  cursor: pointer;
-  padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
-
-  &:hover {
-    background-color: rgba($color-accent, 0.1);
-  }
-
-  .inlineValue {
-    color: $color-text-bright;
-    font-weight: 500;
-    min-width: 24px;
-    text-align: center;
-  }
-
-  input {
-    @include input-base;
-    width: 50px;
-    text-align: center;
-    padding: $space-xs $space-sm;
-    font-size: $font-size-sm;
-  }
+  min-width: 32px;
 }
 
 // Grid
@@ -528,7 +123,7 @@
 }
 
 .stringLabel {
-  height: var(--cell-size, $cell-height);
+  height: $cell-height;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -593,12 +188,12 @@
 }
 
 .cell {
-  width: var(--cell-size, $cell-width);
-  height: var(--cell-size, $cell-height);
+  width: $cell-width;
+  height: $cell-height;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(var(--cell-size, $cell-width) * 0.5);
+  font-size: calc($cell-width * 0.5);
   font-family: $font-mono;
   cursor: pointer;
   border-right: 1px solid $color-bg;
@@ -632,96 +227,13 @@
   margin-top: 18px;
 }
 
-// Add Part Button
-.addPartButton {
-  @include button-ghost;
-  width: 100%;
-  padding: $space-md;
-  margin-top: $space-sm;
-  color: $color-green;
-  border: 1px solid rgba($color-green, 0.5);
-  justify-content: center;
-  opacity: 0.7;
-  background-color: rgba($color-green, 0.1);
-
-  &:hover {
-    opacity: 1;
-    background-color: rgba($color-green, 0.2);
-    border-color: $color-green;
-  }
-}
-
 // Legend
-.legendWrapper {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-}
-
-.legendBar {
-  padding: $space-sm $space-xl;
-  background-color: $color-bg-alt;
-  display: flex;
-  align-items: center;
-  gap: $space-lg;
-  border-top: 1px solid $color-border;
-}
-
 .quickHelp {
-  margin-left: auto;
   display: flex;
   gap: $space-lg;
   color: $color-text-muted;
   font-size: $font-size-sm;
-}
-
-.legend {
-  padding: $space-md $space-xl;
-  background-color: $color-bg-alt;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-2xl;
-  border-top: 1px solid $color-border;
-  max-height: 50vh;
-  overflow-y: auto;
-}
-
-.legendSection {
-  min-width: 180px;
-
-  h4 {
-    color: $color-text-bright;
-    font-size: $font-size-sm;
-    font-weight: 600;
-    margin-bottom: $space-sm;
-  }
-}
-
-.legendGrid {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-
-  > div {
-    display: flex;
-    align-items: center;
-    gap: $space-sm;
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-  }
-}
-
-.legendKey {
-  background-color: $color-bg-highlight;
-  padding: 1px 5px;
-  border-radius: 2px;
-  font-weight: 600;
   font-family: $font-mono;
-  color: $color-text-bright;
-  min-width: 24px;
-  text-align: center;
 }
 
 // Modals
@@ -754,51 +266,10 @@
   margin-top: $space-lg;
 }
 
-.emptyState {
-  color: $color-text-muted;
-  text-align: center;
-  padding: $space-xl;
-}
-
 .warning {
   color: $color-orange;
   font-size: $font-size-sm;
   margin-bottom: $space-md;
-}
-
-.projectList {
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-}
-
-.projectItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-sm $space-md;
-  background-color: $color-bg;
-  border: 1px solid $color-border;
-  border-radius: $radius-sm;
-
-  &.active {
-    background-color: $color-selection;
-  }
-}
-
-.projectInfo {
-  cursor: pointer;
-  flex: 1;
-
-  strong {
-    display: block;
-    color: $color-text-bright;
-  }
-
-  small {
-    color: $color-text-muted;
-    font-size: $font-size-xs;
-  }
 }
 
 .shortcutList {
@@ -856,71 +327,6 @@
   padding: $space-sm $space-md;
 }
 
-// Mobile input
-.mobileInputBox {
-  @include card;
-  position: relative;
-  padding: $space-lg;
-  padding-top: $space-xl;
-  width: 100%;
-  max-width: 350px;
-  margin-bottom: $space-xl;
-
-  > label {
-    display: block;
-    color: $color-text-muted;
-    font-size: $font-size-sm;
-    margin-bottom: $space-sm;
-  }
-
-  > input {
-    @include input-base;
-    width: 100%;
-    font-size: $font-size-lg;
-    padding: $space-md;
-    text-align: center;
-  }
-}
-
-.modalCloseButton {
-  @include button-ghost;
-  position: absolute;
-  top: $space-sm;
-  right: $space-sm;
-  padding: $space-xs;
-  color: $color-text-muted;
-
-  &:hover {
-    color: $color-text;
-  }
-}
-
-.quickChords {
-  margin-top: $space-md;
-
-  > span {
-    display: block;
-    color: $color-text-muted;
-    font-size: $font-size-sm;
-    margin-bottom: $space-sm;
-  }
-
-  > div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-xs;
-  }
-}
-
-.mobileInputActions {
-  display: flex;
-  gap: $space-sm;
-  margin-top: $space-md;
-
-  button {
-    flex: 1;
-  }
-}
 
 // Responsive
 @include md {
@@ -929,14 +335,3 @@
   }
 }
 
-@media (pointer: coarse) {
-  .button, .iconButton, .smallButton, input, select {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  .cell {
-    width: 28px;
-    height: 28px;
-  }
-}

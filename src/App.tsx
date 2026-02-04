@@ -5,6 +5,8 @@ import { useProjects } from '@/hooks/useProjects'
 import { useSharing } from '@/hooks/useSharing'
 import { getLocalProjects } from '@/lib/storage'
 import TabEditor from '@/components/TabEditor'
+import TabEditorNew from '@/components/TabEditorNew'
+import StyleGuide from '@/components/StyleGuide'
 import Library from '@/components/Library'
 import AuthModal from '@/components/AuthModal'
 import MigrationDialog from '@/components/MigrationDialog'
@@ -144,6 +146,18 @@ function App() {
         element={<AuthCallback />}
       />
 
+      {/* New UI preview */}
+      <Route
+        path="/new"
+        element={<TabEditorNew />}
+      />
+
+      {/* Style guide */}
+      <Route
+        path="/styleguide"
+        element={<StyleGuide />}
+      />
+
       {/* Main editor */}
       <Route
         path="*"
@@ -254,7 +268,6 @@ function MainView({
       {/* User menu overlay */}
       <UserMenu
         auth={auth}
-        onSignIn={() => setShowAuthModal(true)}
         onShowLibrary={() => setShowLibrary(true)}
         onShare={onShare}
         canShare={!!currentProject?.id && auth.isAuthenticated}
@@ -277,6 +290,8 @@ function MainView({
         currentProjectId={currentProject?.id || null}
         onSelectProject={onSelectProject}
         onNewProject={onNewProject}
+        onSignIn={() => setShowAuthModal(true)}
+        auth={auth}
         message={projectNotFoundMessage}
       />
 

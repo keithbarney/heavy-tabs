@@ -1,7 +1,6 @@
 import type { LocalProject, Project } from '@/types'
 
 const PROJECTS_KEY = 'tabEditorProjects'
-const PENDING_SYNC_KEY = 'tabEditorPendingSync'
 
 // Get all local projects
 export function getLocalProjects(): LocalProject[] {
@@ -68,40 +67,6 @@ export function supabaseToLocal(project: Project): LocalProject {
     tabData: project.tab_data,
     updatedAt: project.updated_at,
   }
-}
-
-// Pending sync queue for offline support
-export interface PendingSyncItem {
-  id: string
-  action: 'create' | 'update' | 'delete'
-  project: LocalProject | null
-  timestamp: number
-}
-
-export function getPendingSync(): PendingSyncItem[] {
-  try {
-    const data = localStorage.getItem(PENDING_SYNC_KEY)
-    return data ? JSON.parse(data) : []
-  } catch {
-    return []
-  }
-}
-
-export function addPendingSync(item: PendingSyncItem): void {
-  const pending = getPendingSync()
-  // Remove any existing item for the same project
-  const filtered = pending.filter((p) => p.id !== item.id)
-  filtered.push(item)
-  localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(filtered))
-}
-
-export function removePendingSync(id: string): void {
-  const pending = getPendingSync().filter((p) => p.id !== id)
-  localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(pending))
-}
-
-export function clearPendingSync(): void {
-  localStorage.removeItem(PENDING_SYNC_KEY)
 }
 
 // Generate unique ID

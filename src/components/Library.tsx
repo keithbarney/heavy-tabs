@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { FolderOpen, Plus, Trash2, Search, RefreshCw, X } from 'lucide-react'
+import { FolderOpen, Plus, Trash2, Search, RefreshCw, X, LogIn, LogOut, Cloud } from 'lucide-react'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
+import type { UseAuthReturn } from '@/hooks/useAuth'
 import styles from './Library.module.scss'
 
 interface LibraryProps {
@@ -11,6 +12,8 @@ interface LibraryProps {
   currentProjectId: string | null
   onSelectProject: (project: LocalProject) => void
   onNewProject: () => void
+  onSignIn: () => void
+  auth: UseAuthReturn
   message?: string | null
 }
 
@@ -21,6 +24,8 @@ export default function Library({
   currentProjectId,
   onSelectProject,
   onNewProject,
+  onSignIn,
+  auth,
   message,
 }: LibraryProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -148,6 +153,29 @@ export default function Library({
                 )}
               </div>
             ))
+          )}
+        </div>
+
+        <div className={styles.authFooter}>
+          {auth.isAuthenticated ? (
+            <>
+              <div className={styles.authStatus}>
+                <Cloud size={14} />
+                <span>{auth.user?.email}</span>
+              </div>
+              <button className={styles.authButton} onClick={() => auth.signOut()}>
+                <LogOut size={14} />
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <div className={styles.signInCta}>
+              <p className={styles.signInMessage}>Sign in to sync across devices</p>
+              <button className={styles.signInButton} onClick={() => { onSignIn(); handleClose() }}>
+                <LogIn size={16} />
+                Sign In
+              </button>
+            </div>
           )}
         </div>
       </div>

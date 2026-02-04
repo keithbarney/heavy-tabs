@@ -1,0 +1,114 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: $color-bg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm $space-lg;
+  background-color: $color-bg-alt;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.headerCenter {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.projectInput {
+  width: 160px;
+}
+
+.bpmInput {
+  width: 60px;
+  text-align: center;
+}
+
+.chordToolbar {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-lg;
+}
+
+.modalOverlay {
+  @include modal-overlay;
+}
+
+.modal {
+  @include modal-content;
+  padding: $space-lg;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-lg;
+
+  h3 {
+    color: $color-text-bright;
+    font-size: $font-size-md;
+    font-weight: 600;
+  }
+}
+
+.chordGrid {
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-top: $space-md;
+
+  h4 {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    margin-bottom: $space-sm;
+    margin-top: $space-md;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+}
+
+.chordButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-sm;
+}
+
+.chordButton {
+  @include button-secondary;
+  padding: $space-sm $space-md;
+}
+
+.addPartButton {
+  align-self: flex-start;
+}
+
+.content {
+  flex: 1;
+  padding: 0 $space-lg $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  overflow-y: auto;
+}

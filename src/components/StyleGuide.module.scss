@@ -1,0 +1,240 @@
+@use '../styles/tokens' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg;
+  color: $color-text;
+  padding: $space-2xl;
+  font-family: $font-sans;
+}
+
+.header {
+  margin-bottom: $space-3xl;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: 600;
+    color: $color-text-bright;
+    margin-bottom: $space-sm;
+  }
+
+  p {
+    font-size: $font-size-base;
+    color: $color-text-muted;
+  }
+}
+
+.section {
+  margin-bottom: $space-3xl;
+
+  h2 {
+    font-size: $font-size-lg;
+    font-weight: 600;
+    color: $color-text-bright;
+    margin-bottom: $space-lg;
+    padding-bottom: $space-sm;
+    border-bottom: 1px solid $color-border;
+  }
+
+  h3 {
+    font-size: $font-size-md;
+    font-weight: 500;
+    color: $color-text;
+    margin-top: $space-xl;
+    margin-bottom: $space-md;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $space-lg;
+}
+
+.colorSwatch {
+  display: flex;
+  flex-direction: column;
+  border-radius: $radius-md;
+  overflow: hidden;
+  border: 1px solid $color-border;
+
+  .swatchColor {
+    height: 64px;
+  }
+
+  .swatchInfo {
+    padding: $space-sm $space-md;
+    background-color: $color-bg-alt;
+
+    .swatchName {
+      font-size: $font-size-sm;
+      font-weight: 500;
+      color: $color-text-bright;
+    }
+
+    .swatchValue {
+      font-size: $font-size-xs;
+      font-family: $font-mono;
+      color: $color-text-muted;
+    }
+  }
+}
+
+.typographyRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-xl;
+  padding: $space-md 0;
+  border-bottom: 1px solid rgba($color-border, 0.3);
+
+  .typeName {
+    width: 120px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-text-muted;
+  }
+
+  .typeValue {
+    width: 60px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-accent;
+  }
+
+  .typeSample {
+    flex: 1;
+    color: $color-text-bright;
+  }
+}
+
+.spacingRow {
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-sm 0;
+
+  .spaceName {
+    width: 80px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-text-muted;
+  }
+
+  .spaceValue {
+    width: 40px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-accent;
+  }
+
+  .spaceBar {
+    height: 16px;
+    background-color: $color-accent;
+    border-radius: $radius-sm;
+  }
+}
+
+.radiusRow {
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-sm 0;
+
+  .radiusName {
+    width: 80px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-text-muted;
+  }
+
+  .radiusValue {
+    width: 60px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-accent;
+  }
+
+  .radiusBox {
+    width: 48px;
+    height: 48px;
+    background-color: $color-bg-highlight;
+    border: 1px solid $color-border;
+  }
+}
+
+.componentRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-md 0;
+}
+
+.componentLabel {
+  width: 120px;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+}
+
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: $space-md;
+}
+
+.iconItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-md;
+  background-color: $color-bg-alt;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+
+  svg {
+    color: $color-text;
+  }
+
+  span {
+    font-size: $font-size-xs;
+    font-family: $font-mono;
+    color: $color-text-muted;
+  }
+}
+
+.fontDemo {
+  margin-bottom: $space-lg;
+
+  .fontName {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+    margin-bottom: $space-xs;
+  }
+
+  .fontSample {
+    font-size: $font-size-xl;
+    color: $color-text-bright;
+  }
+}
+
+.shadowRow {
+  display: flex;
+  align-items: center;
+  gap: $space-xl;
+  padding: $space-md 0;
+
+  .shadowName {
+    width: 80px;
+    font-size: $font-size-sm;
+    font-family: $font-mono;
+    color: $color-text-muted;
+  }
+
+  .shadowBox {
+    width: 80px;
+    height: 48px;
+    background-color: $color-bg-alt;
+    border-radius: $radius-md;
+  }
+}

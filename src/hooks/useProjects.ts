@@ -6,9 +6,6 @@ import {
   deleteLocalProject,
   localToSupabase,
   supabaseToLocal,
-  addPendingSync,
-  getPendingSync,
-  removePendingSync,
   generateId,
 } from '@/lib/storage'
 import type { LocalProject, Project, User } from '@/types'
@@ -20,7 +17,6 @@ interface UseProjectsOptions {
 export function useProjects({ user }: UseProjectsOptions) {
   const [projects, setProjects] = useState<LocalProject[]>([])
   const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Load projects (from Supabase if authenticated, otherwise localStorage)
@@ -82,12 +78,6 @@ export function useProjects({ user }: UseProjectsOptions) {
 
           if (updateError) {
             console.error('Failed to sync project to cloud:', updateError)
-            addPendingSync({
-              id: projectWithId.id,
-              action: 'update',
-              project: projectWithId,
-              timestamp: Date.now(),
-            })
           }
         } else {
           // Insert new project (let database generate UUID)
@@ -102,12 +92,6 @@ export function useProjects({ user }: UseProjectsOptions) {
 
           if (insertError) {
             console.error('Failed to create project in cloud:', insertError)
-            addPendingSync({
-              id: projectWithId.id,
-              action: 'update',
-              project: projectWithId,
-              timestamp: Date.now(),
-            })
           } else if (data) {
             // Store the cloud ID
             projectWithId = { ...projectWithId, cloudId: data.id }
@@ -115,12 +99,6 @@ export function useProjects({ user }: UseProjectsOptions) {
         }
       } catch (err) {
         console.error('Failed to sync project:', err)
-        addPendingSync({
-          id: projectWithId.id,
-          action: 'update',
-          project: projectWithId,
-          timestamp: Date.now(),
-        })
       }
     }
 
@@ -161,93 +139,14 @@ export function useProjects({ user }: UseProjectsOptions) {
 
         if (deleteError) {
           console.error('Failed to delete project from cloud:', deleteError)
-          addPendingSync({
-            id: projectId,
-            action: 'delete',
-            project: null,
-            timestamp: Date.now(),
-          })
         }
       } catch (err) {
         console.error('Failed to delete project from cloud:', err)
-        addPendingSync({
-          id: projectId,
-          action: 'delete',
-          project: null,
-          timestamp: Date.now(),
-        })
       }
     }
 
     return { success: true }
   }, [user, projects])
-
-  // Sync pending changes
-  const syncPending = useCallback(async () => {
-    if (!user || !isSupabaseConfigured() || !supabase) return
-
-    const pending = getPendingSync()
-    if (pending.length === 0) return
-
-    setSyncing(true)
-
-    for (const item of pending) {
-      try {
-        if (item.action === 'delete') {
-          const { error } = await supabase
-            .from('projects')
-            .delete()
-            .eq('id', item.id)
-            .eq('user_id', user.id)
-
-          if (!error) removePendingSync(item.id)
-        } else if (item.project) {
-          // If project has cloudId, update by cloudId; otherwise insert new
-          if (item.project.cloudId) {
-            const supabaseProject = localToSupabase(item.project, user.id)
-            const { id: _excludeId, ...updateData } = supabaseProject
-            const { error } = await supabase
-              .from('projects')
-              .update(updateData)
-              .eq('id', item.project.cloudId)
-              .eq('user_id', user.id)
-            if (!error) removePendingSync(item.id)
-          } else {
-            // Insert new project
-            const supabaseData = localToSupabase(item.project, user.id)
-            const { id: _omit, ...insertData } = supabaseData
-            const { error } = await supabase
-              .from('projects')
-              .insert({ ...insertData, local_id: item.project.id })
-            if (!error) removePendingSync(item.id)
-          }
-        }
-      } catch (err) {
-        console.error('Failed to sync pending item:', err)
-      }
-    }
-
-    setSyncing(false)
-  }, [user])
-
-  // Sync pending changes when coming online
-  useEffect(() => {
-    if (user && isSupabaseConfigured()) {
-      syncPending()
-    }
-  }, [user, syncPending])
-
-  // Listen for online events
-  useEffect(() => {
-    const handleOnline = () => {
-      if (user && isSupabaseConfigured()) {
-        syncPending()
-      }
-    }
-
-    window.addEventListener('online', handleOnline)
-    return () => window.removeEventListener('online', handleOnline)
-  }, [user, syncPending])
 
   // Migrate local projects to cloud
   const migrateLocalProjects = useCallback(async (): Promise<{ migrated: number; failed: number }> => {
@@ -339,7 +238,7 @@ export function useProjects({ user }: UseProjectsOptions) {
     // Also clean localStorage
     const localProjects = getLocalProjects()
     const remainingLocal = localProjects.filter(p => !p.cloudId || !cloudIdSet.has(p.cloudId))
-    localStorage.setItem('heavyTabsProjects', JSON.stringify(remainingLocal))
+    localStorage.setItem('tabEditorProjects', JSON.stringify(remainingLocal))
 
     return { success: true, deleted }
   }, [user])
@@ -347,7 +246,6 @@ export function useProjects({ user }: UseProjectsOptions) {
   return {
     projects,
     loading,
-    syncing,
     error,
     saveProject,
     deleteProject,

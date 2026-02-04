@@ -1,0 +1,102 @@
+@use '../styles/tokens' as *;
+
+.footer {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: $space-sm $space-lg;
+  background-color: $color-bg-alt;
+
+  &.expanded {
+    justify-content: space-between;
+  }
+}
+
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-shrink: 0;
+}
+
+// Legend panel
+.legendPanel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  display: flex;
+  gap: $space-sm;
+  padding: $space-lg;
+  background-color: $color-bg-alt;
+}
+
+.legendColumn {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.legendTitle {
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-text;
+  text-transform: uppercase;
+}
+
+.legendList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+// Legend item (key + label)
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  height: 18px;
+}
+
+.legendKey {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: $space-xs;
+  background-color: rgba(79, 91, 102, 0.5);
+  border-radius: $radius-sm;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-text-bright;
+  overflow: hidden;
+}
+
+.legendLabel {
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-text;
+}
+
+// Keyboard shortcuts grid
+.keyboardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-xs;
+  width: 106px;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-text;
+}

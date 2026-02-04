@@ -1,19 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
-import { User, LogIn, LogOut, Share2, FolderOpen, Cloud, CloudOff } from 'lucide-react'
+import { LogOut, Share2, FolderOpen, Cloud } from 'lucide-react'
 import type { UseAuthReturn } from '@/hooks/useAuth'
 import styles from './UserMenu.module.scss'
 
 interface UserMenuProps {
   auth: UseAuthReturn
-  onSignIn: () => void
   onShowLibrary: () => void
   onShare: () => void
   canShare: boolean
 }
 
-export default function UserMenu({ auth, onSignIn, onShowLibrary, onShare, canShare }: UserMenuProps) {
+export default function UserMenu({ auth, onShowLibrary, onShare, canShare }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  if (!auth.isAuthenticated) return null
 
   // Close menu on outside click
   useEffect(() => {
@@ -34,74 +35,40 @@ export default function UserMenu({ auth, onSignIn, onShowLibrary, onShare, canSh
 
   return (
     <div className={styles.container} ref={menuRef}>
-      <button className={styles.trigger} onClick={() => setIsOpen(!isOpen)} title={auth.isAuthenticated ? auth.user?.email : 'Sign in'}>
-        {auth.isAuthenticated ? (
-          <Cloud size={16} className={styles.cloudIcon} />
-        ) : (
-          <User size={16} />
-        )}
+      <button className={styles.trigger} onClick={() => setIsOpen(!isOpen)} title={auth.user?.email}>
+        <Cloud size={16} className={styles.cloudIcon} />
       </button>
 
       {isOpen && (
         <div className={styles.menu}>
-          {auth.isAuthenticated ? (
-            <>
-              <div className={styles.menuHeader}>
-                <span className={styles.menuEmail}>{auth.user?.email}</span>
-                <span className={styles.syncBadge}>
-                  <Cloud size={12} />
-                  Synced
-                </span>
-              </div>
+          <div className={styles.menuHeader}>
+            <span className={styles.menuEmail}>{auth.user?.email}</span>
+            <span className={styles.syncBadge}>
+              <Cloud size={12} />
+              Synced
+            </span>
+          </div>
 
-              <div className={styles.menuDivider} />
+          <div className={styles.menuDivider} />
 
-              <button className={styles.menuItem} onClick={() => { onShowLibrary(); setIsOpen(false) }}>
-                <FolderOpen size={16} />
-                Project Library
-              </button>
+          <button className={styles.menuItem} onClick={() => { onShowLibrary(); setIsOpen(false) }}>
+            <FolderOpen size={16} />
+            Project Library
+          </button>
 
-              {canShare && (
-                <button className={styles.menuItem} onClick={() => { onShare(); setIsOpen(false) }}>
-                  <Share2 size={16} />
-                  Share Tab
-                </button>
-              )}
-
-              <div className={styles.menuDivider} />
-
-              <button className={styles.menuItem} onClick={handleSignOut}>
-                <LogOut size={16} />
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <>
-              <div className={styles.menuHeader}>
-                <span className={styles.menuTitle}>Heavy Tabs</span>
-                <span className={styles.localBadge}>
-                  <CloudOff size={12} />
-                  Local only
-                </span>
-              </div>
-
-              <p className={styles.menuDescription}>
-                Sign in or create an account to sync your tabs across devices and share with a link.
-              </p>
-
-              <button className={`${styles.menuItem} ${styles.primary}`} onClick={() => { onSignIn(); setIsOpen(false) }}>
-                <LogIn size={16} />
-                Sign In / Sign Up
-              </button>
-
-              <div className={styles.menuDivider} />
-
-              <button className={styles.menuItem} onClick={() => { onShowLibrary(); setIsOpen(false) }}>
-                <FolderOpen size={16} />
-                Project Library
-              </button>
-            </>
+          {canShare && (
+            <button className={styles.menuItem} onClick={() => { onShare(); setIsOpen(false) }}>
+              <Share2 size={16} />
+              Share Tab
+            </button>
           )}
+
+          <div className={styles.menuDivider} />
+
+          <button className={styles.menuItem} onClick={handleSignOut}>
+            <LogOut size={16} />
+            Sign Out
+          </button>
         </div>
       )}
     </div>

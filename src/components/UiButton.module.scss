@@ -1,0 +1,49 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+// Base button styles
+.button {
+  @include button-base;
+}
+
+// Variants
+.primary {
+  @include button-primary;
+}
+
+.secondary {
+  @include button-secondary;
+}
+
+.action {
+  @include button-action;
+}
+
+.danger {
+  @include button-danger;
+}
+
+.ghost {
+  @include button-ghost;
+}
+
+// Size modifiers
+.small {
+  @include button-small;
+}
+
+// State modifiers
+.selected {
+  @include button-selected;
+}
+
+// Icon-only modifier
+.iconOnly {
+  padding: $space-sm;
+}
+
+// Has label - adjust padding
+.hasLabel {
+  padding-left: $space-sm;
+  padding-right: $space-md;
+}

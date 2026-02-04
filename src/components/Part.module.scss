@@ -1,0 +1,97 @@
+@use '../styles/tokens' as *;
+
+.part {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: $color-bg-alt;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  width: 100%;
+}
+
+// Header section
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  padding: $space-sm $space-sm 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.titleInput {
+  flex-shrink: 0;
+  width: 80px;
+}
+
+.notesInput {
+  flex: 1;
+  min-width: 32px;
+}
+
+// Body section
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: $space-lg;
+  width: 100%;
+  overflow: hidden;
+}
+
+// Bars list container
+.barsList {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+}
+
+// String labels column
+.stringLabels {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 7px;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 0;
+  color: $color-placeholder;
+}
+
+.stringLabelSpacer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 18px;
+  width: 100%;
+}
+
+.stringLabel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: $cell-height;
+  width: 100%;
+  line-height: 10px;
+}
+
+// Bars container
+.barsContainer {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+// Bar action buttons
+.barButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: $space-sm;
+  padding-top: 18px;
+}

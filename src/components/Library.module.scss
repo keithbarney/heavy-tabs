@@ -295,6 +295,59 @@
   }
 }
 
+// Auth footer
+.authFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-md $space-lg;
+  border-top: 1px solid $color-border;
+  background-color: $color-bg;
+}
+
+.authStatus {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  min-width: 0;
+
+  span {
+    @include truncate;
+  }
+}
+
+.authButton {
+  @include button-ghost;
+  padding: $space-xs $space-sm;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
+
+// Sign-in CTA
+.signInCta {
+  border-top: 1px solid $color-border;
+  padding: $space-lg;
+  background-color: $color-bg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  p {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+    margin: 0;
+  }
+}
+
+.signInButton {
+  @include button-primary;
+  width: 100%;
+  justify-content: center;
+}
+
 // Selection toolbar
 .selectionToolbar {
   display: flex;
@@ -455,3 +508,4 @@
     cursor: not-allowed;
   }
 }
+

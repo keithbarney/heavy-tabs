@@ -73,13 +73,6 @@ export interface LocalProject {
   updatedAt?: string
 }
 
-// User profile
-export interface Profile {
-  id: string
-  display_name: string | null
-  created_at: string
-}
-
 // Share link for public access
 export interface ShareLink {
   id: string
@@ -129,26 +122,4 @@ export interface CellClipboard {
     measureIdx: number
     value: string
   }>
-}
-
-// Theme
-export type Theme = 'dark' | 'light'
-
-// Theme colors
-export interface ThemeColors {
-  bg: string
-  bgAlt: string
-  bgHighlight: string
-  border: string
-  text: string
-  textMuted: string
-  textBright: string
-  accent: string
-  accentAlt: string
-  red: string
-  orange: string
-  yellow: string
-  green: string
-  purple: string
-  selection: string
 }

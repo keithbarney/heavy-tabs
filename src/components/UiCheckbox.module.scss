@@ -1,0 +1,71 @@
+@use '../styles/tokens' as *;
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  background-color: rgba(79, 91, 102, 0.5);
+  color: $color-text;
+  transition: background-color 100ms ease;
+
+  &:hover {
+    background-color: rgba(79, 91, 102, 0.7);
+  }
+
+  &:active {
+    background-color: rgba(79, 91, 102, 0.5);
+  }
+
+  &:focus {
+    outline: none;
+    border: 1px solid $color-border;
+  }
+
+  &:disabled {
+    background-color: rgba(79, 91, 102, 0.3);
+    color: rgba(192, 197, 206, 0.3);
+    cursor: not-allowed;
+  }
+}
+
+.selected {
+  background-color: $color-text-muted;
+  color: $color-bg;
+
+  &:hover {
+    background-color: $color-text-muted;
+  }
+
+  .icon {
+    color: $color-bg;
+  }
+}
+
+.hasLabel {
+  gap: $space-xs;
+  padding-left: $space-sm;
+  padding-right: $space-md;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.label {
+  white-space: nowrap;
+}

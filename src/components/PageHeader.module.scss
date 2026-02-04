@@ -1,0 +1,28 @@
+@use '../styles/tokens' as *;
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding: $space-sm $space-lg;
+  background-color: $color-bg-alt;
+}
+
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-shrink: 0;
+}
+
+.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}

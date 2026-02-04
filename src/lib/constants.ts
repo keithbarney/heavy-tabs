@@ -1,4 +1,4 @@
-import type { TimeSignature, NoteResolution, ThemeColors } from '@/types'
+import type { TimeSignature, NoteResolution } from '@/types'
 
 // All 12 keys for transposition
 export const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -146,44 +146,6 @@ export const CHORD_SHAPES = {
     'Bbm': { frets: [1, 2, 3, 3, 1, 'x'] },
   },
 } as const
-
-// Theme colors
-export const themes: Record<'dark' | 'light', ThemeColors> = {
-  dark: {
-    bg: '#2b303b',
-    bgAlt: '#343d46',
-    bgHighlight: '#4f5b66',
-    border: '#65737e',
-    text: '#c0c5ce',
-    textMuted: '#a7adba',
-    textBright: '#eff1f5',
-    accent: '#8fa1b3',
-    accentAlt: '#96b5b4',
-    red: '#bf616a',
-    orange: '#d08770',
-    yellow: '#ebcb8b',
-    green: '#a3be8c',
-    purple: '#b48ead',
-    selection: '#4f5b66',
-  },
-  light: {
-    bg: '#eff1f5',
-    bgAlt: '#dfe1e8',
-    bgHighlight: '#c0c5ce',
-    border: '#a7adba',
-    text: '#343d46',
-    textMuted: '#65737e',
-    textBright: '#2b303b',
-    accent: '#8fa1b3',
-    accentAlt: '#96b5b4',
-    red: '#bf616a',
-    orange: '#d08770',
-    yellow: '#ebcb8b',
-    green: '#a3be8c',
-    purple: '#b48ead',
-    selection: '#c0c5ce',
-  },
-}
 
 // Helper functions
 export const transposeNote = (note: string, semitones: number): string => {

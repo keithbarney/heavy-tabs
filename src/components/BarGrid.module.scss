@@ -1,0 +1,106 @@
+@use '../styles/tokens' as *;
+
+.barGrid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.barTitle {
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-text;
+  text-align: center;
+  width: 30px;
+  height: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bars {
+  display: flex;
+  align-items: center;
+}
+
+// Vertical dividers
+.dividerVertical {
+  width: 1px;
+  align-self: stretch;
+  background-color: $color-selection;
+
+  &.barBoundary {
+    background-color: $color-border;
+  }
+}
+
+// Bar grid partial (one beat subdivision)
+.barPartial {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 80px;
+}
+
+// Row of cells
+.row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+// Horizontal divider between rows
+.dividerHorizontal {
+  width: 100%;
+  height: 1px;
+  background-color: $color-bg;
+}
+
+// Individual cell
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: $cell-width;
+  height: $cell-height;
+  cursor: pointer;
+  border-right: 1px solid rgba(79, 91, 102, 0.5);
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-placeholder;
+  text-align: center;
+  user-select: none;
+
+  &:hover {
+    background-color: rgba(79, 91, 102, 0.5);
+  }
+
+  &:active {
+    background-color: rgba(79, 91, 102, 0.7);
+  }
+
+  &.hasValue {
+    color: $color-text-bright;
+  }
+
+  &.selected {
+    background-color: $color-selection;
+  }
+
+  &.playing {
+    background-color: rgba($color-accent, 0.3);
+  }
+}
+
+// Beat divider (darker line between cells in a row)
+.beatDivider {
+  width: 1px;
+  align-self: stretch;
+  background-color: $color-bg;
+}

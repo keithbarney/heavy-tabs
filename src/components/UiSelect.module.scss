@@ -1,0 +1,79 @@
+@use '../styles/tokens' as *;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: $space-xs;
+  min-width: 32px;
+  border-radius: $radius-sm;
+}
+
+.label {
+  width: 100%;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  color: $color-text;
+}
+
+.wrapper .select {
+  width: 100%;
+}
+
+.select {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 $space-sm 0 $space-md;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  border-radius: $radius-sm;
+  border: none;
+  outline: none;
+  background-color: $color-bg;
+  color: $color-text-bright;
+  cursor: pointer;
+  appearance: none;
+  transition: color 100ms ease;
+
+  // Custom arrow
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23eff1f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $space-sm center;
+  background-size: 16px;
+  padding-right: 32px;
+
+  // Placeholder state (no value selected)
+  &.placeholder {
+    color: rgba(192, 197, 206, 0.4);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(192,197,206,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  &:hover {
+    color: $color-text-bright;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23eff1f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  &:focus {
+    outline: none;
+    border: 1px solid $color-border;
+    color: $color-text-bright;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23eff1f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  &:disabled {
+    color: rgba(192, 197, 206, 0.2);
+    cursor: not-allowed;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(192,197,206,0.2)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  option {
+    background-color: $color-bg;
+    color: $color-text;
+  }
+}

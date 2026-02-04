@@ -1,0 +1,32 @@
+@use '../styles/tokens' as *;
+
+.advancedSettings {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  background-color: $color-bg-alt;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: $color-bg;
+  flex-shrink: 0;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: $space-sm;
+  width: 100%;
+  padding: $space-sm $space-lg;
+}
+
+.select {
+  flex-shrink: 0;
+  width: 144px;
+}

@@ -24,12 +24,6 @@ body {
   min-height: 100vh;
 }
 
-// Light theme
-[data-theme='light'] {
-  background-color: $color-light-bg;
-  color: $color-light-text;
-}
-
 // Links
 a {
   color: $color-accent;
