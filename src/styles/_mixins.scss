@@ -72,7 +72,7 @@ $breakpoint-xl: 1200px;
 
 // Button small - icon only, smaller size
 @mixin button-small {
-  height: auto;
+  height: 28px;
   min-width: auto;
   padding: $space-sm;
 

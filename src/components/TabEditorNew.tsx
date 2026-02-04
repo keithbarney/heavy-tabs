@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Save, Play, Pause, Square, Repeat, Volume2, Settings, Printer, BookOpen, X } from 'lucide-react'
+import { Menu, Plus, Save, Play, Pause, Square, Repeat, Volume2, Settings, Printer, BookOpen, X, ChevronUp, ChevronDown } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
@@ -362,6 +362,9 @@ export default function TabEditorNew() {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     }
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume()
+    }
     return audioContextRef.current
   }
 
@@ -432,6 +435,7 @@ export default function TabEditorNew() {
   }, [])
 
   const startPlayback = useCallback(() => {
+    initAudio() // Create/resume AudioContext during user gesture
     setIsPlaying(true)
     playbackActiveRef.current = true
     loopingRef.current = isLooping
@@ -1057,25 +1061,51 @@ export default function TabEditorNew() {
         expanded={showLegend}
         left={
           <UiButton variant="secondary" onClick={() => setShowLegend(!showLegend)}>
-            <Plus size={16} />
+            {showLegend ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
             Legend
           </UiButton>
         }
         legendPanel={
           <>
-            <LegendColumn title="Guitar/Bass">
-              <LegendItem keyChar="0-24" label="Fret number" />
-              <LegendItem keyChar="h" label="Hammer-on" />
-              <LegendItem keyChar="p" label="Pull-off" />
-              <LegendItem keyChar="b" label="Bend" />
-              <LegendItem keyChar="/" label="Slide up" />
-              <LegendItem keyChar="\" label="Slide down" />
-            </LegendColumn>
-            <LegendColumn title="Drums">
-              <LegendItem keyChar="x" label="Hit" />
-              <LegendItem keyChar="o" label="Accent" />
-              <LegendItem keyChar="f" label="Flam" />
-              <LegendItem keyChar="g" label="Ghost" />
+            {instrument === 'drums' ? (
+              <LegendColumn title="Drums">
+                <LegendItem keyChar="x" label="Hit" />
+                <LegendItem keyChar="X" label="Hard hit" />
+                <LegendItem keyChar="o" label="Open" />
+                <LegendItem keyChar="O" label="Accent" />
+                <LegendItem keyChar="f" label="Flam" />
+                <LegendItem keyChar="g" label="Ghost" />
+                <LegendItem keyChar="d" label="Double stroke" />
+                <LegendItem keyChar="b" label="Buzz roll" />
+                <LegendItem keyChar="r" label="Rim shot" />
+                <LegendItem keyChar="-" label="Rest" />
+              </LegendColumn>
+            ) : (
+              <>
+                <LegendColumn title="Notes">
+                  <LegendItem keyChar="0-9" label="Fret number" />
+                  <LegendItem keyChar="x" label="Dead note" />
+                  <LegendItem keyChar="m" label="Palm mute" />
+                  <LegendItem keyChar="-" label="Rest" />
+                </LegendColumn>
+                <LegendColumn title="Techniques">
+                  <LegendItem keyChar="h" label="Hammer-on" />
+                  <LegendItem keyChar="p" label="Pull-off" />
+                  <LegendItem keyChar="b" label="Bend" />
+                  <LegendItem keyChar="/" label="Slide up" />
+                  <LegendItem keyChar="\" label="Slide down" />
+                  <LegendItem keyChar="~" label="Vibrato" />
+                </LegendColumn>
+              </>
+            )}
+            <LegendColumn title="Shortcuts">
+              <LegendItem keyChar="Space" label="Play / Pause" />
+              <LegendItem keyChar="←→↑↓" label="Navigate" />
+              <LegendItem keyChar="Del" label="Clear cell" />
+              <LegendItem keyChar="⌘Z" label="Undo" />
+              <LegendItem keyChar="⌘⇧Z" label="Redo" />
+              <LegendItem keyChar="⌘C" label="Copy column" />
+              <LegendItem keyChar="⌘V" label="Paste column" />
             </LegendColumn>
           </>
         }
