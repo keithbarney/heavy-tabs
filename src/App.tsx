@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
 import { useSharing } from '@/hooks/useSharing'
@@ -9,7 +9,6 @@ import TabEditorNew from '@/components/TabEditorNew'
 import StyleGuide from '@/components/StyleGuide'
 import Library from '@/components/Library'
 import AuthModal from '@/components/AuthModal'
-import AuthCallback from '@/components/AuthCallback'
 import MigrationDialog from '@/components/MigrationDialog'
 import ShareModal from '@/components/ShareModal'
 import PublicViewer from '@/components/PublicViewer'
@@ -17,17 +16,6 @@ import UserMenu from '@/components/UserMenu'
 import type { LocalProject } from '@/types'
 
 function App() {
-  const location = useLocation()
-
-  // Skip heavy hooks on auth callback route
-  if (location.pathname === '/auth/callback') {
-    return <AuthCallback />
-  }
-
-  return <AppContent />
-}
-
-function AppContent() {
   const auth = useAuth()
   const projects = useProjects({ user: auth.user })
   const sharing = useSharing({ user: auth.user })
