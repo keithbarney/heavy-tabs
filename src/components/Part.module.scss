@@ -109,3 +109,37 @@
   gap: $space-sm;
   padding-top: 18px;
 }
+
+// Print styles
+@media print {
+  .part {
+    background: #fff;
+    border-radius: 0;
+    break-inside: avoid;
+  }
+
+  .header button {
+    display: none !important;
+  }
+
+  .confirmDelete {
+    display: none !important;
+  }
+
+  .titleInput,
+  .notesInput {
+    background: transparent !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .barButtons {
+    display: none !important;
+  }
+
+  .stringLabels,
+  .stringLabel {
+    color: #000;
+  }
+}

@@ -116,3 +116,57 @@
   gap: $space-lg;
   overflow-y: auto;
 }
+
+// Print header (hidden on screen)
+.printHeader {
+  display: none;
+}
+
+.printTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+}
+
+.printMeta {
+  display: flex;
+  gap: $space-md;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: #444;
+}
+
+// Print styles
+@media print {
+  .printHeader {
+    display: block;
+    margin-bottom: $space-lg;
+  }
+
+  .header {
+    display: none !important;
+  }
+
+  .chordToolbar {
+    display: none !important;
+  }
+
+  .addPartButton {
+    display: none !important;
+  }
+
+  .modalOverlay {
+    display: none !important;
+  }
+
+  .container {
+    background: #fff;
+    min-height: auto;
+  }
+
+  .content {
+    padding: 0;
+    overflow: visible;
+  }
+}

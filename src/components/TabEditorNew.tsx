@@ -853,6 +853,17 @@ export default function TabEditorNew() {
 
   return (
     <div className={styles.container}>
+      {/* Print Header (hidden on screen, shown in print) */}
+      <div className={styles.printHeader}>
+        <h1 className={styles.printTitle}>{projectName || 'Untitled'}</h1>
+        <div className={styles.printMeta}>
+          <span>{instrument.charAt(0).toUpperCase() + instrument.slice(1)}</span>
+          <span>{bpm} BPM</span>
+          <span>{time}</span>
+          <span>{tuning !== 'standard' ? 'Drop tuning' : 'Standard tuning'}</span>
+        </div>
+      </div>
+
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>

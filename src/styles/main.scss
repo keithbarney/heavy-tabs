@@ -86,3 +86,17 @@ pre,
 .spinner {
   animation: spin 1s linear infinite;
 }
+
+// Print styles
+@media print {
+  @page {
+    margin: 0.75in;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

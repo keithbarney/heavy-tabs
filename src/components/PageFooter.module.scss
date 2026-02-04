@@ -100,3 +100,10 @@
   line-height: 10px;
   color: $color-text;
 }
+
+// Print styles
+@media print {
+  .footer {
+    display: none !important;
+  }
+}

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { FolderOpen, Plus, Trash2, Search, RefreshCw, X, LogIn, LogOut, Cloud } from 'lucide-react'
+import UiButton from './UiButton'
+import UiInput from './UiInput'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
 import type { UseAuthReturn } from '@/hooks/useAuth'
@@ -71,26 +73,24 @@ export default function Library({
             <FolderOpen size={20} />
             <h2>Project Library</h2>
           </div>
-          <button className={styles.closeButton} onClick={handleClose} title="Close">
+          <UiButton variant="secondary" onClick={handleClose} title="Close">
             <X size={20} />
-          </button>
+          </UiButton>
         </div>
 
         <div className={styles.toolbar}>
-          <button className={styles.newButton} onClick={() => { onNewProject(); handleClose() }}>
+          <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
             <Plus size={16} />
             New Project
-          </button>
+          </UiButton>
 
-          <div className={styles.searchBox}>
-            <Search size={16} />
-            <input
-              type="text"
-              placeholder="Search projects..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <UiInput
+            icon={<Search size={16} />}
+            placeholder="Search projects..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
         </div>
 
         {message && (
@@ -113,10 +113,10 @@ export default function Library({
                 <>
                   <FolderOpen size={48} />
                   <p>No projects yet</p>
-                  <button className={styles.newButton} onClick={() => { onNewProject(); handleClose() }}>
+                  <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
                     <Plus size={16} />
                     Create your first project
-                  </button>
+                  </UiButton>
                 </>
               )}
             </div>
@@ -139,17 +139,17 @@ export default function Library({
                 {confirmDelete === project.id ? (
                   <div className={styles.confirmDelete}>
                     <span>Delete?</span>
-                    <button className={styles.confirmYes} onClick={() => handleDelete(project.id)}>Yes</button>
-                    <button className={styles.confirmNo} onClick={() => setConfirmDelete(null)}>No</button>
+                    <UiButton variant="danger" size="small" onClick={() => handleDelete(project.id)}>Yes</UiButton>
+                    <UiButton variant="secondary" size="small" onClick={() => setConfirmDelete(null)}>No</UiButton>
                   </div>
                 ) : (
-                  <button
-                    className={styles.deleteButton}
+                  <UiButton
+                    variant="ghost"
                     onClick={() => setConfirmDelete(project.id)}
                     title="Delete project"
                   >
                     <Trash2 size={16} />
-                  </button>
+                  </UiButton>
                 )}
               </div>
             ))
@@ -163,18 +163,18 @@ export default function Library({
                 <Cloud size={14} />
                 <span>{auth.user?.email}</span>
               </div>
-              <button className={styles.authButton} onClick={() => auth.signOut()}>
+              <UiButton variant="ghost" size="small" onClick={() => auth.signOut()}>
                 <LogOut size={14} />
                 Sign Out
-              </button>
+              </UiButton>
             </>
           ) : (
             <div className={styles.signInCta}>
               <p className={styles.signInMessage}>Sign in to sync across devices</p>
-              <button className={styles.signInButton} onClick={() => { onSignIn(); handleClose() }}>
+              <UiButton variant="primary" className={styles.signInButton} onClick={() => { onSignIn(); handleClose() }}>
                 <LogIn size={16} />
                 Sign In
-              </button>
+              </UiButton>
             </div>
           )}
         </div>

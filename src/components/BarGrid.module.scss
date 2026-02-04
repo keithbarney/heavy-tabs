@@ -104,3 +104,50 @@
   align-self: stretch;
   background-color: $color-bg;
 }
+
+// Print styles
+@media print {
+  .barGrid {
+    break-inside: avoid;
+  }
+
+  .cell {
+    background: #fff;
+    color: #999;
+    border-right-color: #ccc;
+
+    &:hover,
+    &:active {
+      background: #fff;
+    }
+
+    &.hasValue {
+      color: #000;
+    }
+
+    &.selected,
+    &.playing {
+      background: #fff;
+    }
+  }
+
+  .dividerVertical {
+    background-color: #ccc;
+
+    &.barBoundary {
+      background-color: #000;
+    }
+  }
+
+  .dividerHorizontal {
+    background-color: #ccc;
+  }
+
+  .beatDivider {
+    background-color: #ccc;
+  }
+
+  .barTitle {
+    color: #000;
+  }
+}
