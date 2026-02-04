@@ -61,36 +61,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $space-lg;
+  padding: $space-sm $space-md;
   border-bottom: 1px solid $color-border;
 }
 
-.headerTitle {
+.headerLeft {
   display: flex;
   align-items: center;
   gap: $space-sm;
-
-  h2 {
-    color: $color-text-bright;
-    font-size: $font-size-lg;
-    font-weight: 600;
-  }
-
-  svg {
-    color: $color-accent;
-  }
+  min-width: 0;
 }
 
-.toolbar {
+.headerRight {
   display: flex;
   align-items: center;
-  gap: $space-md;
-  padding: $space-lg;
-  border-bottom: 1px solid $color-border;
-}
-
-.searchInput {
-  flex: 1;
+  gap: $space-sm;
 }
 
 .message {
@@ -139,28 +124,19 @@
   padding: $space-md $space-lg;
 }
 
-.loading, .empty {
+.loading {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: $space-3xl;
+  padding: $space-lg;
   color: $color-text-muted;
-  text-align: center;
-
-  svg {
-    margin-bottom: $space-md;
-    opacity: 0.5;
-  }
-
-  p {
-    margin-bottom: $space-lg;
-  }
 }
 
 .projectCard {
   display: flex;
   align-items: center;
+  gap: $space-sm;
+  padding-right: $space-sm;
   background-color: $color-bg;
   border: 1px solid $color-border;
   border-radius: $radius-md;
@@ -228,16 +204,6 @@
   }
 }
 
-// Auth footer
-.authFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-md $space-lg;
-  border-top: 1px solid $color-border;
-  background-color: $color-bg;
-}
-
 .authStatus {
   display: flex;
   align-items: center;
@@ -251,25 +217,11 @@
   }
 }
 
-// Sign-in CTA
-.signInCta {
-  border-top: 1px solid $color-border;
-  padding: $space-lg;
-  background-color: $color-bg;
+.footer {
   display: flex;
-  flex-direction: column;
-  gap: $space-md;
-
-  p {
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-    margin: 0;
-  }
-}
-
-.signInButton {
-  width: 100%;
-  justify-content: center;
+  align-items: center;
+  padding: $space-sm $space-md;
+  border-top: 1px solid $color-border;
 }
 
 // Selection toolbar

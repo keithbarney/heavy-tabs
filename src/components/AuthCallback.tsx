@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 
 export default function AuthCallback() {
-  const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -28,18 +26,25 @@ export default function AuthCallback() {
             setError(exchangeError.message)
             return
           }
+
+          // Wait a moment for localStorage to persist
+          await new Promise(resolve => setTimeout(resolve, 100))
+
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Failed to sign in')
           return
         }
       }
 
-      // Success - redirect to home
-      navigate('/', { replace: true })
+      // Success - full page redirect to reset the app state
+      // Redirect back to where the user was (stored before auth) or default to /new
+      const returnTo = sessionStorage.getItem('authReturnTo') || '/new'
+      sessionStorage.removeItem('authReturnTo')
+      window.location.href = returnTo
     }
 
     handleCallback()
-  }, [navigate])
+  }, [])
 
   if (error) {
     return (
@@ -56,7 +61,7 @@ export default function AuthCallback() {
         <div style={{ color: '#bf616a', fontSize: '18px' }}>Sign in failed</div>
         <div style={{ fontSize: '14px', opacity: 0.7, maxWidth: '400px', textAlign: 'center' }}>{error}</div>
         <button
-          onClick={() => navigate('/', { replace: true })}
+          onClick={() => { window.location.href = '/' }}
           style={{
             marginTop: '16px',
             padding: '8px 16px',

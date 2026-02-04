@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { FolderOpen, Plus, Trash2, Search, RefreshCw, X, LogIn, LogOut, Cloud } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, X, LogIn, LogOut, Cloud } from 'lucide-react'
 import UiButton from './UiButton'
-import UiInput from './UiInput'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
 import type { UseAuthReturn } from '@/hooks/useAuth'
@@ -30,7 +29,6 @@ export default function Library({
   auth,
   message,
 }: LibraryProps) {
-  const [searchQuery, setSearchQuery] = useState('')
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [isClosing, setIsClosing] = useState(false)
 
@@ -50,10 +48,6 @@ export default function Library({
 
   if (!isOpen && !isClosing) return null
 
-  const filteredProjects = projects.projects.filter(project =>
-    project.projectName.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const handleDelete = async (projectId: string) => {
     await projects.deleteProject(projectId)
     setConfirmDelete(null)
@@ -69,28 +63,32 @@ export default function Library({
     <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`} onClick={handleClose}>
       <div className={`${styles.panel} ${isClosing ? styles.panelClosing : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <div className={styles.headerTitle}>
-            <FolderOpen size={20} />
-            <h2>Project Library</h2>
+          <div className={styles.headerLeft}>
+            {auth.isAuthenticated ? (
+              <div className={styles.authStatus}>
+                <Cloud size={14} />
+                <span>{auth.user?.email}</span>
+              </div>
+            ) : (
+              <UiButton variant="ghost" size="small" onClick={() => {
+                sessionStorage.setItem('authReturnTo', window.location.pathname)
+                onSignIn()
+                handleClose()
+              }}>
+                <LogIn size={14} />
+                Sign In
+              </UiButton>
+            )}
           </div>
-          <UiButton variant="secondary" onClick={handleClose} title="Close">
-            <X size={20} />
-          </UiButton>
-        </div>
-
-        <div className={styles.toolbar}>
-          <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
-            <Plus size={16} />
-            New Project
-          </UiButton>
-
-          <UiInput
-            icon={<Search size={16} />}
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
-          />
+          <div className={styles.headerRight}>
+            <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
+              <Plus size={16} />
+              New Song
+            </UiButton>
+            <UiButton variant="secondary" onClick={handleClose} title="Close">
+              <X size={16} />
+            </UiButton>
+          </div>
         </div>
 
         {message && (
@@ -102,26 +100,10 @@ export default function Library({
         <div className={styles.projectList}>
           {projects.loading ? (
             <div className={styles.loading}>
-              <RefreshCw size={24} className="spinner" />
-              <p>Loading projects...</p>
-            </div>
-          ) : filteredProjects.length === 0 ? (
-            <div className={styles.empty}>
-              {searchQuery ? (
-                <p>No projects match "{searchQuery}"</p>
-              ) : (
-                <>
-                  <FolderOpen size={48} />
-                  <p>No projects yet</p>
-                  <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
-                    <Plus size={16} />
-                    Create your first project
-                  </UiButton>
-                </>
-              )}
+              <RefreshCw size={16} className="spinner" />
             </div>
           ) : (
-            filteredProjects.map(project => (
+            projects.projects.map(project => (
               <div
                 key={project.cloudId || project.id}
                 className={`${styles.projectCard} ${project.id === currentProjectId ? styles.active : ''}`}
@@ -156,28 +138,14 @@ export default function Library({
           )}
         </div>
 
-        <div className={styles.authFooter}>
-          {auth.isAuthenticated ? (
-            <>
-              <div className={styles.authStatus}>
-                <Cloud size={14} />
-                <span>{auth.user?.email}</span>
-              </div>
-              <UiButton variant="ghost" size="small" onClick={() => auth.signOut()}>
-                <LogOut size={14} />
-                Sign Out
-              </UiButton>
-            </>
-          ) : (
-            <div className={styles.signInCta}>
-              <p className={styles.signInMessage}>Sign in to sync across devices</p>
-              <UiButton variant="primary" className={styles.signInButton} onClick={() => { onSignIn(); handleClose() }}>
-                <LogIn size={16} />
-                Sign In
-              </UiButton>
-            </div>
-          )}
-        </div>
+        {auth.isAuthenticated && (
+          <div className={styles.footer}>
+            <UiButton variant="ghost" size="small" onClick={() => auth.signOut()}>
+              <LogOut size={14} />
+              Sign Out
+            </UiButton>
+          </div>
+        )}
       </div>
     </div>
   )
