@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
 import { useSharing } from '@/hooks/useSharing'
@@ -9,6 +9,7 @@ import TabEditorNew from '@/components/TabEditorNew'
 import StyleGuide from '@/components/StyleGuide'
 import Library from '@/components/Library'
 import AuthModal from '@/components/AuthModal'
+import AuthCallback from '@/components/AuthCallback'
 import MigrationDialog from '@/components/MigrationDialog'
 import ShareModal from '@/components/ShareModal'
 import PublicViewer from '@/components/PublicViewer'
@@ -16,6 +17,17 @@ import UserMenu from '@/components/UserMenu'
 import type { LocalProject } from '@/types'
 
 function App() {
+  const location = useLocation()
+
+  // Skip heavy hooks on auth callback route
+  if (location.pathname === '/auth/callback') {
+    return <AuthCallback />
+  }
+
+  return <AppContent />
+}
+
+function AppContent() {
   const auth = useAuth()
   const projects = useProjects({ user: auth.user })
   const sharing = useSharing({ user: auth.user })
@@ -140,12 +152,6 @@ function App() {
         }
       />
 
-      {/* Auth callback route */}
-      <Route
-        path="/auth/callback"
-        element={<AuthCallback />}
-      />
-
       {/* New UI preview */}
       <Route
         path="/new"
@@ -191,33 +197,6 @@ function App() {
         }
       />
     </Routes>
-  )
-}
-
-// Auth callback handler
-function AuthCallback() {
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    // Supabase handles the callback automatically via onAuthStateChange
-    // Just redirect to home after a short delay
-    const timer = setTimeout(() => {
-      navigate('/', { replace: true })
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [navigate])
-
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      color: '#c0c5ce',
-    }}>
-      Signing in...
-    </div>
   )
 }
 
