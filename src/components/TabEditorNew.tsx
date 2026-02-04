@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
 import { Menu, Plus, Save, Play, Pause, Square, Repeat, Volume2, Settings, Printer, BookOpen, X } from 'lucide-react'
 import UiButton from './UiButton'
@@ -11,7 +11,7 @@ import Library from './Library'
 import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
-import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines } from '@/lib/constants'
+import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
 import { saveLocalProject, generateId } from '@/lib/storage'
 import type { LocalProject } from '@/types'
 import styles from './TabEditorNew.module.scss'
@@ -31,6 +31,7 @@ export default function TabEditorNew() {
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
   const [projectId, setProjectId] = useState(() => generateId())
+  const [cloudId, setCloudId] = useState<string | null>(null)
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
 
   // Playback state
@@ -45,7 +46,10 @@ export default function TabEditorNew() {
   const playbackRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playbackActiveRef = useRef(false)
   const loopingRef = useRef(false)
+  const clickTrackRef = useRef(clickTrack)
   const audioContextRef = useRef<AudioContext | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const partsRef = useRef<any[]>([])
 
   // Settings state
   const [instrument, setInstrument] = useState('guitar')
@@ -55,21 +59,37 @@ export default function TabEditorNew() {
   const [time, setTime] = useState('4/4')
   const [grid, setGrid] = useState('1/16')
 
-  // Create an empty bar: 4 beats, 6 rows (strings), 4 cells per beat
+  // Create an empty bar using current time signature, grid resolution, and string count
   const createEmptyBar = useCallback((): BarGridProps => {
-    const numStrings = parseInt(strings) || 6
-    const data = Array.from({ length: 4 }, () =>
+    const numStrings = instrument === 'drums' ? drumLines.length : (parseInt(strings) || 6)
+    const timeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
+    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
+    const numBeats = timeSig.beats
+    const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+    const data = Array.from({ length: numBeats }, () =>
       Array.from({ length: numStrings }, () =>
-        Array.from({ length: 4 }, () => '-')
+        Array.from({ length: cellsPerBeat }, () => '-')
       )
     )
     return { data, title: '' }
-  }, [strings])
+  }, [strings, instrument, time, grid])
 
   // Parts state
   const [parts, setParts] = useState([
     { id: '1', title: 'Intro', notes: '', bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }
   ])
+
+  // Keep refs in sync with state for use inside playback closures
+  useEffect(() => { partsRef.current = parts }, [parts])
+  useEffect(() => { clickTrackRef.current = clickTrack }, [clickTrack])
+
+  // Compute string labels based on current instrument/tuning/key
+  const stringLabels = useMemo(() => {
+    if (instrument === 'drums') return drumLines.map(d => d.name)
+    const numStrings = parseInt(strings) || 6
+    const effectiveTuning = (tuning === 'standard' || tuning === 'drop') ? tuning : 'standard'
+    return getTuningNotes(instrument as 'guitar' | 'bass', numStrings, effectiveTuning, keySignature.toUpperCase())
+  }, [instrument, strings, tuning, keySignature])
 
   // Selection: partId-barIndex-beat-row-cell
   const [selectedCell, setSelectedCell] = useState<string | null>(null)
@@ -302,15 +322,7 @@ export default function TabEditorNew() {
     }
     const newKey = `${partId}-${newBarIndex}-${newBeat}-${newRow}-${newCell}`
     setSelectedCell(newKey)
-    // Reset multi-selection to single column at new position
-    const navPart = parts.find(p => p.id === partId)
-    if (navPart) {
-      const navBar = navPart.bars[newBarIndex]
-      if (navBar) {
-        const ns = navBar.data[0]?.length ?? 6
-        setSelectedCells(Array.from({ length: ns }, (_, r) => `${partId}-${newBarIndex}-${newBeat}-${r}-${newCell}`))
-      }
-    }
+    setSelectedCells([newKey])
   }, [selectedCell, parts])
 
   // Apply a chord from the picker
@@ -443,14 +455,17 @@ export default function TabEditorNew() {
     const playStep = () => {
       if (!playbackActiveRef.current) return
 
+      // Read latest parts from ref to avoid stale closure
+      const currentParts = partsRef.current
+
       // Past last part - loop or stop
-      if (curPart >= parts.length) {
+      if (curPart >= currentParts.length) {
         if (loopingRef.current) {
           curPart = 0; curBar = 0; curBeat = 0; curCell = 0
         } else { stopPlayback(); return }
       }
 
-      const part = parts[curPart]
+      const part = currentParts[curPart]
       if (!part || curBar >= part.bars.length) {
         curBar = 0; curBeat = 0; curCell = 0; curPart++
         playbackRef.current = setTimeout(playStep, 0); return
@@ -470,13 +485,13 @@ export default function TabEditorNew() {
 
       setPlaybackPosition({ partIndex: curPart, barIndex: curBar, beat: curBeat, cell: curCell })
 
-      // Click track: play click on first cell of each beat
-      if (clickTrack && curCell === 0) {
+      // Click track: play click on first cell of each beat (read from ref)
+      if (clickTrackRef.current && curCell === 0) {
         playClick(curBeat === 0)
       }
 
       // Play sounds for all strings at current position
-      beatData.forEach((rowCells, rowIdx) => {
+      beatData.forEach((rowCells: string[], rowIdx: number) => {
         const value = rowCells[curCell]
         if (value && value !== '-') {
           if (instrument === 'drums') {
@@ -509,7 +524,7 @@ export default function TabEditorNew() {
     }
     playStep()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parts, isLooping, bpm, time, grid, instrument, strings, clickTrack, playbackPosition, stopPlayback])
+  }, [isLooping, bpm, time, grid, instrument, strings, playbackPosition, stopPlayback])
 
   const togglePlayback = useCallback(() => {
     if (playbackActiveRef.current) {
@@ -526,7 +541,7 @@ export default function TabEditorNew() {
   const getPlayingPositionForBar = (partIndex: number, barIndex: number) => {
     if (!playbackPosition) return undefined
     if (playbackPosition.partIndex !== partIndex || playbackPosition.barIndex !== barIndex) return undefined
-    return { beat: playbackPosition.beat, row: 0, cell: playbackPosition.cell }
+    return { beat: playbackPosition.beat, row: -1, cell: playbackPosition.cell }
   }
 
   // Get all cells between two column positions (full column selection across bars)
@@ -592,16 +607,10 @@ export default function TabEditorNew() {
   const handleCellClick = useCallback((partId: string, barIndex: number, beat: number, row: number, cell: number) => {
     // Skip if we just finished a drag selection (mouseup already set the selection)
     if (justFinishedSelectingRef.current) return
-    setSelectedCell(`${partId}-${barIndex}-${beat}-${row}-${cell}`)
-    // Single click: select full column at this position
-    const part = parts.find(p => p.id === partId)
-    if (!part) return
-    const bar = part.bars[barIndex]
-    if (!bar) return
-    const numStrings = bar.data[0]?.length ?? parseInt(strings) ?? 6
-    const cells = Array.from({ length: numStrings }, (_, r) => `${partId}-${barIndex}-${beat}-${r}-${cell}`)
-    setSelectedCells(cells)
-  }, [parts, strings])
+    const key = `${partId}-${barIndex}-${beat}-${row}-${cell}`
+    setSelectedCell(key)
+    setSelectedCells([key])
+  }, [])
 
   // Mouse down on a cell: start drag selection
   const handleCellMouseDown = useCallback((partId: string, barIndex: number, beat: number, row: number, cell: number, e: React.MouseEvent) => {
@@ -610,16 +619,10 @@ export default function TabEditorNew() {
     setIsSelecting(true)
     const pos = { partId, barIndex, beat, row, cell }
     setSelectionStart(pos)
-    setSelectedCell(`${partId}-${barIndex}-${beat}-${row}-${cell}`)
-    // Start with single column
-    const part = parts.find(p => p.id === partId)
-    if (!part) return
-    const bar = part.bars[barIndex]
-    if (!bar) return
-    const numStrings = bar.data[0]?.length ?? parseInt(strings) ?? 6
-    const cells = Array.from({ length: numStrings }, (_, r) => `${partId}-${barIndex}-${beat}-${r}-${cell}`)
-    setSelectedCells(cells)
-  }, [parts, strings])
+    const key = `${partId}-${barIndex}-${beat}-${row}-${cell}`
+    setSelectedCell(key)
+    setSelectedCells([key])
+  }, [])
 
   // Mouse enter on a cell during drag: extend selection
   const handleCellMouseEnter = useCallback((partId: string, barIndex: number, beat: number, row: number, cell: number) => {
@@ -651,8 +654,8 @@ export default function TabEditorNew() {
       })
   }
 
-  // Save project to localStorage
-  const handleSave = useCallback(() => {
+  // Save project to localStorage and cloud
+  const handleSave = useCallback(async () => {
     const timeSignature = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
     const noteResolution = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
     const numStrings = parseInt(strings) || 6
@@ -679,6 +682,7 @@ export default function TabEditorNew() {
 
     const project: LocalProject = {
       id: projectId,
+      ...(cloudId ? { cloudId } : {}),
       projectName: projectName || 'Untitled',
       bpm: parseInt(bpm) || 120,
       timeSignature,
@@ -698,12 +702,16 @@ export default function TabEditorNew() {
     }
 
     saveLocalProject(project)
-    projectsHook.saveProject(project)
-  }, [projectId, projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
+    const result = await projectsHook.saveProject(project)
+    if (result?.project?.cloudId && !cloudId) {
+      setCloudId(result.project.cloudId)
+    }
+  }, [projectId, cloudId, projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
 
   // Load a project from the library into editor state
   const loadProject = useCallback((project: LocalProject) => {
     setProjectId(project.id)
+    setCloudId(project.cloudId || null)
     setCurrentProjectId(project.id)
     setProjectName(project.projectName)
     setBpm(String(project.bpm))
@@ -717,6 +725,7 @@ export default function TabEditorNew() {
     const firstKey = tabKeys[0] || ''
     if (firstKey.includes('-drums')) {
       setInstrument('drums')
+      setStrings(String(drumLines.length))
     } else if (firstKey.includes('-bass')) {
       setInstrument('bass')
       setStrings(String(project.stringCounts?.bass || 4))
@@ -724,6 +733,12 @@ export default function TabEditorNew() {
       setInstrument('guitar')
       setStrings(String(project.stringCounts?.guitar || 6))
     }
+
+    // Derive beat/cell counts from the project's saved time signature and resolution
+    const timeSig = project.timeSignature || TIME_SIGNATURES[0]
+    const noteRes = project.noteResolution || NOTE_RESOLUTIONS[1]
+    const projectNumBeats = timeSig.beats
+    const projectCellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
 
     // Convert sections + tabData into parts format
     const sections = project.sections || []
@@ -735,13 +750,11 @@ export default function TabEditorNew() {
 
         // Convert each measure from TabData format (strings x allCells)
         // to BarGrid format (beats x strings x cellsPerBeat)
-        const cellsPerBeat = 4
-        const numBeats = 4
         const bars = measureData.length > 0
           ? measureData.map((measure: string[][], i: number) => {
-              const totalCells = measure[0]?.length ?? (numBeats * cellsPerBeat)
-              const actualCellsPerBeat = Math.max(1, Math.floor(totalCells / numBeats))
-              const data = Array.from({ length: numBeats }, (_, beatIdx) =>
+              const totalCells = measure[0]?.length ?? (projectNumBeats * projectCellsPerBeat)
+              const actualCellsPerBeat = Math.max(1, Math.floor(totalCells / projectNumBeats))
+              const data = Array.from({ length: projectNumBeats }, (_, beatIdx) =>
                 measure.map(stringCells =>
                   stringCells.slice(beatIdx * actualCellsPerBeat, (beatIdx + 1) * actualCellsPerBeat)
                 )
@@ -772,6 +785,7 @@ export default function TabEditorNew() {
   const resetToNew = useCallback(() => {
     const newId = generateId()
     setProjectId(newId)
+    setCloudId(null)
     setCurrentProjectId(null)
     setProjectName('')
     setBpm('120')
@@ -818,7 +832,7 @@ export default function TabEditorNew() {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); navigateSelection(e.key); return }
 
     const chars = validInputs[instrument as keyof typeof validInputs] || validInputs.guitar
-    if (chars.includes(e.key) || (e.key >= '0' && e.key <= '9')) {
+    if (chars.includes(e.key) || (instrument !== 'drums' && e.key >= '0' && e.key <= '9')) {
       e.preventDefault()
       inputValue(e.key)
     }
@@ -916,12 +930,13 @@ export default function TabEditorNew() {
       )}
 
       {/* Main Content */}
-      <main className={styles.content}>
+      <main className={styles.content} onClick={(e) => { if (e.target === e.currentTarget) { setSelectedCell(null); setSelectedCells([]) } }}>
         {parts.map((part, partIndex) => (
           <Part
             key={part.id}
             title={part.title}
             notes={part.notes}
+            stringLabels={stringLabels}
             bars={part.bars.map((bar, bi) => ({
               ...bar,
               selectedCells: getSelectedCellsForBar(part.id, bi),
@@ -950,7 +965,13 @@ export default function TabEditorNew() {
               const lastBar = part.bars[part.bars.length - 1]
               if (lastBar) {
                 pushHistory()
-                setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, { ...lastBar, data: lastBar.data.map(b => b.map(r => [...r])) }] } : p))
+                setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, { ...lastBar, data: lastBar.data.map(b => b.map(r => [...r])), title: `BAR ${p.bars.length + 1}` }] } : p))
+              }
+            }}
+            onDelete={() => {
+              if (parts.length > 1) {
+                pushHistory()
+                setParts(parts.filter(p => p.id !== part.id))
               }
             }}
             onDuplicate={() => {

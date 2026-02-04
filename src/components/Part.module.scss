@@ -23,12 +23,26 @@
 
 .titleInput {
   flex-shrink: 0;
-  width: 80px;
+  min-width: 144px;
 }
 
 .notesInput {
   flex: 1;
   min-width: 32px;
+}
+
+// Delete confirmation
+.confirmDelete {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+}
+
+.confirmLabel {
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: $color-text;
+  white-space: nowrap;
 }
 
 // Body section
@@ -83,7 +97,7 @@
 .barsContainer {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: $space-sm;
 }
 
 // Bar action buttons

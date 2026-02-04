@@ -26,12 +26,21 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 - ✅ SendGrid email authentication (SPF/DKIM verified)
 - ✅ Custom magic link email template (light theme)
 - ✅ Supabase sender: noreply@heavytabs.app
+- ✅ New UI component system (UiButton, UiInput, UiSelect, UiCheckbox)
+- ✅ TabEditorNew — redesigned editor at `/new` with full functionality
+- ✅ Reusable Part and BarGrid components
+- ✅ Style guide at `/styleguide`
+- ✅ Comprehensive TESTING.md (123 user stories)
+
+### In Progress
+- 🔄 TabEditorNew replacing TabEditor (preview at `/new`, production at `/`)
 
 ### Next Priorities
-1. Landing page for conversions
-2. Payment integration (Lemon Squeezy or Stripe)
-3. PDF export
-4. Get feedback from initial users
+1. Promote TabEditorNew to `/` route (replace old TabEditor)
+2. Landing page for conversions
+3. Payment integration (Lemon Squeezy or Stripe)
+4. PDF export
+5. Get feedback from initial users
 
 ---
 
@@ -54,35 +63,46 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 ```
 heavy-tabs/
 ├── src/
-│   ├── App.tsx                    # Main app with routing
+│   ├── App.tsx                        # Main app with routing
 │   ├── components/
-│   │   ├── TabEditor.tsx          # Main editor (playback, editing, history)
-│   │   ├── TabEditor.module.scss
-│   │   ├── AuthModal.tsx          # Magic link sign in
-│   │   ├── Library.tsx            # Project list
-│   │   ├── MigrationDialog.tsx    # Import localStorage → cloud
-│   │   ├── ShareModal.tsx         # Share link management
-│   │   ├── PublicViewer.tsx       # Read-only shared view
-│   │   ├── UserMenu.tsx           # Account dropdown
+│   │   ├── TabEditor.tsx              # Original editor (production at /)
+│   │   ├── TabEditorNew.tsx           # Redesigned editor (preview at /new)
+│   │   ├── BarGrid.tsx                # Grid cell/row/bar components
+│   │   ├── Part.tsx                   # Part container (title, bars, string labels)
+│   │   ├── PageAdvancedSettings.tsx   # Settings panel (instrument, tuning, key, time, grid)
+│   │   ├── PageFooter.tsx             # Fixed footer with legend
+│   │   ├── PageHeader.tsx             # Header bar
+│   │   ├── UiButton.tsx               # Button component (primary, secondary, action, danger)
+│   │   ├── UiInput.tsx                # Text input with optional icon
+│   │   ├── UiSelect.tsx               # Select dropdown
+│   │   ├── UiCheckbox.tsx             # Checkbox (button-based with icon)
+│   │   ├── StyleGuide.tsx             # Component showcase at /styleguide
+│   │   ├── AuthModal.tsx              # Magic link sign in
+│   │   ├── Library.tsx                # Project list drawer
+│   │   ├── MigrationDialog.tsx        # Import localStorage → cloud
+│   │   ├── ShareModal.tsx             # Share link management
+│   │   ├── PublicViewer.tsx           # Read-only shared view
+│   │   ├── UserMenu.tsx               # Account dropdown
 │   │   └── ErrorBoundary.tsx
 │   ├── hooks/
-│   │   ├── useAuth.ts             # Auth state + methods
-│   │   ├── useProjects.ts         # CRUD, sync, migration
-│   │   └── useSharing.ts          # Share link management
+│   │   ├── useAuth.ts                 # Auth state + methods
+│   │   ├── useProjects.ts             # CRUD, sync, migration
+│   │   └── useSharing.ts              # Share link management
 │   ├── lib/
-│   │   ├── supabase.ts            # Supabase client
-│   │   ├── storage.ts             # localStorage helpers
-│   │   └── constants.ts           # Tunings, chords, themes
+│   │   ├── supabase.ts                # Supabase client
+│   │   ├── storage.ts                 # localStorage helpers
+│   │   └── constants.ts               # Tunings, chords, themes
 │   ├── types/
-│   │   └── index.ts               # TypeScript interfaces
+│   │   └── index.ts                   # TypeScript interfaces
 │   └── styles/
-│       ├── _tokens.scss           # Design tokens
-│       ├── _mixins.scss           # Button, input, responsive mixins
-│       └── main.scss              # Global styles
+│       ├── _tokens.scss               # Design tokens
+│       ├── _mixins.scss               # Button, input, responsive mixins
+│       └── main.scss                  # Global styles
 ├── supabase/
 │   └── migrations/
-│       └── 001_initial_schema.sql # Database schema + RLS
-├── .env                           # Supabase credentials (not committed)
+│       └── 001_initial_schema.sql     # Database schema + RLS
+├── TESTING.md                         # 123 user stories for QA
+├── .env                               # Supabase credentials (not committed)
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
@@ -145,13 +165,25 @@ Three tables with Row Level Security:
 - Failed cloud syncs go to pending queue
 - Queue processes when back online
 
-### Button Styling
+### UI Components (New System)
+Shared components in `src/components/Ui*.tsx`:
+- `UiButton` — variants: primary, secondary, action, danger; sizes: small, default
+- `UiInput` — text input with optional leading icon; `border: 1px solid transparent` prevents layout shift on focus
+- `UiSelect` — select dropdown with label
+- `UiCheckbox` — button-based with CheckSquare/Square icons, `role="checkbox"` + `aria-checked`
+
+### Button Styling (Old System)
 All buttons use `@include button-base` which provides:
 - 5% white background (10% on hover)
 - Consistent padding and border-radius
 - `button-primary` for accent-colored actions
 - `button-danger` for destructive actions
 - Add buttons use green (`$color-green`) with solid border
+
+### BarGrid Data Structure
+- `data: string[][][]` = `[beat][row/string][cell]`
+- Cell key format: `partId-barIndex-beat-row-cell` (5-part string)
+- Full column selection: clicking a cell selects all rows (strings) at that beat+cell position
 
 ### Inline Editable Fields
 Most input fields show as text until clicked:
@@ -163,6 +195,10 @@ Most input fields show as text until clicked:
 - Click/drag selects full columns (all strings at a position)
 - Selection persists until clicking away
 - `user-select: none` prevents browser text selection while dragging
+
+### Power Chord Mode
+- Entering a fret auto-fills 5th (fret+2) and octave on adjacent strings
+- Drop tuning variant adjusts intervals
 
 ### Fixed Footer
 - Legend bar fixed to bottom of screen
@@ -187,7 +223,9 @@ All three have generous free tiers - this project costs $0/month to run.
 
 | Path | Component | Description |
 |------|-----------|-------------|
-| `/` | MainView → TabEditor | Main editor |
+| `/` | MainView → TabEditor | Production editor |
+| `/new` | TabEditorNew | Redesigned editor (preview) |
+| `/styleguide` | StyleGuide | UI component showcase |
 | `/tab/:slug` | PublicViewer | Read-only shared tab |
 | `/auth/callback` | AuthCallback | Magic link redirect handler |
 

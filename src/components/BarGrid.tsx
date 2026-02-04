@@ -95,7 +95,7 @@ export function BarGridPartial({
             selectedCells={selectedCells
               .filter(c => c.row === rowIndex)
               .map(c => c.cell)}
-            playingCell={playingCell?.row === rowIndex ? playingCell.cell : undefined}
+            playingCell={(playingCell?.row === rowIndex || playingCell?.row === -1) ? playingCell.cell : undefined}
             onCellClick={(cell) => onCellClick?.(rowIndex, cell)}
             onCellMouseDown={(cell, e) => onCellMouseDown?.(rowIndex, cell, e)}
             onCellMouseEnter={(cell) => onCellMouseEnter?.(rowIndex, cell)}

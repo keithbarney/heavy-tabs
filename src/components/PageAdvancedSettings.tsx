@@ -30,7 +30,8 @@ export interface PageAdvancedSettingsProps {
 
 const DEFAULT_INSTRUMENTS: SettingOption[] = [
   { value: 'guitar', label: 'Guitar' },
-  { value: 'bass', label: 'Bass' },
+  // { value: 'bass', label: 'Bass' },
+  // { value: 'drums', label: 'Drums' },
 ]
 
 const DEFAULT_STRINGS: SettingOption[] = [
@@ -43,8 +44,7 @@ const DEFAULT_STRINGS: SettingOption[] = [
 
 const DEFAULT_TUNINGS: SettingOption[] = [
   { value: 'standard', label: 'Standard' },
-  { value: 'drop-d', label: 'Drop D' },
-  { value: 'dadgad', label: 'DADGAD' },
+  { value: 'drop', label: 'Drop' },
 ]
 
 const DEFAULT_KEYS: SettingOption[] = [
@@ -106,19 +106,28 @@ export default function PageAdvancedSettings({
           ))}
         </UiSelect>
 
-        <UiSelect
-          label="Strings"
-          className={styles.select}
-          value={strings}
-          hasValue={!!strings}
-          onChange={(e) => onStringsChange?.(e.target.value)}
-        >
-          {stringsOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </UiSelect>
+        {instrument !== 'drums' && (
+          <UiSelect
+            label="Strings"
+            className={styles.select}
+            value={strings}
+            hasValue={!!strings}
+            onChange={(e) => onStringsChange?.(e.target.value)}
+          >
+            {stringsOptions
+              .filter(opt => {
+                const v = parseInt(opt.value)
+                if (instrument === 'guitar') return v >= 6 && v <= 8
+                if (instrument === 'bass') return v >= 4 && v <= 6
+                return true
+              })
+              .map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+          </UiSelect>
+        )}
 
-        <UiSelect
+        {instrument !== 'drums' && <UiSelect
           label="Tuning"
           className={styles.select}
           value={tuning}
@@ -128,9 +137,9 @@ export default function PageAdvancedSettings({
           {tuningOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
-        </UiSelect>
+        </UiSelect>}
 
-        <UiSelect
+        {instrument !== 'drums' && <UiSelect
           label="Key"
           className={styles.select}
           value={keySignature}
@@ -140,7 +149,7 @@ export default function PageAdvancedSettings({
           {keyOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
-        </UiSelect>
+        </UiSelect>}
 
         <UiSelect
           label="Time"

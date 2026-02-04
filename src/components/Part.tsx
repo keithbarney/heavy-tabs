@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react'
-import { Plus, Minus, CopyPlus } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { Plus, Minus, CopyPlus, Trash2 } from 'lucide-react'
 import UiButton from './UiButton'
 import UiInput from './UiInput'
 import BarGrid, { type BarGridProps } from './BarGrid'
@@ -13,6 +13,7 @@ export interface PartProps {
   onTitleChange?: (value: string) => void
   onNotesChange?: (value: string) => void
   onDuplicate?: () => void
+  onDelete?: () => void
   onAddBar?: () => void
   onRemoveBar?: () => void
   onCopyBar?: () => void
@@ -33,6 +34,7 @@ export default function Part({
   onTitleChange,
   onNotesChange,
   onDuplicate,
+  onDelete,
   onAddBar,
   onRemoveBar,
   onCopyBar,
@@ -42,6 +44,8 @@ export default function Part({
   children,
   className
 }: PartProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
   return (
     <div className={`${styles.part} ${className || ''}`}>
       {/* Header */}
@@ -61,6 +65,17 @@ export default function Part({
         <UiButton variant="secondary" onClick={onDuplicate}>
           <CopyPlus size={16} />
         </UiButton>
+        {confirmDelete ? (
+          <div className={styles.confirmDelete}>
+            <span className={styles.confirmLabel}>Delete?</span>
+            <UiButton variant="danger" size="small" onClick={() => { setConfirmDelete(false); onDelete?.() }}>Yes</UiButton>
+            <UiButton variant="secondary" size="small" onClick={() => setConfirmDelete(false)}>No</UiButton>
+          </div>
+        ) : (
+          <UiButton variant="secondary" onClick={() => setConfirmDelete(true)}>
+            <Trash2 size={16} />
+          </UiButton>
+        )}
       </div>
 
       {/* Body */}

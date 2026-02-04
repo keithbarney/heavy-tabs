@@ -13,6 +13,11 @@
 
 .secondary {
   @include button-secondary;
+  color: rgba(192, 197, 206, 0.4);
+
+  &:hover:not(:disabled) {
+    color: $color-text-bright;
+  }
 }
 
 .action {
