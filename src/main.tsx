@@ -1,19 +1,23 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import App from './App'
-import AuthCallback from './components/AuthCallback'
+import { BrowserRouter } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import './styles/main.scss'
+
+// Check if this is the auth callback BEFORE any React rendering
+const isAuthCallback = window.location.pathname === '/auth/callback'
+
+// Lazy load components to ensure clean separation
+const AuthCallback = React.lazy(() => import('./components/AuthCallback'))
+const App = React.lazy(() => import('./App'))
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <Routes>
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/*" element={<App />} />
-        </Routes>
+        <React.Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#2b303b', color: '#c0c5ce' }}>Loading...</div>}>
+          {isAuthCallback ? <AuthCallback /> : <App />}
+        </React.Suspense>
       </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>
