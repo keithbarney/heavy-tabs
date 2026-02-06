@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, RefreshCw, X, LogIn, LogOut, Cloud } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import UiButton from './UiButton'
+import DrawerSongListItem from './DrawerSongListItem'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
-import type { UseAuthReturn } from '@/hooks/useAuth'
 import styles from './Library.module.scss'
 
 interface LibraryProps {
@@ -13,8 +13,6 @@ interface LibraryProps {
   currentProjectId: string | null
   onSelectProject: (project: LocalProject) => void
   onNewProject: () => void
-  onSignIn: () => void
-  auth: UseAuthReturn
   message?: string | null
 }
 
@@ -25,8 +23,6 @@ export default function Library({
   currentProjectId,
   onSelectProject,
   onNewProject,
-  onSignIn,
-  auth,
   message,
 }: LibraryProps) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -46,6 +42,18 @@ export default function Library({
     if (isOpen) setIsClosing(false)
   }, [isOpen])
 
+  // Handle Escape key to close
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') handleClose()
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen, handleEscape])
+
   if (!isOpen && !isClosing) return null
 
   const handleDelete = async (projectId: string) => {
@@ -56,6 +64,19 @@ export default function Library({
   const formatDate = (dateString?: string) => {
     if (!dateString) return ''
     const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    // Show relative time for recent saves
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+
+    // Show date for older saves
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
@@ -63,32 +84,11 @@ export default function Library({
     <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`} onClick={handleClose}>
       <div className={`${styles.panel} ${isClosing ? styles.panelClosing : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            {auth.isAuthenticated ? (
-              <div className={styles.authStatus}>
-                <Cloud size={14} />
-                <span>{auth.user?.email}</span>
-              </div>
-            ) : (
-              <UiButton variant="ghost" size="small" onClick={() => {
-                sessionStorage.setItem('authReturnTo', window.location.pathname)
-                onSignIn()
-                handleClose()
-              }}>
-                <LogIn size={14} />
-                Sign In
-              </UiButton>
-            )}
-          </div>
-          <div className={styles.headerRight}>
-            <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
-              <Plus size={16} />
-              New Song
-            </UiButton>
-            <UiButton variant="secondary" onClick={handleClose} title="Close">
-              <X size={16} />
-            </UiButton>
-          </div>
+          <h2 className={styles.title}>Projects</h2>
+          <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
+            <Plus size={16} />
+            New Song
+          </UiButton>
         </div>
 
         {message && (
@@ -104,48 +104,35 @@ export default function Library({
             </div>
           ) : (
             projects.projects.map(project => (
-              <div
+              <DrawerSongListItem
                 key={project.cloudId || project.id}
-                className={`${styles.projectCard} ${project.id === currentProjectId ? styles.active : ''}`}
-              >
-                <div className={styles.projectInfo} onClick={() => { onSelectProject(project); handleClose() }}>
-                  <h3>{project.projectName}</h3>
-                  <div className={styles.projectMeta}>
-                    <span>{project.timeSignature?.label || '4/4'}</span>
-                    <span>{project.bpm || 120} BPM</span>
-                    <span>{project.sections?.length || 0} parts</span>
-                    {project.updatedAt && <span>{formatDate(project.updatedAt)}</span>}
-                  </div>
-                </div>
-
-                {confirmDelete === project.id ? (
-                  <div className={styles.confirmDelete}>
-                    <span>Delete?</span>
-                    <UiButton variant="danger" size="small" onClick={() => handleDelete(project.id)}>Yes</UiButton>
-                    <UiButton variant="secondary" size="small" onClick={() => setConfirmDelete(null)}>No</UiButton>
-                  </div>
-                ) : (
-                  <UiButton
-                    variant="ghost"
-                    onClick={() => setConfirmDelete(project.id)}
-                    title="Delete project"
-                  >
-                    <Trash2 size={16} />
-                  </UiButton>
-                )}
-              </div>
+                songName={project.projectName || 'Untitled'}
+                updated={formatDate(project.updatedAt)}
+                bpm={project.bpm || 120}
+                timeSignature={project.timeSignature?.label || '4/4'}
+                selected={project.id === currentProjectId}
+                onClick={() => { onSelectProject(project); handleClose() }}
+                action={
+                  confirmDelete === project.id ? (
+                    <div className={styles.confirmDelete}>
+                      <span>Delete?</span>
+                      <UiButton variant="danger" size="small" onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }}>Yes</UiButton>
+                      <UiButton variant="secondary" size="small" onClick={(e) => { e.stopPropagation(); setConfirmDelete(null) }}>No</UiButton>
+                    </div>
+                  ) : (
+                    <UiButton
+                      variant="ghost"
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(project.id) }}
+                      title="Delete project"
+                    >
+                      <Trash2 size={14} />
+                    </UiButton>
+                  )
+                }
+              />
             ))
           )}
         </div>
-
-        {auth.isAuthenticated && (
-          <div className={styles.footer}>
-            <UiButton variant="ghost" size="small" onClick={() => auth.signOut()}>
-              <LogOut size={14} />
-              Sign Out
-            </UiButton>
-          </div>
-        )}
       </div>
     </div>
   )

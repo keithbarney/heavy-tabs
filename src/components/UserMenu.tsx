@@ -33,16 +33,40 @@ export default function UserMenu({ auth, onShowLibrary, onShare, canShare }: Use
     setIsOpen(false)
   }
 
+  const { user } = auth
+
   return (
     <div className={styles.container} ref={menuRef}>
-      <button className={styles.trigger} onClick={() => setIsOpen(!isOpen)} title={auth.user?.email}>
-        <Cloud size={16} className={styles.cloudIcon} />
+      <button className={styles.trigger} onClick={() => setIsOpen(!isOpen)} title={user?.email}>
+        {user?.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt=""
+            className={styles.avatar}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <Cloud size={16} className={styles.cloudIcon} />
+        )}
       </button>
 
       {isOpen && (
         <div className={styles.menu}>
           <div className={styles.menuHeader}>
-            <span className={styles.menuEmail}>{auth.user?.email}</span>
+            {user?.avatarUrl && (
+              <img
+                src={user.avatarUrl}
+                alt=""
+                className={styles.avatarLarge}
+                referrerPolicy="no-referrer"
+              />
+            )}
+            <div className={styles.menuUserInfo}>
+              {user?.displayName && (
+                <span className={styles.menuName}>{user.displayName}</span>
+              )}
+              <span className={styles.menuEmail}>{user?.email}</span>
+            </div>
             <span className={styles.syncBadge}>
               <Cloud size={12} />
               Synced

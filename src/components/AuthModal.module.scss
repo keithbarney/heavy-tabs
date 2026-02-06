@@ -21,13 +21,13 @@
 }
 
 .header {
-  margin-bottom: $space-2xl;
+  margin-bottom: $space-xl;
 
   h2 {
     color: $color-text-bright;
     font-size: $font-size-xl;
     font-weight: 600;
-    margin: $space-lg 0 $space-sm;
+    margin: 0 0 $space-sm;
   }
 
   p {
@@ -36,8 +36,57 @@
   }
 }
 
-.icon {
-  color: $color-accent;
+.googleButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: $space-md;
+  font-size: $font-size-base;
+  font-weight: 500;
+  background-color: white;
+  color: #1f1f1f;
+  border: 1px solid #dadce0;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    background-color: #f1f3f4;
+  }
+}
+
+.googleError {
+  margin-top: $space-sm;
+  color: $color-red;
+  font-size: $font-size-xs;
+  text-align: center;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: $space-xl 0;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: $color-border;
+  }
+
+  span {
+    padding: 0 $space-md;
+  }
 }
 
 .form {

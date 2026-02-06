@@ -96,6 +96,8 @@ export interface AuthState {
 export interface User {
   id: string
   email: string
+  avatarUrl?: string    // Google profile photo
+  displayName?: string  // Google display name
 }
 
 // Playback position

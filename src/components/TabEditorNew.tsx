@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Save, Play, Pause, Square, Repeat, Volume2, Settings, Printer, BookOpen, X, ChevronUp, ChevronDown } from 'lucide-react'
+import { Menu, Plus, Play, Pause, Square, Repeat, Volume2, Settings, Printer, X, ChevronUp, ChevronDown, LogOut } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
@@ -27,6 +27,8 @@ export default function TabEditorNew() {
   const [showSettings, setShowSettings] = useState(false)
   const [showLibrary, setShowLibrary] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [powerChordMode, setPowerChordMode] = useState(true)
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
@@ -48,6 +50,12 @@ export default function TabEditorNew() {
   const loopingRef = useRef(false)
   const clickTrackRef = useRef(clickTrack)
   const audioContextRef = useRef<AudioContext | null>(null)
+
+  // Auto-save refs
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasLoadedRef = useRef(false)
+  const handleSaveRef = useRef<() => Promise<void>>(async () => {})
+  const userMenuRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const partsRef = useRef<any[]>([])
 
@@ -712,6 +720,9 @@ export default function TabEditorNew() {
     }
   }, [projectId, cloudId, projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
 
+  // Keep ref in sync for auto-save
+  handleSaveRef.current = handleSave
+
   // Load a project from the library into editor state
   const loadProject = useCallback((project: LocalProject) => {
     setProjectId(project.id)
@@ -783,6 +794,9 @@ export default function TabEditorNew() {
 
     setSelectedCell(null)
     setShowLibrary(false)
+
+    // Mark as loaded to enable auto-save
+    hasLoadedRef.current = true
   }, [createEmptyBar])
 
   // Reset editor to a blank new project
@@ -807,7 +821,48 @@ export default function TabEditorNew() {
 
     setSelectedCell(null)
     setShowLibrary(false)
+
+    // Mark as loaded to enable auto-save
+    hasLoadedRef.current = true
   }, [createEmptyBar])
+
+  // Auto-save with 5 second debounce after changes
+  // Only triggers after user explicitly creates or loads a project (hasLoadedRef.current = true)
+  useEffect(() => {
+    // Skip auto-save until user has loaded or created a project
+    if (!hasLoadedRef.current) {
+      return
+    }
+
+    // Clear any pending auto-save
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current)
+    }
+
+    // Schedule auto-save after 5 seconds
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleSaveRef.current()
+    }, 5000)
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current)
+      }
+    }
+  }, [projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showUserMenu])
 
   // Clean up playback on unmount
   useEffect(() => {
@@ -876,9 +931,6 @@ export default function TabEditorNew() {
             onChange={(e) => setProjectName(e.target.value)}
             className={styles.projectInput}
           />
-          <UiButton variant="secondary" onClick={handleSave}>
-            <Save size={16} />
-          </UiButton>
         </div>
 
         <div className={styles.headerCenter}>
@@ -908,6 +960,59 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" onClick={() => window.print()}>
             <Printer size={16} />
           </UiButton>
+          {auth.isAuthenticated ? (
+            <div className={styles.userMenuContainer} ref={userMenuRef}>
+              <button className={styles.userButton} onClick={() => setShowUserMenu(!showUserMenu)}>
+                {auth.user?.avatarUrl ? (
+                  <img
+                    src={auth.user.avatarUrl}
+                    alt=""
+                    className={styles.userAvatar}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className={styles.userAvatarPlaceholder}>
+                    {auth.user?.email?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </button>
+              {showUserMenu && (
+                <div className={styles.userMenu}>
+                  <div className={styles.userMenuHeader}>
+                    {auth.user?.avatarUrl && (
+                      <img
+                        src={auth.user.avatarUrl}
+                        alt=""
+                        className={styles.userMenuAvatar}
+                        referrerPolicy="no-referrer"
+                      />
+                    )}
+                    <div className={styles.userMenuInfo}>
+                      {auth.user?.displayName && (
+                        <span className={styles.userMenuName}>{auth.user.displayName}</span>
+                      )}
+                      <span className={styles.userMenuEmail}>{auth.user?.email}</span>
+                    </div>
+                  </div>
+                  <div className={styles.userMenuDivider} />
+                  <button
+                    className={styles.userMenuItem}
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      setShowSignOutConfirm(true)
+                    }}
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <UiButton variant="primary" onClick={() => setShowAuthModal(true)}>
+              Sign In
+            </UiButton>
+          )}
         </div>
       </header>
 
@@ -937,8 +1042,7 @@ export default function TabEditorNew() {
           />
           {instrument === 'guitar' && strings === '6' && (
             <UiButton variant="secondary" onClick={() => setShowChordPicker(true)}>
-              <BookOpen size={16} />
-              Chords
+              Insert Chord
             </UiButton>
           )}
         </div>
@@ -1018,8 +1122,6 @@ export default function TabEditorNew() {
         currentProjectId={currentProjectId}
         onSelectProject={loadProject}
         onNewProject={resetToNew}
-        onSignIn={() => setShowAuthModal(true)}
-        auth={auth}
       />
 
       {/* Auth Modal */}
@@ -1028,6 +1130,30 @@ export default function TabEditorNew() {
         onClose={() => setShowAuthModal(false)}
         auth={auth}
       />
+
+      {/* Sign Out Confirmation Modal */}
+      {showSignOutConfirm && (
+        <div className={styles.modalOverlay} onClick={() => setShowSignOutConfirm(false)}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <h3>Are you sure you want to sign out?</h3>
+            <p>Changes are auto-saved after a few seconds. If you just made edits, wait a moment before signing out.</p>
+            <div className={styles.confirmActions}>
+              <UiButton variant="secondary" onClick={() => setShowSignOutConfirm(false)}>
+                Cancel
+              </UiButton>
+              <UiButton
+                variant="danger"
+                onClick={() => {
+                  setShowSignOutConfirm(false)
+                  auth.signOut()
+                }}
+              >
+                Sign Out
+              </UiButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chord Picker Modal */}
       {showChordPicker && (

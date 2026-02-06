@@ -61,21 +61,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $space-sm $space-md;
-  border-bottom: 1px solid $color-border;
+  gap: $space-md;
+  padding: $space-md;
 }
 
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  min-width: 0;
+.title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-bright;
+  margin: 0;
 }
 
-.headerRight {
+.authRow {
   display: flex;
   align-items: center;
-  gap: $space-sm;
+  gap: $space-md;
+  width: 100%;
 }
 
 .message {
@@ -121,7 +122,7 @@
 .projectList {
   flex: 1;
   overflow-y: auto;
-  padding: $space-md $space-lg;
+  padding: 0 $space-md $space-md;
 }
 
 .loading {
@@ -130,66 +131,6 @@
   justify-content: center;
   padding: $space-lg;
   color: $color-text-muted;
-}
-
-.projectCard {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  padding-right: $space-sm;
-  background-color: $color-bg;
-  border: 1px solid $color-border;
-  border-radius: $radius-md;
-  margin-bottom: $space-md;
-  transition: border-color $transition-fast;
-
-  &:hover {
-    border-color: $color-accent;
-  }
-
-  &.active {
-    border-color: $color-accent;
-    background-color: rgba($color-accent, 0.05);
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.projectInfo {
-  flex: 1;
-  padding: $space-md;
-  cursor: pointer;
-  min-width: 0;
-
-  h3 {
-    color: $color-text-bright;
-    font-size: $font-size-sm;
-    font-weight: 600;
-    margin-bottom: $space-xs;
-    @include truncate;
-  }
-}
-
-.projectMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-sm;
-  font-size: $font-size-xs;
-  color: $color-text-muted;
-
-  span {
-    &::after {
-      content: '•';
-      margin-left: $space-sm;
-      opacity: 0.5;
-    }
-
-    &:last-child::after {
-      display: none;
-    }
-  }
 }
 
 .confirmDelete {
@@ -211,18 +152,36 @@
   font-size: $font-size-xs;
   color: $color-text-muted;
   min-width: 0;
-
-  span {
-    @include truncate;
-  }
+  flex: 1;
 }
 
-.footer {
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.authInfo {
   display: flex;
-  align-items: center;
-  padding: $space-sm $space-md;
-  border-top: 1px solid $color-border;
+  flex-direction: column;
+  min-width: 0;
 }
+
+.authName {
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $color-text-bright;
+  @include truncate;
+}
+
+.authEmail {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  @include truncate;
+}
+
 
 // Selection toolbar
 .selectionToolbar {
@@ -286,14 +245,6 @@
   }
 }
 
-.projectCard.selected {
-  border-color: $color-accent;
-  background-color: rgba($color-accent, 0.08);
-
-  .checkbox {
-    color: $color-accent;
-  }
-}
 
 // Bulk delete modal
 .modalOverlay {

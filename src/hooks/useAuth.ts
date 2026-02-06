@@ -1,6 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
-import type { AuthState } from '@/types'
+import type { AuthState, User } from '@/types'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
+
+// Extract user data from Supabase user, including Google metadata
+function buildUser(supabaseUser: SupabaseUser): User {
+  const metadata = supabaseUser.user_metadata || {}
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    avatarUrl: metadata.avatar_url || metadata.picture,
+    displayName: metadata.full_name || metadata.name,
+  }
+}
 
 export function useAuth() {
   const [state, setState] = useState<AuthState>({
@@ -23,7 +35,7 @@ export function useAuth() {
         setState({ user: null, loading: false, error: error.message })
       } else if (session?.user) {
         setState({
-          user: { id: session.user.id, email: session.user.email || '' },
+          user: buildUser(session.user),
           loading: false,
           error: null,
         })
@@ -36,7 +48,7 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setState({
-          user: { id: session.user.id, email: session.user.email || '' },
+          user: buildUser(session.user),
           loading: false,
           error: null,
         })
@@ -97,6 +109,31 @@ export function useAuth() {
     }
   }, [])
 
+  // Sign in with Google OAuth
+  const signInWithGoogle = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured() || !supabase) {
+      return { success: false, error: 'Supabase not configured' }
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      return { success: false, error: message }
+    }
+  }, [])
+
   // Clear error
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }))
@@ -109,6 +146,7 @@ export function useAuth() {
     isAuthenticated: !!state.user,
     isSupabaseConfigured: isSupabaseConfigured(),
     signInWithMagicLink,
+    signInWithGoogle,
     signOut,
     clearError,
   }

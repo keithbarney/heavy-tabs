@@ -2,9 +2,7 @@
 @use '../styles/mixins' as *;
 
 .container {
-  position: fixed;
-  top: $space-sm;
-  right: $space-sm;
+  position: relative;
   z-index: $z-dropdown;
 }
 
@@ -13,6 +11,22 @@
   padding: $space-sm;
   min-width: 32px;
   height: 32px;
+  overflow: hidden;
+}
+
+.avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarLarge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .email {
@@ -45,14 +59,27 @@
 .menuHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: $space-sm;
   margin-bottom: $space-sm;
 }
 
-.menuEmail {
+.menuUserInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuName {
   font-size: $font-size-sm;
   color: $color-text-bright;
   font-weight: 500;
+  @include truncate;
+}
+
+.menuEmail {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
   @include truncate;
 }
 

@@ -38,6 +38,144 @@
   gap: $space-sm;
 }
 
+.userButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: $color-accent;
+  }
+}
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userAvatarPlaceholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: $color-accent;
+  color: white;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userMenuContainer {
+  position: relative;
+}
+
+.userMenu {
+  position: absolute;
+  top: calc(100% + $space-sm);
+  right: 0;
+  width: 280px;
+  background-color: $color-bg-alt;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $space-md;
+  box-shadow: $shadow-lg;
+  z-index: $z-dropdown;
+}
+
+.userMenuHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.userMenuAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.userMenuInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.userMenuName {
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $color-text-bright;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuEmail {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuDivider {
+  height: 1px;
+  background-color: $color-border;
+  margin: $space-md 0;
+}
+
+.userMenuItem {
+  @include button-base;
+  width: 100%;
+  justify-content: flex-start;
+  padding: $space-sm $space-md;
+  color: $color-text;
+
+  &:hover {
+    color: $color-red;
+  }
+}
+
+.confirmModal {
+  background-color: $color-bg-alt;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $space-xl;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+
+  h3 {
+    color: $color-text-bright;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    margin: 0 0 $space-md;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    line-height: 1.5;
+    margin: 0 0 $space-xl;
+  }
+}
+
+.confirmActions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: center;
+}
+
 .projectInput {
   width: 160px;
 }
