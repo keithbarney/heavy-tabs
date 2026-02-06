@@ -1,0 +1,58 @@
+@use '../styles/tokens' as *;
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  height: 100%;
+  background-color: $color-bg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-lg;
+  background-color: $color-bg-alt;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex: 1;
+  min-width: 0;
+
+  svg {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    color: $color-text;
+  }
+}
+
+.email {
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  line-height: normal;
+  color: $color-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-lg;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.songList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}

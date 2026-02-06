@@ -1,0 +1,90 @@
+@use '../styles/tokens' as *;
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  border-radius: $radius-sm;
+  background-color: transparent;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  &:active {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+}
+
+.selected {
+  background-color: rgba(255, 255, 255, 0.08);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .action button {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: $space-xs;
+  min-width: 0;
+}
+
+.songName {
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  line-height: normal;
+  color: $color-text-bright;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-text;
+}
+
+.updated {
+  min-width: 60px;
+}
+
+.action {
+  flex-shrink: 0;
+
+  // Style the button inside the action slot
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: $color-text-muted;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: $color-text;
+    }
+  }
+}

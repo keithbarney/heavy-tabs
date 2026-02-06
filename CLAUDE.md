@@ -27,17 +27,14 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 - ✅ Custom magic link email template (light theme)
 - ✅ Supabase sender: noreply@heavytabs.app
 - ✅ New UI component system (UiButton, UiInput, UiSelect, UiCheckbox)
-- ✅ TabEditorNew — redesigned editor at `/new` with full functionality
 - ✅ Reusable Part and BarGrid components
 - ✅ Style guide at `/styleguide`
 - ✅ Comprehensive TESTING.md (123 user stories)
-
-### In Progress
-- 🔄 TabEditorNew replacing TabEditor (preview at `/new`, production at `/`)
+- ✅ TabEditorNew promoted to main editor at `/`
+- ✅ Auth session persistence fix (waitForSession before render)
 
 ### Next Priorities
-1. Promote TabEditorNew to `/` route (replace old TabEditor)
-2. Landing page for conversions
+1. Landing page for conversions
 3. Payment integration (Lemon Squeezy or Stripe)
 4. PDF export
 5. Get feedback from initial users
@@ -65,8 +62,8 @@ heavy-tabs/
 ├── src/
 │   ├── App.tsx                        # Main app with routing
 │   ├── components/
-│   │   ├── TabEditor.tsx              # Original editor (production at /)
-│   │   ├── TabEditorNew.tsx           # Redesigned editor (preview at /new)
+│   │   ├── TabEditorNew.tsx           # Main editor (production at /)
+│   │   ├── TabEditor.tsx              # Legacy editor (unused)
 │   │   ├── BarGrid.tsx                # Grid cell/row/bar components
 │   │   ├── Part.tsx                   # Part container (title, bars, string labels)
 │   │   ├── PageAdvancedSettings.tsx   # Settings panel (instrument, tuning, key, time, grid)
@@ -165,6 +162,11 @@ Three tables with Row Level Security:
 - Failed cloud syncs go to pending queue
 - Queue processes when back online
 
+### Auth Session Initialization
+- `waitForSession()` in `supabase.ts` ensures session is loaded from localStorage before React renders
+- Prevents race condition where `getSession()` returns null on page load after auth
+- `main.tsx` calls `waitForSession().then(render)` to defer app mount
+
 ### UI Components (New System)
 Shared components in `src/components/Ui*.tsx`:
 - `UiButton` — variants: primary, secondary, action, danger; sizes: small, default
@@ -223,8 +225,7 @@ All three have generous free tiers - this project costs $0/month to run.
 
 | Path | Component | Description |
 |------|-----------|-------------|
-| `/` | MainView → TabEditor | Production editor |
-| `/new` | TabEditorNew | Redesigned editor (preview) |
+| `/` | TabEditorNew | Main editor |
 | `/styleguide` | StyleGuide | UI component showcase |
 | `/tab/:slug` | PublicViewer | Read-only shared tab |
 | `/auth/callback` | AuthCallback | Magic link redirect handler |
