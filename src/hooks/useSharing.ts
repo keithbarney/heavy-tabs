@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { trackEvent } from '@/lib/analytics'
 import { generateSlug } from '@/lib/storage'
 import type { ShareLink, User, Project } from '@/types'
 
@@ -56,6 +57,7 @@ export function useSharing({ user }: UseSharingOptions) {
         return null
       }
 
+      trackEvent('share_create', projectId)
       setLoading(false)
       return data as ShareLink
     } catch (err) {
@@ -112,6 +114,7 @@ export function useSharing({ user }: UseSharingOptions) {
         return false
       }
 
+      trackEvent('share_revoke')
       setLoading(false)
       return true
     } catch (err) {
@@ -166,6 +169,7 @@ export function useSharing({ user }: UseSharingOptions) {
         return null
       }
 
+      trackEvent('public_tab_view', { slug }, shareLink.project_id)
       setLoading(false)
       return { project: projectData as Project, shareLink }
     } catch (err) {
@@ -209,6 +213,7 @@ export function useSharing({ user }: UseSharingOptions) {
         return null
       }
 
+      trackEvent('share_copy_to_library', newProjectId)
       setLoading(false)
       return newProjectId
     } catch (err) {

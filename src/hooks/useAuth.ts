@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { trackEvent } from '@/lib/analytics'
 import type { AuthState, User } from '@/types'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -84,6 +85,7 @@ export function useAuth() {
       }
 
       setState(prev => ({ ...prev, loading: false }))
+      trackEvent('sign_in_magic_link')
       return { success: true }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
@@ -102,6 +104,7 @@ export function useAuth() {
 
     try {
       await supabase.auth.signOut()
+      trackEvent('sign_out')
       setState({ user: null, loading: false, error: null })
     } catch (err) {
       console.error('Sign out error:', err)
@@ -127,6 +130,7 @@ export function useAuth() {
         return { success: false, error: error.message }
       }
 
+      trackEvent('sign_in_google')
       return { success: true }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'

@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
 import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
 import { saveLocalProject, generateId } from '@/lib/storage'
+import { trackEvent } from '@/lib/analytics'
 import type { LocalProject } from '@/types'
 import styles from './TabEditorNew.module.scss'
 
@@ -266,7 +267,8 @@ export default function TabEditorNew() {
     if (!bar) return
     const values = bar.data[beat]?.map(rowData => rowData[cell] ?? '-') ?? []
     setClipboard(values)
-  }, [selectedCell, parts])
+    trackEvent('copy_selection', cloudId)
+  }, [selectedCell, parts, cloudId])
 
   // Paste clipboard values at the current selection position
   const pasteSelection = useCallback(() => {
@@ -276,7 +278,8 @@ export default function TabEditorNew() {
     clipboard.forEach((value, row) => {
       updateCell(partId, barIndex, beat, row, cell, value)
     })
-  }, [clipboard, selectedCell, updateCell, pushHistory])
+    trackEvent('paste_selection', cloudId)
+  }, [clipboard, selectedCell, updateCell, pushHistory, cloudId])
 
   // Navigate selection with arrow keys
   const navigateSelection = useCallback((direction: string) => {
@@ -541,13 +544,15 @@ export default function TabEditorNew() {
   const togglePlayback = useCallback(() => {
     if (playbackActiveRef.current) {
       // Pause: stop the loop but keep position
+      trackEvent('playback_stop', cloudId)
       playbackActiveRef.current = false
       setIsPlaying(false)
       if (playbackRef.current) { clearTimeout(playbackRef.current); playbackRef.current = null }
     } else {
+      trackEvent('playback_start', { bpm: parseInt(bpm) || 120 }, cloudId)
       startPlayback()
     }
-  }, [startPlayback])
+  }, [startPlayback, bpm, cloudId])
 
   // Build playingPosition prop for a specific bar
   const getPlayingPositionForBar = (partIndex: number, barIndex: number) => {
@@ -718,6 +723,9 @@ export default function TabEditorNew() {
     if (result?.project?.cloudId && !cloudId) {
       setCloudId(result.project.cloudId)
     }
+    if (result?.success) {
+      trackEvent('project_save', { instrument }, cloudId || result?.project?.cloudId)
+    }
   }, [projectId, cloudId, projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
 
   // Keep ref in sync for auto-save
@@ -725,6 +733,7 @@ export default function TabEditorNew() {
 
   // Load a project from the library into editor state
   const loadProject = useCallback((project: LocalProject) => {
+    trackEvent('project_load', project.cloudId)
     setProjectId(project.id)
     setCloudId(project.cloudId || null)
     setCurrentProjectId(project.id)
@@ -801,6 +810,7 @@ export default function TabEditorNew() {
 
   // Reset editor to a blank new project
   const resetToNew = useCallback(() => {
+    trackEvent('project_create')
     const newId = generateId()
     setProjectId(newId)
     setCloudId(null)
@@ -1030,6 +1040,7 @@ export default function TabEditorNew() {
         onKeyChange={setKeySignature}
         onTimeChange={setTime}
         onGridChange={setGrid}
+        projectId={cloudId}
       />}
 
       {/* Chord Toolbar */}

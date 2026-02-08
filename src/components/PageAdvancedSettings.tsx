@@ -1,4 +1,5 @@
 import UiSelect from './UiSelect'
+import { trackEvent } from '@/lib/analytics'
 import styles from './PageAdvancedSettings.module.scss'
 
 export interface SettingOption {
@@ -25,6 +26,7 @@ export interface PageAdvancedSettingsProps {
   onKeyChange?: (value: string) => void
   onTimeChange?: (value: string) => void
   onGridChange?: (value: string) => void
+  projectId?: string | null
   className?: string
 }
 
@@ -88,6 +90,7 @@ export default function PageAdvancedSettings({
   onKeyChange,
   onTimeChange,
   onGridChange,
+  projectId,
   className
 }: PageAdvancedSettingsProps) {
   return (
@@ -99,7 +102,7 @@ export default function PageAdvancedSettings({
           className={styles.select}
           value={instrument}
           hasValue={!!instrument}
-          onChange={(e) => onInstrumentChange?.(e.target.value)}
+          onChange={(e) => { trackEvent('instrument_change', { value: e.target.value }, projectId); onInstrumentChange?.(e.target.value) }}
         >
           {instrumentOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -112,7 +115,7 @@ export default function PageAdvancedSettings({
             className={styles.select}
             value={strings}
             hasValue={!!strings}
-            onChange={(e) => onStringsChange?.(e.target.value)}
+            onChange={(e) => { trackEvent('string_count_change', { value: e.target.value }, projectId); onStringsChange?.(e.target.value) }}
           >
             {stringsOptions
               .filter(opt => {
@@ -132,7 +135,7 @@ export default function PageAdvancedSettings({
           className={styles.select}
           value={tuning}
           hasValue={!!tuning}
-          onChange={(e) => onTuningChange?.(e.target.value)}
+          onChange={(e) => { trackEvent('tuning_change', { value: e.target.value }, projectId); onTuningChange?.(e.target.value) }}
         >
           {tuningOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -144,7 +147,7 @@ export default function PageAdvancedSettings({
           className={styles.select}
           value={keySignature}
           hasValue={!!keySignature}
-          onChange={(e) => onKeyChange?.(e.target.value)}
+          onChange={(e) => { trackEvent('key_change', { value: e.target.value }, projectId); onKeyChange?.(e.target.value) }}
         >
           {keyOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -156,7 +159,7 @@ export default function PageAdvancedSettings({
           className={styles.select}
           value={time}
           hasValue={!!time}
-          onChange={(e) => onTimeChange?.(e.target.value)}
+          onChange={(e) => { trackEvent('time_signature_change', { value: e.target.value }, projectId); onTimeChange?.(e.target.value) }}
         >
           {timeOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -168,7 +171,7 @@ export default function PageAdvancedSettings({
           className={styles.select}
           value={grid}
           hasValue={!!grid}
-          onChange={(e) => onGridChange?.(e.target.value)}
+          onChange={(e) => { trackEvent('grid_change', { value: e.target.value }, projectId); onGridChange?.(e.target.value) }}
         >
           {gridOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>

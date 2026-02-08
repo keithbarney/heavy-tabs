@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { trackEvent } from '@/lib/analytics'
 import {
   getLocalProjects,
   saveLocalProject,
@@ -124,6 +125,8 @@ export function useProjects({ user }: UseProjectsOptions) {
     const projectToDelete = projects.find(p => p.id === projectId)
     const cloudId = projectToDelete?.cloudId
 
+    trackEvent('project_delete', cloudId)
+
     // Remove from localStorage
     deleteLocalProject(projectId)
     setProjects(prev => prev.filter(p => p.id !== projectId))
@@ -194,6 +197,10 @@ export function useProjects({ user }: UseProjectsOptions) {
 
     // Reload projects from cloud
     await loadProjects()
+
+    if (migrated > 0) {
+      trackEvent('migration_complete', { migrated, failed })
+    }
 
     return { migrated, failed }
   }, [user, loadProjects])
