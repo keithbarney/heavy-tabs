@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 
 type AnalyticsEvents = {
+  page_view: { path: string; referrer: string; returning: boolean }
   sign_in_magic_link: undefined
   sign_in_google: undefined
   sign_out: undefined

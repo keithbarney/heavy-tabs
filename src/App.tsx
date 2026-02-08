@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useSharing } from '@/hooks/useSharing'
+import { trackEvent } from '@/lib/analytics'
 import TabEditorNew from '@/components/TabEditorNew'
 import StyleGuide from '@/components/StyleGuide'
 import AuthModal from '@/components/AuthModal'
@@ -11,6 +12,16 @@ function App() {
   const auth = useAuth()
   const sharing = useSharing({ user: auth.user })
   const [showAuthModal, setShowAuthModal] = useState(false)
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('heavy-tabs-visited')
+    trackEvent('page_view', {
+      path: window.location.pathname,
+      referrer: document.referrer,
+      returning: !!hasVisited,
+    })
+    if (!hasVisited) localStorage.setItem('heavy-tabs-visited', '1')
+  }, [])
 
   return (
     <>
