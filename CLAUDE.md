@@ -32,6 +32,7 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 - ✅ Comprehensive TESTING.md (123 user stories)
 - ✅ TabEditorNew promoted to main editor at `/`
 - ✅ Auth session persistence fix (waitForSession before render)
+- ✅ Active project persists across page refresh (localStorage)
 
 ### Next Priorities
 1. Landing page for conversions
