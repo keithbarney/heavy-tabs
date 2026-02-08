@@ -38,12 +38,12 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
   const properties = hasProps ? (args[1] as Record<string, unknown>) : null
   const projectId = hasProps ? (args[2] as string | null | undefined) : (args[1] as string | null | undefined)
 
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    void supabase!.from('analytics_events').insert({
-      event_name: event,
-      user_id: session?.user?.id ?? null,
-      project_id: projectId ?? null,
-      properties: properties ?? null,
-    })
-  }).catch(() => {})
+  supabase.from('analytics_events').insert({
+    event_name: event,
+    user_id: null,
+    project_id: projectId ?? null,
+    properties: properties ?? null,
+  }).then(({ error }) => {
+    if (error) console.warn('[analytics]', event, error.message)
+  })
 }
