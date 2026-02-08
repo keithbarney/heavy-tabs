@@ -20,6 +20,7 @@ export interface PartProps {
   onCellClick?: (barIndex: number, beat: number, row: number, cell: number) => void
   onCellMouseDown?: (barIndex: number, beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (barIndex: number, beat: number, row: number, cell: number) => void
+  onBarTitleClick?: (barIndex: number) => void
   children?: ReactNode
   className?: string
 }
@@ -41,6 +42,7 @@ export default function Part({
   onCellClick,
   onCellMouseDown,
   onCellMouseEnter,
+  onBarTitleClick,
   children,
   className
 }: PartProps) {
@@ -100,6 +102,7 @@ export default function Part({
                 onCellClick={(beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
                 onCellMouseDown={(beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
                 onCellMouseEnter={(beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
+                onBarTitleClick={() => onBarTitleClick?.(barIndex)}
               />
             ))}
           </div>

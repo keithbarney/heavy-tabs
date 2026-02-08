@@ -30,6 +30,7 @@ export default function TabEditorNew() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const [powerChordMode, setPowerChordMode] = useState(true)
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
@@ -990,12 +991,13 @@ export default function TabEditorNew() {
           {auth.isAuthenticated ? (
             <div className={styles.userMenuContainer} ref={userMenuRef}>
               <button className={styles.userButton} onClick={() => setShowUserMenu(!showUserMenu)}>
-                {auth.user?.avatarUrl ? (
+                {auth.user?.avatarUrl && !avatarError ? (
                   <img
                     src={auth.user.avatarUrl}
                     alt=""
                     className={styles.userAvatar}
                     referrerPolicy="no-referrer"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
                   <span className={styles.userAvatarPlaceholder}>
@@ -1006,12 +1008,13 @@ export default function TabEditorNew() {
               {showUserMenu && (
                 <div className={styles.userMenu}>
                   <div className={styles.userMenuHeader}>
-                    {auth.user?.avatarUrl && (
+                    {auth.user?.avatarUrl && !avatarError && (
                       <img
                         src={auth.user.avatarUrl}
                         alt=""
                         className={styles.userMenuAvatar}
                         referrerPolicy="no-referrer"
+                        onError={() => setAvatarError(true)}
                       />
                     )}
                     <div className={styles.userMenuInfo}>
@@ -1093,6 +1096,7 @@ export default function TabEditorNew() {
             onCellClick={(barIndex, beat, row, cell) => handleCellClick(part.id, barIndex, beat, row, cell)}
             onCellMouseDown={(barIndex, beat, row, cell, e) => handleCellMouseDown(part.id, barIndex, beat, row, cell, e)}
             onCellMouseEnter={(barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
+            onBarTitleClick={(barIndex) => setPlaybackPosition({ partIndex, barIndex, beat: 0, cell: 0 })}
             onTitleChange={(value) => {
               setParts(parts.map(p => p.id === part.id ? { ...p, title: value } : p))
             }}
@@ -1101,7 +1105,11 @@ export default function TabEditorNew() {
             }}
             onAddBar={() => {
               pushHistory()
-              setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, { ...createEmptyBar(), title: `BAR ${p.bars.length + 1}` }] } : p))
+              const refBar = part.bars[0]
+              const newBar = refBar
+                ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: `BAR ${part.bars.length + 1}` }
+                : { ...createEmptyBar(), title: `BAR ${part.bars.length + 1}` }
+              setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, newBar] } : p))
             }}
             onRemoveBar={() => {
               if (part.bars.length > 1) {
@@ -1136,7 +1144,12 @@ export default function TabEditorNew() {
         <UiButton variant="action" className={styles.addPartButton} onClick={() => {
           pushHistory()
           const newId = String(Date.now())
-          setParts([...parts, { id: newId, title: '', notes: '', bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }])
+          // Clone cell structure from existing bars so new parts match
+          const refBar = parts[0]?.bars[0]
+          const newBar = refBar
+            ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: 'BAR 1' }
+            : { ...createEmptyBar(), title: 'BAR 1' }
+          setParts([...parts, { id: newId, title: '', notes: '', bars: [newBar] }])
         }}>
           <Plus size={16} />
           Add part

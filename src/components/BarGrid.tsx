@@ -115,6 +115,7 @@ export interface BarGridProps {
   onCellClick?: (beat: number, row: number, cell: number) => void
   onCellMouseDown?: (beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (beat: number, row: number, cell: number) => void
+  onBarTitleClick?: () => void
   className?: string
 }
 
@@ -127,11 +128,12 @@ export default function BarGrid({
   onCellClick,
   onCellMouseDown,
   onCellMouseEnter,
+  onBarTitleClick,
   className
 }: BarGridProps) {
   return (
     <div className={`${styles.barGrid} ${className || ''}`}>
-      {title && <span className={styles.barTitle}>{title}</span>}
+      {title && <span className={styles.barTitle} onClick={onBarTitleClick}>{title}</span>}
       <div className={styles.bars}>
         <div className={`${styles.dividerVertical} ${styles.barBoundary}`} />
         {data.map((beatData, beatIndex) => (
