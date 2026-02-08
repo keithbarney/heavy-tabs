@@ -1,6 +1,7 @@
 import type { LocalProject, Project } from '@/types'
 
 const PROJECTS_KEY = 'tabEditorProjects'
+const ACTIVE_PROJECT_KEY = 'activeProjectId'
 
 // Get all local projects
 export function getLocalProjects(): LocalProject[] {
@@ -67,6 +68,21 @@ export function supabaseToLocal(project: Project): LocalProject {
     tabData: project.tab_data,
     updatedAt: project.updated_at,
   }
+}
+
+// Save the active project ID to localStorage
+export function saveActiveProjectId(id: string): void {
+  localStorage.setItem(ACTIVE_PROJECT_KEY, id)
+}
+
+// Get the active project ID from localStorage
+export function getActiveProjectId(): string | null {
+  return localStorage.getItem(ACTIVE_PROJECT_KEY)
+}
+
+// Clear the active project ID from localStorage
+export function clearActiveProjectId(): void {
+  localStorage.removeItem(ACTIVE_PROJECT_KEY)
 }
 
 // Generate unique ID

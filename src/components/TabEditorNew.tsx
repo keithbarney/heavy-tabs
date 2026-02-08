@@ -12,7 +12,7 @@ import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
 import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
-import { saveLocalProject, generateId } from '@/lib/storage'
+import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId } from '@/lib/storage'
 import { trackEvent } from '@/lib/analytics'
 import type { LocalProject } from '@/types'
 import styles from './TabEditorNew.module.scss'
@@ -806,6 +806,9 @@ export default function TabEditorNew() {
 
     // Mark as loaded to enable auto-save
     hasLoadedRef.current = true
+
+    // Persist active project so it survives page refresh
+    saveActiveProjectId(project.id)
   }, [createEmptyBar])
 
   // Reset editor to a blank new project
@@ -834,6 +837,9 @@ export default function TabEditorNew() {
 
     // Mark as loaded to enable auto-save
     hasLoadedRef.current = true
+
+    // Clear persisted active project since this is a fresh blank editor
+    clearActiveProjectId()
   }, [createEmptyBar])
 
   // Auto-save with 5 second debounce after changes
@@ -860,6 +866,17 @@ export default function TabEditorNew() {
       }
     }
   }, [projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
+
+  // Restore active project on mount (after projects finish loading)
+  useEffect(() => {
+    if (projectsHook.loading || hasLoadedRef.current) return
+    const activeId = getActiveProjectId()
+    if (!activeId) return
+    const match = projectsHook.projects.find(p => p.id === activeId)
+    if (match) {
+      loadProject(match)
+    }
+  }, [projectsHook.loading, projectsHook.projects, loadProject])
 
   // Close user menu on outside click
   useEffect(() => {
