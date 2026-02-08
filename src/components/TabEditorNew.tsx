@@ -1067,6 +1067,7 @@ export default function TabEditorNew() {
             checked={powerChordMode}
             onChange={setPowerChordMode}
             label="Power Chord"
+            hideIcon
           />
           {instrument === 'guitar' && strings === '6' && (
             <UiButton variant="secondary" onClick={() => setShowChordPicker(true)}>

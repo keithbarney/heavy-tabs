@@ -5,12 +5,14 @@ import styles from './UiCheckbox.module.scss'
 export interface UiCheckboxProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
   checked?: boolean
   label?: string
+  hideIcon?: boolean
   onChange?: (checked: boolean) => void
 }
 
 const UiCheckbox = forwardRef<HTMLButtonElement, UiCheckboxProps>(({
   checked = false,
   label,
+  hideIcon,
   onChange,
   disabled,
   className,
@@ -34,9 +36,9 @@ const UiCheckbox = forwardRef<HTMLButtonElement, UiCheckboxProps>(({
       onClick={() => onChange?.(!checked)}
       {...props}
     >
-      <span className={styles.icon}>
+      {!hideIcon && <span className={styles.icon}>
         {checked ? <CheckSquare size={16} /> : <Square size={16} />}
-      </span>
+      </span>}
       {label && <span className={styles.label}>{label}</span>}
     </button>
   )
