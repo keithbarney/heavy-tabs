@@ -31,6 +31,84 @@
   min-width: 32px;
 }
 
+// Per-part settings (BPM, time, grid)
+// Shared base for inline controls — matches button-base tokens
+$_control-height: 32px;
+$_control-height-small: 28px;
+
+.partSettings {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  flex-shrink: 0;
+
+  &.small {
+    .partBpm {
+      height: $_control-height-small;
+      padding: $space-xs $space-sm;
+    }
+
+    .partSelect {
+      height: $_control-height-small;
+      padding: $space-xs $space-sm;
+      padding-right: 20px;
+    }
+  }
+}
+
+.partBpm {
+  height: $_control-height;
+  padding: $space-sm $space-md;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: $color-text;
+  background-color: $color-bg;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  outline: none;
+  text-align: center;
+  transition: border-color $transition-fast;
+
+  &::placeholder {
+    color: $color-placeholder;
+  }
+
+  &:focus {
+    border-color: $color-accent;
+  }
+}
+
+.partSelect {
+  height: $_control-height;
+  padding: $space-sm $space-md;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: $color-text;
+  background-color: $color-bg;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  outline: none;
+  cursor: pointer;
+  transition: border-color $transition-fast;
+  appearance: none;
+  -webkit-appearance: none;
+
+  // Chevron via background image
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M1 2.5L4 5.5L7 2.5' stroke='%23a7adba' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 16px;
+
+  &:focus {
+    border-color: $color-accent;
+  }
+
+  option {
+    background: $color-bg;
+    color: $color-text;
+  }
+}
+
 // Delete confirmation
 .confirmDelete {
   display: flex;
@@ -135,6 +213,10 @@
   }
 
   .barButtons {
+    display: none !important;
+  }
+
+  .partSettings {
     display: none !important;
   }
 

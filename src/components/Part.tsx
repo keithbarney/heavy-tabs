@@ -10,8 +10,19 @@ export interface PartProps {
   notes?: string
   stringLabels?: string[]
   bars?: BarGridProps[]
+  bpm?: string
+  time?: string
+  grid?: string
+  globalBpm?: string
+  globalTime?: string
+  globalGrid?: string
+  timeOptions?: { label: string }[]
+  gridOptions?: { label: string }[]
   onTitleChange?: (value: string) => void
   onNotesChange?: (value: string) => void
+  onBpmChange?: (value: string) => void
+  onTimeChange?: (value: string) => void
+  onGridChange?: (value: string) => void
   onDuplicate?: () => void
   onDelete?: () => void
   onAddBar?: () => void
@@ -21,6 +32,7 @@ export interface PartProps {
   onCellMouseDown?: (barIndex: number, beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (barIndex: number, beat: number, row: number, cell: number) => void
   onBarTitleClick?: (barIndex: number) => void
+  settingsSize?: 'default' | 'small'
   children?: ReactNode
   className?: string
 }
@@ -32,8 +44,19 @@ export default function Part({
   notes = '',
   stringLabels = DEFAULT_STRING_LABELS,
   bars = [],
+  bpm,
+  time,
+  grid,
+  globalBpm = '120',
+  globalTime = '4/4',
+  globalGrid = '1/16',
+  timeOptions = [],
+  gridOptions = [],
   onTitleChange,
   onNotesChange,
+  onBpmChange,
+  onTimeChange,
+  onGridChange,
   onDuplicate,
   onDelete,
   onAddBar,
@@ -43,6 +66,7 @@ export default function Part({
   onCellMouseDown,
   onCellMouseEnter,
   onBarTitleClick,
+  settingsSize = 'default',
   children,
   className
 }: PartProps) {
@@ -64,6 +88,36 @@ export default function Part({
           value={notes}
           onChange={(e) => onNotesChange?.(e.target.value)}
         />
+        <div className={`${styles.partSettings} ${settingsSize === 'small' ? styles.small : ''}`}>
+          <input
+            className={styles.partBpm}
+            type="text"
+            inputMode="numeric"
+            placeholder={globalBpm}
+            value={bpm || ''}
+            onChange={(e) => onBpmChange?.(e.target.value)}
+          />
+          <select
+            className={styles.partSelect}
+            value={time || ''}
+            onChange={(e) => onTimeChange?.(e.target.value)}
+          >
+            <option value="">{globalTime}</option>
+            {timeOptions.map(t => (
+              <option key={t.label} value={t.label}>{t.label}</option>
+            ))}
+          </select>
+          <select
+            className={styles.partSelect}
+            value={grid || ''}
+            onChange={(e) => onGridChange?.(e.target.value)}
+          >
+            <option value="">{globalGrid}</option>
+            {gridOptions.map(g => (
+              <option key={g.label} value={g.label}>{g.label}</option>
+            ))}
+          </select>
+        </div>
         <UiButton variant="secondary" onClick={onDuplicate}>
           <CopyPlus size={16} />
         </UiButton>

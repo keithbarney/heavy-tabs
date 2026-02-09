@@ -69,11 +69,14 @@ export default function TabEditorNew() {
   const [time, setTime] = useState('4/4')
   const [grid, setGrid] = useState('1/16')
 
-  // Create an empty bar using current time signature, grid resolution, and string count
-  const createEmptyBar = useCallback((): BarGridProps => {
+  // Create an empty bar using time signature, grid resolution, and string count
+  // Accepts optional overrides for per-part settings
+  const createEmptyBar = useCallback((overrides?: { time?: string; grid?: string }): BarGridProps => {
     const numStrings = instrument === 'drums' ? drumLines.length : (parseInt(strings) || 6)
-    const timeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
-    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
+    const effectiveTime = overrides?.time || time
+    const effectiveGrid = overrides?.grid || grid
+    const timeSig = TIME_SIGNATURES.find(t => t.label === effectiveTime) || TIME_SIGNATURES[0]
+    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === effectiveGrid) || NOTE_RESOLUTIONS[1]
     const numBeats = timeSig.beats
     const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
     const data = Array.from({ length: numBeats }, () =>
@@ -84,9 +87,9 @@ export default function TabEditorNew() {
     return { data, title: '' }
   }, [strings, instrument, time, grid])
 
-  // Parts state
+  // Parts state (bpm/time/grid are optional per-part overrides)
   const [parts, setParts] = useState([
-    { id: '1', title: 'Intro', notes: '', bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }
+    { id: '1', title: 'Intro', notes: '', bpm: undefined as string | undefined, time: undefined as string | undefined, grid: undefined as string | undefined, bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }
   ])
 
   // Keep refs in sync with state for use inside playback closures
@@ -452,12 +455,20 @@ export default function TabEditorNew() {
     playbackActiveRef.current = true
     loopingRef.current = isLooping
 
-    const currentBpm = parseInt(bpm) || 120
-    const timeSignature = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
-    const noteResolution = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
-    const msPerBeat = 60000 / currentBpm
-    const cellsPerBeatCount = noteResolution.perQuarter * (timeSignature.noteValue === 4 ? 1 : 0.5)
-    const msPerCell = msPerBeat / cellsPerBeatCount
+    // Global defaults (used when part has no override)
+    const globalBpm = parseInt(bpm) || 120
+    const globalTimeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
+    const globalNoteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
+
+    // Compute msPerCell for a given part (uses per-part overrides with global fallback)
+    const getMsPerCell = (part: { bpm?: string; time?: string; grid?: string }) => {
+      const partBpm = (part.bpm ? parseInt(part.bpm) : 0) || globalBpm
+      const partTimeSig = (part.time ? TIME_SIGNATURES.find(t => t.label === part.time) : null) || globalTimeSig
+      const partNoteRes = (part.grid ? NOTE_RESOLUTIONS.find(r => r.label === part.grid) : null) || globalNoteRes
+      const msPerBeat = 60000 / partBpm
+      const cellsPerBeatCount = partNoteRes.perQuarter * (partTimeSig.noteValue === 4 ? 1 : 0.5)
+      return msPerBeat / cellsPerBeatCount
+    }
 
     // Resume from current position or start from beginning
     let curPart = 0, curBar = 0, curBeat = 0, curCell = 0
@@ -498,6 +509,9 @@ export default function TabEditorNew() {
         curBeat++
         playbackRef.current = setTimeout(playStep, 0); return
       }
+
+      // Per-part timing
+      const msPerCell = getMsPerCell(part)
 
       setPlaybackPosition({ partIndex: curPart, barIndex: curBar, beat: curBeat, cell: curCell })
 
@@ -686,6 +700,9 @@ export default function TabEditorNew() {
       measures: part.bars.length,
       repeat: 1,
       color: null,
+      ...(part.bpm ? { bpm: parseInt(part.bpm) } : {}),
+      ...(part.time ? { time: part.time } : {}),
+      ...(part.grid ? { grid: part.grid } : {}),
     }))
 
     const tabData: Record<string, string[][][]> = {}
@@ -792,6 +809,9 @@ export default function TabEditorNew() {
           id: section.id,
           title: section.name,
           notes: section.notes || '',
+          bpm: section.bpm ? String(section.bpm) : undefined,
+          time: section.time || undefined,
+          grid: section.grid || undefined,
           bars,
         }
       })
@@ -827,7 +847,7 @@ export default function TabEditorNew() {
     setKeySignature('e')
     setTime('4/4')
     setGrid('1/16')
-    setParts([{ id: '1', title: 'Intro', notes: '', bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }])
+    setParts([{ id: '1', title: 'Intro', notes: '', bpm: undefined, time: undefined, grid: undefined, bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }])
 
     // Reset history when creating a new project
     historyRef.current = []
@@ -1088,6 +1108,14 @@ export default function TabEditorNew() {
             title={part.title}
             notes={part.notes}
             stringLabels={stringLabels}
+            bpm={part.bpm}
+            time={part.time}
+            grid={part.grid}
+            globalBpm={bpm}
+            globalTime={time}
+            globalGrid={grid}
+            timeOptions={TIME_SIGNATURES}
+            gridOptions={NOTE_RESOLUTIONS}
             bars={part.bars.map((bar, bi) => ({
               ...bar,
               selectedCells: getSelectedCellsForBar(part.id, bi),
@@ -1103,12 +1131,21 @@ export default function TabEditorNew() {
             onNotesChange={(value) => {
               setParts(parts.map(p => p.id === part.id ? { ...p, notes: value } : p))
             }}
+            onBpmChange={(value) => {
+              setParts(parts.map(p => p.id === part.id ? { ...p, bpm: value || undefined } : p))
+            }}
+            onTimeChange={(value) => {
+              setParts(parts.map(p => p.id === part.id ? { ...p, time: value || undefined } : p))
+            }}
+            onGridChange={(value) => {
+              setParts(parts.map(p => p.id === part.id ? { ...p, grid: value || undefined } : p))
+            }}
             onAddBar={() => {
               pushHistory()
               const refBar = part.bars[0]
               const newBar = refBar
                 ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: `BAR ${part.bars.length + 1}` }
-                : { ...createEmptyBar(), title: `BAR ${part.bars.length + 1}` }
+                : { ...createEmptyBar({ time: part.time, grid: part.grid }), title: `BAR ${part.bars.length + 1}` }
               setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, newBar] } : p))
             }}
             onRemoveBar={() => {
@@ -1132,7 +1169,7 @@ export default function TabEditorNew() {
             }}
             onDuplicate={() => {
               pushHistory()
-              const newPart = { ...part, id: String(Date.now()), title: `${part.title} (copy)`, bars: part.bars.map(b => ({ ...b, data: b.data.map(beat => beat.map(row => [...row])) })) }
+              const newPart = { ...part, id: String(Date.now()), title: `${part.title} (copy)`, bpm: part.bpm, time: part.time, grid: part.grid, bars: part.bars.map(b => ({ ...b, data: b.data.map(beat => beat.map(row => [...row])) })) }
               const idx = parts.findIndex(p => p.id === part.id)
               const newParts = [...parts]
               newParts.splice(idx + 1, 0, newPart)
@@ -1144,12 +1181,16 @@ export default function TabEditorNew() {
         <UiButton variant="action" className={styles.addPartButton} onClick={() => {
           pushHistory()
           const newId = String(Date.now())
-          // Clone cell structure from existing bars so new parts match
-          const refBar = parts[0]?.bars[0]
+          // Clone settings from the last part
+          const lastPart = parts[parts.length - 1]
+          const partTime = lastPart?.time
+          const partGrid = lastPart?.grid
+          // Clone cell structure from the last part's bars so new parts match
+          const refBar = lastPart?.bars[0]
           const newBar = refBar
             ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: 'BAR 1' }
-            : { ...createEmptyBar(), title: 'BAR 1' }
-          setParts([...parts, { id: newId, title: '', notes: '', bars: [newBar] }])
+            : { ...createEmptyBar({ time: partTime, grid: partGrid }), title: 'BAR 1' }
+          setParts([...parts, { id: newId, title: '', notes: '', bpm: lastPart?.bpm, time: partTime, grid: partGrid, bars: [newBar] }])
         }}>
           <Plus size={16} />
           Add part

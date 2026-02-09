@@ -19,6 +19,9 @@ export interface Section {
   measures: number
   repeat: number
   color: string | null
+  bpm?: number
+  time?: string
+  grid?: string
 }
 
 // Tab data is keyed by `${sectionId}-${instrument}`
