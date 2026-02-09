@@ -7,6 +7,7 @@ import UiInput from './UiInput'
 import PageAdvancedSettings from './PageAdvancedSettings'
 import Part from './Part'
 import PageFooter, { LegendColumn, LegendItem } from './PageFooter'
+import footerStyles from './PageFooter.module.scss'
 import Library from './Library'
 import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
@@ -1284,6 +1285,11 @@ export default function TabEditorNew() {
             {showLegend ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
             Legend
           </UiButton>
+        }
+        right={
+          <a href="https://heavy.lemonsqueezy.com" target="_blank" rel="noopener noreferrer" className={footerStyles.supportLink}>
+            Support Heavy Tabs ♥
+          </a>
         }
         legendPanel={
           <>

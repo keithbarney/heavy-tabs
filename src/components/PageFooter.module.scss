@@ -3,13 +3,10 @@
 .footer {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   position: relative;
   padding: $space-sm $space-lg;
   background-color: $color-bg-alt;
-
-  &.expanded {
-    justify-content: space-between;
-  }
 }
 
 .left,
@@ -99,6 +96,19 @@
   font-weight: 400;
   line-height: 10px;
   color: $color-text;
+}
+
+// Support link
+.supportLink {
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-text;
+  }
 }
 
 // Print styles

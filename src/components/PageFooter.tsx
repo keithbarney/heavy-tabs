@@ -45,11 +45,11 @@ export default function PageFooter({
   className
 }: PageFooterProps) {
   return (
-    <footer className={`${styles.footer} ${expanded ? styles.expanded : ''} ${className || ''}`}>
+    <footer className={`${styles.footer} ${className || ''}`}>
       <div className={styles.left}>
         {left}
       </div>
-      {expanded && right && (
+      {right && (
         <div className={styles.right}>
           {right}
         </div>
