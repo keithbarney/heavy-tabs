@@ -28,3 +28,4 @@ npm-debug.log*
 
 # Vite temp files
 vite.config.ts.timestamp-*
+.vercel
