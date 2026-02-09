@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { inject } from '@vercel/analytics'
 import { useAuth } from '@/hooks/useAuth'
 import { useSharing } from '@/hooks/useSharing'
 import { trackEvent } from '@/lib/analytics'
+
+inject()
 import TabEditorNew from '@/components/TabEditorNew'
 import StyleGuide from '@/components/StyleGuide'
 import AuthModal from '@/components/AuthModal'
