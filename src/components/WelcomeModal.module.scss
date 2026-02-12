@@ -1,0 +1,70 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.overlay {
+  @include modal-overlay;
+}
+
+.modal {
+  @include modal-content;
+  max-width: 400px;
+  padding: $space-2xl;
+  text-align: center;
+}
+
+.iconCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: rgba($color-accent, 0.15);
+  color: $color-accent;
+  margin-bottom: $space-lg;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: 600;
+  color: $color-text-bright;
+  margin: 0 0 $space-sm;
+}
+
+.description {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  line-height: 1.6;
+  margin: 0 0 $space-2xl;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: $space-sm;
+  margin-bottom: $space-2xl;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(79, 91, 102, 0.5);
+  transition: background-color $transition-fast;
+}
+
+.dotActive {
+  background-color: $color-accent;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media print {
+  .overlay {
+    display: none !important;
+  }
+}

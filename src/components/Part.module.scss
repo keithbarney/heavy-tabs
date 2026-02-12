@@ -220,6 +220,10 @@ $_control-height-small: 28px;
     display: none !important;
   }
 
+  .barsContainer {
+    flex-wrap: wrap;
+  }
+
   .stringLabels,
   .stringLabel {
     color: #000;

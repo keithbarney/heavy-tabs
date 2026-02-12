@@ -90,7 +90,8 @@ pre,
 // Print styles
 @media print {
   @page {
-    margin: 0.75in;
+    margin: 0.5in;
+    size: letter portrait;
   }
 
   body {

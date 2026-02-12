@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, RefreshCw } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, Music } from 'lucide-react'
 import UiButton from './UiButton'
 import DrawerSongListItem from './DrawerSongListItem'
 import type { LocalProject } from '@/types'
@@ -101,6 +101,16 @@ export default function Library({
           {projects.loading ? (
             <div className={styles.loading}>
               <RefreshCw size={16} className="spinner" />
+            </div>
+          ) : projects.projects.length === 0 ? (
+            <div className={styles.emptyState}>
+              <Music size={40} />
+              <h3>No tabs yet</h3>
+              <p>Create your first tab to start writing music.</p>
+              <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
+                <Plus size={16} />
+                Create your first tab
+              </UiButton>
             </div>
           ) : (
             projects.projects.map(project => (

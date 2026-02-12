@@ -9,12 +9,14 @@ inject()
 import TabEditorNew from '@/components/TabEditorNew'
 import StyleGuide from '@/components/StyleGuide'
 import AuthModal from '@/components/AuthModal'
+import WelcomeModal from '@/components/WelcomeModal'
 import PublicViewer from '@/components/PublicViewer'
 
 function App() {
   const auth = useAuth()
   const sharing = useSharing({ user: auth.user })
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
 
   useEffect(() => {
     const hasVisited = localStorage.getItem('heavy-tabs-visited')
@@ -23,6 +25,9 @@ function App() {
       referrer: document.referrer,
       returning: !!hasVisited,
     })
+    if (!hasVisited && window.location.pathname === '/') {
+      setShowWelcome(true)
+    }
     if (!hasVisited) localStorage.setItem('heavy-tabs-visited', '1')
   }, [])
 
@@ -53,6 +58,12 @@ function App() {
           element={<TabEditorNew />}
         />
       </Routes>
+
+      {/* Welcome walkthrough for first-time visitors */}
+      <WelcomeModal
+        isOpen={showWelcome}
+        onClose={() => setShowWelcome(false)}
+      />
 
       {/* Auth modal for public viewer */}
       <AuthModal

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Play, Pause, Square, Repeat, Volume2, Settings, Printer, X, ChevronUp, ChevronDown, LogOut } from 'lucide-react'
+import { Menu, Plus, Play, Pause, Square, Repeat, Volume2, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
@@ -43,6 +43,8 @@ export default function TabEditorNew() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLooping, setIsLooping] = useState(false)
   const [clickTrack, setClickTrack] = useState(true)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0)
+  const [countIn, setCountIn] = useState(false)
   const [playbackPosition, setPlaybackPosition] = useState<{
     partIndex: number; barIndex: number; beat: number; cell: number
   } | null>(null)
@@ -52,6 +54,8 @@ export default function TabEditorNew() {
   const playbackActiveRef = useRef(false)
   const loopingRef = useRef(false)
   const clickTrackRef = useRef(clickTrack)
+  const playbackSpeedRef = useRef(1.0)
+  const countInRef = useRef(false)
   const audioContextRef = useRef<AudioContext | null>(null)
 
   // Auto-save refs
@@ -96,6 +100,8 @@ export default function TabEditorNew() {
   // Keep refs in sync with state for use inside playback closures
   useEffect(() => { partsRef.current = parts }, [parts])
   useEffect(() => { clickTrackRef.current = clickTrack }, [clickTrack])
+  useEffect(() => { playbackSpeedRef.current = playbackSpeed }, [playbackSpeed])
+  useEffect(() => { countInRef.current = countIn }, [countIn])
 
   // Compute string labels based on current instrument/tuning/key
   const stringLabels = useMemo(() => {
@@ -468,7 +474,7 @@ export default function TabEditorNew() {
       const partNoteRes = (part.grid ? NOTE_RESOLUTIONS.find(r => r.label === part.grid) : null) || globalNoteRes
       const msPerBeat = 60000 / partBpm
       const cellsPerBeatCount = partNoteRes.perQuarter * (partTimeSig.noteValue === 4 ? 1 : 0.5)
-      return msPerBeat / cellsPerBeatCount
+      return (msPerBeat / cellsPerBeatCount) / playbackSpeedRef.current
     }
 
     // Resume from current position or start from beginning
@@ -553,7 +559,29 @@ export default function TabEditorNew() {
       }
       playbackRef.current = setTimeout(playStep, msPerCell)
     }
-    playStep()
+
+    // Count-in: play metronome clicks before starting, only from position 0
+    const isFromStart = curPart === 0 && curBar === 0 && curBeat === 0 && curCell === 0
+    if (countInRef.current && isFromStart) {
+      const firstPart = partsRef.current[0]
+      const partTimeSig = (firstPart?.time ? TIME_SIGNATURES.find(t => t.label === firstPart.time) : null) || globalTimeSig
+      const beatsInBar = partTimeSig.beats
+      const msPerBeat = (60000 / ((firstPart?.bpm ? parseInt(firstPart.bpm) : 0) || globalBpm)) / playbackSpeedRef.current
+      let clickCount = 0
+      const countInStep = () => {
+        if (!playbackActiveRef.current) return
+        playClick(clickCount === 0)
+        clickCount++
+        if (clickCount < beatsInBar) {
+          playbackRef.current = setTimeout(countInStep, msPerBeat)
+        } else {
+          playbackRef.current = setTimeout(playStep, msPerBeat)
+        }
+      }
+      countInStep()
+    } else {
+      playStep()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLooping, bpm, time, grid, instrument, strings, playbackPosition, stopPlayback])
 
@@ -995,18 +1023,33 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" selected={clickTrack} onClick={() => setClickTrack(!clickTrack)} title="Click track">
             <Volume2 size={16} />
           </UiButton>
+          <UiButton variant="secondary" selected={countIn} onClick={() => setCountIn(!countIn)} title="Count-in">
+            <Timer size={16} />
+          </UiButton>
           <UiInput
             value={bpm}
             onChange={(e) => setBpm(e.target.value)}
             className={styles.bpmInput}
           />
+          <div className={styles.speedControl}>
+            {[0.25, 0.5, 0.75, 1].map(speed => (
+              <button
+                key={speed}
+                className={`${styles.speedButton} ${playbackSpeed === speed ? styles.speedActive : ''}`}
+                onClick={() => setPlaybackSpeed(speed)}
+                title={`${speed * 100}% speed`}
+              >
+                {speed === 1 ? '1×' : `${speed * 100}%`}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className={styles.headerRight}>
           <UiButton variant="secondary" onClick={() => setShowSettings(!showSettings)}>
             <Settings size={16} />
           </UiButton>
-          <UiButton variant="secondary" onClick={() => window.print()}>
+          <UiButton variant="secondary" onClick={() => window.print()} title="Print / Save as PDF">
             <Printer size={16} />
           </UiButton>
           {auth.isAuthenticated ? (
