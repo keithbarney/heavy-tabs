@@ -63,8 +63,7 @@ export default function TabEditorNew() {
   const hasLoadedRef = useRef(false)
   const handleSaveRef = useRef<() => Promise<void>>(async () => {})
   const userMenuRef = useRef<HTMLDivElement>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const partsRef = useRef<any[]>([])
+  const partsRef = useRef<typeof parts>([])
 
   // Settings state
   const [instrument, setInstrument] = useState('guitar')
