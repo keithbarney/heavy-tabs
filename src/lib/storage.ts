@@ -1,4 +1,4 @@
-import type { LocalProject, Project } from '@/types'
+import type { LocalProject, Project, BarAnnotation } from '@/types'
 import { TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines } from './constants'
 import { MOCK_PROJECTS } from './mockData'
 
@@ -10,7 +10,7 @@ export interface PartData {
   bpm: string | undefined
   time: string | undefined
   grid: string | undefined
-  bars: { data: string[][][]; title: string }[]
+  bars: { data: string[][][]; title: string; annotations?: BarAnnotation[] }[]
 }
 
 // Convert a LocalProject's sections + tabData into the Part[] format
@@ -40,6 +40,7 @@ export function projectToParts(project: LocalProject): PartData[] {
   return sections.map(section => {
     const instKey = tabKeys.find(k => k.startsWith(`${section.id}-`)) || `${section.id}-guitar`
     const measureData = project.tabData?.[instKey] || []
+    const annotationsData = (project.tabData as Record<string, unknown>)?.[`${instKey}-annotations`] as BarAnnotation[][] | undefined
 
     const bars = measureData.length > 0
       ? measureData.map((measure: string[][], i: number) => {
@@ -50,7 +51,8 @@ export function projectToParts(project: LocalProject): PartData[] {
               stringCells.slice(beatIdx * actualCellsPerBeat, (beatIdx + 1) * actualCellsPerBeat)
             )
           )
-          return { data, title: `BAR ${i + 1}` }
+          const annotations = annotationsData?.[i]
+          return { data, title: `BAR ${i + 1}`, ...(annotations?.length ? { annotations } : {}) }
         })
       : [{
           data: Array.from({ length: projectNumBeats }, () =>

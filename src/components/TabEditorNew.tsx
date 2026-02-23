@@ -17,7 +17,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
 import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId } from '@/lib/storage'
 import { trackEvent } from '@/lib/analytics'
-import type { LocalProject } from '@/types'
+import type { LocalProject, BarAnnotation } from '@/types'
 import styles from './TabEditorNew.module.scss'
 
 export default function TabEditorNew() {
@@ -214,6 +214,9 @@ export default function TabEditorNew() {
     if (!selectedCell) return
     const { partId, barIndex, beat, row, cell } = parseCell(selectedCell)
     const numStrings = parseInt(strings) || 6
+    // Don't input values on the PM annotation row
+    const effectiveStrings = instrument === 'drums' ? drumLines.length : numStrings
+    if (row >= effectiveStrings) return
     const fret = parseInt(value)
     const isPowerChord = powerChordMode && !isNaN(fret) && instrument !== 'drums'
     const isDropTuning = instrument !== 'drums' && tuning === 'drop'
@@ -314,6 +317,64 @@ export default function TabEditorNew() {
     })
     trackEvent('paste_selection', cloudId)
   }, [clipboard, selectedCell, updateCell, pushHistory, cloudId])
+
+  // Toggle palm mute annotation on the current selection
+  const togglePalmMute = useCallback(() => {
+    if (selectedCells.length === 0 && !selectedCell) return
+    const cellKeys = selectedCells.length > 0 ? selectedCells : (selectedCell ? [selectedCell] : [])
+
+    // Group selected cells by partId+barIndex to find column ranges per bar
+    const barRanges = new Map<string, { partId: string; barIndex: number; minAbs: number; maxAbs: number }>()
+
+    cellKeys.forEach(key => {
+      const { partId, barIndex, beat, cell } = parseCell(key)
+      const part = parts.find(p => p.id === partId)
+      if (!part) return
+      const bar = part.bars[barIndex]
+      if (!bar) return
+      const cellsPerBeatCount = bar.data[0]?.[0]?.length ?? 4
+      const absIdx = beat * cellsPerBeatCount + cell
+      const barKey = `${partId}-${barIndex}`
+
+      const existing = barRanges.get(barKey)
+      if (existing) {
+        existing.minAbs = Math.min(existing.minAbs, absIdx)
+        existing.maxAbs = Math.max(existing.maxAbs, absIdx)
+      } else {
+        barRanges.set(barKey, { partId, barIndex, minAbs: absIdx, maxAbs: absIdx })
+      }
+    })
+
+    pushHistory()
+
+    setParts(prev => {
+      let result = [...prev]
+      barRanges.forEach(({ partId, barIndex, minAbs, maxAbs }) => {
+        result = result.map(p => {
+          if (p.id !== partId) return p
+          const newBars = p.bars.map((bar, bi) => {
+            if (bi !== barIndex) return bar
+            const existing = bar.annotations || []
+
+            // Check if there's an exact match to toggle off
+            const exactMatch = existing.findIndex(a => a.startCell === minAbs && a.endCell === maxAbs)
+            if (exactMatch !== -1) {
+              const newAnnotations = existing.filter((_, i) => i !== exactMatch)
+              return { ...bar, annotations: newAnnotations.length > 0 ? newAnnotations : undefined }
+            }
+
+            // Remove any overlapping annotations and add the new one
+            const nonOverlapping = existing.filter(a => a.endCell < minAbs || a.startCell > maxAbs)
+            const newAnnotation: BarAnnotation = { type: 'pm', startCell: minAbs, endCell: maxAbs }
+            const newAnnotations = [...nonOverlapping, newAnnotation].sort((a, b) => a.startCell - b.startCell)
+            return { ...bar, annotations: newAnnotations }
+          })
+          return { ...p, bars: newBars }
+        })
+      })
+      return result
+    })
+  }, [selectedCells, selectedCell, parts, pushHistory])
 
   // Navigate selection with arrow keys
   const navigateSelection = useCallback((direction: string) => {
@@ -757,7 +818,7 @@ export default function TabEditorNew() {
       ...(part.grid ? { grid: part.grid } : {}),
     }))
 
-    const tabData: Record<string, string[][][]> = {}
+    const tabData: Record<string, unknown> = {}
     parts.forEach(part => {
       tabData[`${part.id}-${instrument}`] = part.bars.map(bar => {
         const numRows = bar.data[0]?.length ?? numStrings
@@ -765,6 +826,11 @@ export default function TabEditorNew() {
           bar.data.flatMap(beat => beat[rowIdx] ?? [])
         )
       })
+      // Save annotations if any bars have them
+      const barAnnotations = part.bars.map(bar => bar.annotations || [])
+      if (barAnnotations.some(a => a.length > 0)) {
+        tabData[`${part.id}-${instrument}-annotations`] = barAnnotations
+      }
     })
 
     const project: LocalProject = {
@@ -786,7 +852,7 @@ export default function TabEditorNew() {
         bass: (instrument === 'bass' ? numStrings : 4) as 4 | 5 | 6,
       },
       sections,
-      tabData,
+      tabData: tabData as LocalProject['tabData'],
       updatedAt: new Date().toISOString(),
     }
 
@@ -848,6 +914,7 @@ export default function TabEditorNew() {
         // Find matching tabData for this section (try each instrument)
         const instKey = tabKeys.find(k => k.startsWith(`${section.id}-`)) || `${section.id}-guitar`
         const measureData = project.tabData?.[instKey] || []
+        const annotationsData = (project.tabData as Record<string, unknown>)?.[`${instKey}-annotations`] as BarAnnotation[][] | undefined
 
         // Convert each measure from TabData format (strings x allCells)
         // to BarGrid format (beats x strings x cellsPerBeat)
@@ -860,7 +927,8 @@ export default function TabEditorNew() {
                   stringCells.slice(beatIdx * actualCellsPerBeat, (beatIdx + 1) * actualCellsPerBeat)
                 )
               )
-              return { data, title: `BAR ${i + 1}` }
+              const annotations = annotationsData?.[i]
+              return { data, title: `BAR ${i + 1}`, ...(annotations?.length ? { annotations } : {}) }
             })
           : [{ ...createEmptyBar(), title: 'BAR 1' }]
 
@@ -1009,6 +1077,9 @@ export default function TabEditorNew() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return }
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey) || e.key === 'Z')) { e.preventDefault(); redo(); return }
 
+    // Shift+M toggles palm mute annotation (works with or without cell selection)
+    if (e.shiftKey && e.key === 'M' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); togglePalmMute(); return }
+
     if (!selectedCell) return
 
     if ((e.ctrlKey || e.metaKey) && e.key === 'c') { e.preventDefault(); copySelection(); return }
@@ -1021,7 +1092,7 @@ export default function TabEditorNew() {
       e.preventDefault()
       inputValue(e.key)
     }
-  }, [selectedCell, instrument, practiceMode, deleteCell, navigateSelection, inputValue, copySelection, pasteSelection, togglePlayback, undo, redo])
+  }, [selectedCell, instrument, practiceMode, deleteCell, navigateSelection, inputValue, copySelection, pasteSelection, togglePlayback, undo, redo, togglePalmMute])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -1244,6 +1315,9 @@ export default function TabEditorNew() {
             label="Power Chord"
             hideIcon
           />
+          <UiButton variant="secondary" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
+            P.M.
+          </UiButton>
           {instrument === 'guitar' && strings === '6' && (
             <UiButton variant="secondary" onClick={() => setShowChordPicker(true)}>
               Insert Chord
@@ -1271,6 +1345,7 @@ export default function TabEditorNew() {
             readOnly={practiceMode}
             bars={part.bars.map((bar, bi) => ({
               ...bar,
+              annotations: instrument !== 'drums' ? (bar.annotations || []) : undefined,
               selectedCells: practiceMode ? [] : getSelectedCellsForBar(part.id, bi),
               playingPosition: getPlayingPositionForBar(partIndex, bi),
             }))}
@@ -1519,6 +1594,7 @@ export default function TabEditorNew() {
               <LegendItem keyChar="⌘⇧Z" label="Redo" />
               <LegendItem keyChar="⌘C" label="Copy column" />
               <LegendItem keyChar="⌘V" label="Paste column" />
+              <LegendItem keyChar="⇧M" label="Palm mute" />
             </LegendColumn>
           </>
         }

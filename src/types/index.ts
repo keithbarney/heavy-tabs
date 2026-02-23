@@ -24,6 +24,13 @@ export interface Section {
   grid?: string
 }
 
+// Bar annotation (e.g. palm mute spans)
+export interface BarAnnotation {
+  type: 'pm'
+  startCell: number  // absolute cell index (beat * cellsPerBeat + cell)
+  endCell: number    // inclusive end
+}
+
 // Tab data is keyed by `${sectionId}-${instrument}`
 export type TabData = Record<string, string[][][]>
 

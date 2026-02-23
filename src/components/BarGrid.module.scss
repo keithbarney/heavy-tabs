@@ -41,6 +41,11 @@
   &.barBoundary {
     background-color: $color-border;
   }
+
+  &.excludePmRow {
+    clip-path: inset(0 0 #{$cell-height} 0);
+  }
+
 }
 
 // Bar grid partial (one beat subdivision)
@@ -101,6 +106,10 @@
 
   &.playing {
     background-color: rgba($color-accent, 0.3);
+  }
+
+  &.noBorders {
+    border-right-color: transparent;
   }
 }
 

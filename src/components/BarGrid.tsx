@@ -1,3 +1,4 @@
+import type { BarAnnotation } from '@/types'
 import styles from './BarGrid.module.scss'
 
 export interface BarGridCellProps {
@@ -28,6 +29,7 @@ export function BarGridCell({ value, selected, playing, onClick, onMouseDown, on
 export interface BarGridRowProps {
   cells: string[]
   cellsPerBeat?: number
+  noBorders?: boolean
   selectedCells?: number[]
   playingCell?: number
   onCellClick?: (cellIndex: number) => void
@@ -38,6 +40,7 @@ export interface BarGridRowProps {
 export function BarGridRow({
   cells,
   cellsPerBeat = 4,
+  noBorders,
   selectedCells = [],
   playingCell,
   onCellClick,
@@ -48,17 +51,23 @@ export function BarGridRow({
     <div className={styles.row}>
       {cells.map((value, i) => (
         <div key={i} className={styles.flexItem}>
-          {i > 0 && i % cellsPerBeat === 0 && (
+          {!noBorders && i > 0 && i % cellsPerBeat === 0 && (
             <div className={styles.beatDivider} />
           )}
-          <BarGridCell
-            value={value}
-            selected={selectedCells.includes(i)}
-            playing={playingCell === i}
+          <div
+            className={[
+              styles.cell,
+              (value !== '-' && value !== '') && styles.hasValue,
+              noBorders && styles.noBorders,
+              selectedCells.includes(i) && styles.selected,
+              playingCell === i && styles.playing
+            ].filter(Boolean).join(' ')}
             onClick={() => onCellClick?.(i)}
             onMouseDown={(e) => onCellMouseDown?.(i, e)}
             onMouseEnter={() => onCellMouseEnter?.(i)}
-          />
+          >
+            {value}
+          </div>
         </div>
       ))}
     </div>
@@ -68,6 +77,7 @@ export function BarGridRow({
 export interface BarGridPartialProps {
   rows: string[][]
   cellsPerBeat?: number
+  annotationRowIndex?: number
   selectedCells?: { row: number; cell: number }[]
   playingCell?: { row: number; cell: number }
   onCellClick?: (row: number, cell: number) => void
@@ -78,6 +88,7 @@ export interface BarGridPartialProps {
 export function BarGridPartial({
   rows,
   cellsPerBeat = 4,
+  annotationRowIndex,
   selectedCells = [],
   playingCell,
   onCellClick,
@@ -88,10 +99,11 @@ export function BarGridPartial({
     <div className={styles.barPartial}>
       {rows.map((rowCells, rowIndex) => (
         <div key={rowIndex}>
-          {rowIndex > 0 && <div className={styles.dividerHorizontal} />}
+          {rowIndex > 0 && rowIndex !== annotationRowIndex && <div className={styles.dividerHorizontal} />}
           <BarGridRow
             cells={rowCells}
             cellsPerBeat={cellsPerBeat}
+            noBorders={annotationRowIndex !== undefined && rowIndex === annotationRowIndex}
             selectedCells={selectedCells
               .filter(c => c.row === rowIndex)
               .map(c => c.cell)}
@@ -113,6 +125,7 @@ export interface BarGridProps {
   cellsPerBeat?: number
   selectedCells?: { beat: number; row: number; cell: number }[]
   playingPosition?: { beat: number; row: number; cell: number }
+  annotations?: BarAnnotation[]
   onCellClick?: (beat: number, row: number, cell: number) => void
   onCellMouseDown?: (beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (beat: number, row: number, cell: number) => void
@@ -128,6 +141,7 @@ export default function BarGrid({
   cellsPerBeat = 4,
   selectedCells = [],
   playingPosition,
+  annotations,
   onCellClick,
   onCellMouseDown,
   onCellMouseEnter,
@@ -135,6 +149,23 @@ export default function BarGrid({
   showLeftBoundary = true,
   className
 }: BarGridProps) {
+  // Augment data with PM annotation row (inside beat columns for alignment)
+  const showPmRow = annotations !== undefined && annotations.length > 0
+  const augmentedData = showPmRow ? data.map((beatData, beatIdx) => {
+    const cpb = beatData[0]?.length || cellsPerBeat
+    const pmRow = Array.from({ length: cpb }, (_, cellIdx) => {
+      const absIdx = beatIdx * cellsPerBeat + cellIdx
+      for (const a of (annotations || [])) {
+        if (absIdx === a.startCell) return 'PM'
+        if (absIdx > a.startCell && absIdx <= a.endCell) return '–'
+      }
+      return ''
+    })
+    return [...beatData, pmRow]
+  }) : data
+
+  const pmRowIndex = showPmRow ? (data[0]?.length ?? 0) : undefined
+
   return (
     <div className={`${styles.barGrid} ${className || ''}`}>
       {title && <span className={styles.barTitle} onClick={onBarTitleClick}>{title}</span>}
@@ -147,14 +178,18 @@ export default function BarGrid({
                 <div className={styles.labelCell}>{label}</div>
               </div>
             ))}
+            {showPmRow && (
+              <div className={styles.labelCell} />
+            )}
           </div>
         )}
-        {showLeftBoundary && <div className={`${styles.dividerVertical} ${styles.barBoundary}`} data-left-boundary />}
-        {data.map((beatData, beatIndex) => (
+        {showLeftBoundary && <div className={`${styles.dividerVertical} ${styles.barBoundary} ${showPmRow ? styles.excludePmRow : ''}`} data-left-boundary />}
+        {augmentedData.map((beatData, beatIndex) => (
           <div key={beatIndex} className={styles.flexItem}>
             <BarGridPartial
               rows={beatData}
               cellsPerBeat={cellsPerBeat}
+              annotationRowIndex={pmRowIndex}
               selectedCells={selectedCells
                 .filter(c => c.beat === beatIndex)
                 .map(c => ({ row: c.row, cell: c.cell }))}
@@ -165,7 +200,9 @@ export default function BarGrid({
               onCellMouseDown={(row, cell, e) => onCellMouseDown?.(beatIndex, row, cell, e)}
               onCellMouseEnter={(row, cell) => onCellMouseEnter?.(beatIndex, row, cell)}
             />
-            <div className={`${styles.dividerVertical} ${beatIndex === data.length - 1 ? styles.barBoundary : ''}`} />
+            {beatIndex === data.length - 1 && (
+              <div className={`${styles.dividerVertical} ${styles.barBoundary} ${showPmRow ? styles.excludePmRow : ''}`} />
+            )}
           </div>
         ))}
       </div>
