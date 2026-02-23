@@ -4,9 +4,8 @@ import styles from './DrawerSongListItem.module.scss'
 export interface DrawerSongListItemProps extends HTMLAttributes<HTMLDivElement> {
   songName: string
   artistName?: string
+  albumName?: string
   updated?: string
-  bpm?: string | number
-  timeSignature?: string
   selected?: boolean
   action?: ReactNode
 }
@@ -14,9 +13,8 @@ export interface DrawerSongListItemProps extends HTMLAttributes<HTMLDivElement> 
 const DrawerSongListItem = forwardRef<HTMLDivElement, DrawerSongListItemProps>(({
   songName,
   artistName,
+  albumName,
   updated,
-  bpm,
-  timeSignature,
   selected = false,
   action,
   className,
@@ -31,13 +29,15 @@ const DrawerSongListItem = forwardRef<HTMLDivElement, DrawerSongListItemProps>((
   return (
     <div ref={ref} className={classNames} {...props}>
       <div className={styles.content}>
-        {artistName && <span className={styles.artistName}>{artistName}</span>}
         <span className={styles.songName}>{songName}</span>
-        <div className={styles.meta}>
-          {updated && <span className={styles.updated}>{updated}</span>}
-          {bpm && <span>{bpm} BPM</span>}
-          {timeSignature && <span>{timeSignature}</span>}
-        </div>
+        {(artistName || albumName) && (
+          <div className={styles.subtitle}>
+            {artistName && <span className={styles.artistName}>{artistName}</span>}
+            {artistName && albumName && <span className={styles.separator}>—</span>}
+            {albumName && <span className={styles.albumName}>{albumName}</span>}
+          </div>
+        )}
+        {updated && <span className={styles.updated}>{updated}</span>}
       </div>
       {action && <div className={styles.action}>{action}</div>}
     </div>

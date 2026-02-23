@@ -52,7 +52,15 @@
   text-overflow: ellipsis;
 }
 
-.artistName {
+.subtitle {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  min-width: 0;
+}
+
+.artistName,
+.albumName {
   font-family: $font-mono;
   font-size: $font-size-xs;
   font-weight: 400;
@@ -63,19 +71,18 @@
   text-overflow: ellipsis;
 }
 
-.meta {
-  display: flex;
-  align-items: center;
-  gap: $space-md;
-  font-family: $font-mono;
+.separator {
   font-size: $font-size-xs;
-  font-weight: 400;
-  line-height: 10px;
-  color: $color-text;
+  color: $color-text-muted;
+  flex-shrink: 0;
 }
 
 .updated {
-  min-width: 60px;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: normal;
+  color: $color-text-muted;
 }
 
 .action {
