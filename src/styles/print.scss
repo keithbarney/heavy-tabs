@@ -1,0 +1,26 @@
+// Print styles — global @page and body rules
+// Component-specific print rules live in their respective .module.scss files
+// (CSS Modules hashes class names, so they can't be centralized here)
+//
+// Files with @media print blocks:
+//   - src/components/Part.module.scss
+//   - src/components/TabEditorNew.module.scss
+//   - src/components/BarGrid.module.scss
+//   - src/components/PageFooter.module.scss
+//   - src/components/PageAdvancedSettings.module.scss
+//   - src/components/WelcomeModal.module.scss
+//   - src/components/UpgradeModal.module.scss
+
+@media print {
+  @page {
+    margin: 0.5in;
+    size: letter portrait;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

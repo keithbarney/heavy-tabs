@@ -109,6 +109,7 @@ export function BarGridPartial({
 export interface BarGridProps {
   title?: string
   data: string[][][]  // [beat][row][cell]
+  stringLabels?: string[]
   cellsPerBeat?: number
   selectedCells?: { beat: number; row: number; cell: number }[]
   playingPosition?: { beat: number; row: number; cell: number }
@@ -123,6 +124,7 @@ export interface BarGridProps {
 export default function BarGrid({
   title,
   data,
+  stringLabels,
   cellsPerBeat = 4,
   selectedCells = [],
   playingPosition,
@@ -137,6 +139,16 @@ export default function BarGrid({
     <div className={`${styles.barGrid} ${className || ''}`}>
       {title && <span className={styles.barTitle} onClick={onBarTitleClick}>{title}</span>}
       <div className={styles.bars}>
+        {stringLabels && (
+          <div className={styles.labelColumn} data-label-column style={{ flex: 1 / cellsPerBeat }}>
+            {stringLabels.map((label, i) => (
+              <div key={i}>
+                {i > 0 && <div className={styles.dividerHorizontal} />}
+                <div className={styles.labelCell}>{label}</div>
+              </div>
+            ))}
+          </div>
+        )}
         {showLeftBoundary && <div className={`${styles.dividerVertical} ${styles.barBoundary}`} />}
         {data.map((beatData, beatIndex) => (
           <div key={beatIndex} style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>

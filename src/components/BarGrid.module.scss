@@ -104,6 +104,28 @@
   }
 }
 
+// String label column (inside .bars, flex set inline to match cell width)
+.labelColumn {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.labelCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  height: $cell-height;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 10px;
+  color: $color-placeholder;
+  user-select: none;
+}
+
 // Beat divider (darker line between cells in a row)
 .beatDivider {
   width: 1px;
@@ -117,9 +139,19 @@
     break-inside: avoid;
   }
 
+  // Every bar gets a left boundary in print (handles wrapped rows)
+  .bars {
+    border-left: 1px solid #000;
+  }
+
+  // Hide the JS-rendered left boundary div on bar 0 to avoid doubling
+  .bars > .barBoundary:first-child {
+    display: none;
+  }
+
   .cell {
     background: #fff;
-    color: #999;
+    color: transparent;
     border-right-color: #ccc;
 
     &:hover,
@@ -154,6 +186,10 @@
   }
 
   .barTitle {
+    color: #000;
+  }
+
+  .labelCell {
     color: #000;
   }
 }

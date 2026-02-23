@@ -135,50 +135,12 @@ $_control-height-small: 28px;
   overflow: hidden;
 }
 
-// Bars list container
-.barsList {
-  display: flex;
-  align-items: flex-start;
-  gap: $space-sm;
-  width: 100%;
-}
-
-// String labels column
-.stringLabels {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 7px;
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-  font-weight: 400;
-  line-height: 0;
-  color: $color-placeholder;
-}
-
-.stringLabelSpacer {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 18px;
-  width: 100%;
-}
-
-.stringLabel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: $cell-height;
-  width: 100%;
-  line-height: 10px;
-}
-
 // Bars container
 .barsContainer {
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
@@ -202,6 +164,7 @@ $_control-height-small: 28px;
   font-family: $font-mono;
   font-size: $font-size-xs;
   font-weight: 400;
+  line-height: 1;
   color: $color-text;
   white-space: nowrap;
   cursor: pointer;
@@ -288,24 +251,9 @@ $_control-height-small: 28px;
   overflow: hidden;
 }
 
-// Per-bar string labels (hidden on desktop, shown on mobile when bars stack)
-.barStringLabels {
+// Desktop: only show string label column on first bar
+.barWrapper:not(:first-child) [data-label-column] {
   display: none;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 7px;
-  flex-shrink: 0;
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-  font-weight: 400;
-  line-height: 0;
-  color: $color-placeholder;
-}
-
-.barContentRow {
-  display: flex;
-  align-items: flex-start;
-  gap: $space-sm;
 }
 
 // Tablet: 2 bars per row
@@ -346,12 +294,8 @@ $_control-height-small: 28px;
     width: 100%;
   }
 
-  // Swap single column for per-bar labels when bars stack
-  .stringLabels {
-    display: none;
-  }
-
-  .barStringLabels {
+  // Show label column on every bar when bars stack
+  .barWrapper:not(:first-child) [data-label-column] {
     display: flex;
   }
 }
@@ -362,6 +306,11 @@ $_control-height-small: 28px;
     background: #fff;
     border-radius: 0;
     break-inside: avoid;
+    gap: 0;
+  }
+
+  .header {
+    padding: $space-xs $space-sm;
   }
 
   .header button {
@@ -378,6 +327,7 @@ $_control-height-small: 28px;
     color: #000 !important;
     border: none !important;
     box-shadow: none !important;
+    font-weight: 600;
   }
 
   .barActions {
@@ -388,12 +338,35 @@ $_control-height-small: 28px;
     display: none !important;
   }
 
-  .barsContainer {
-    flex-wrap: wrap;
+  .barHeader {
+    display: none;
   }
 
-  .stringLabels,
-  .stringLabel {
-    color: #000;
+  .titleInput:placeholder-shown,
+  .notesInput:placeholder-shown {
+    display: none;
+  }
+
+  .body {
+    padding: $space-xs $space-sm $space-xs 0;
+  }
+
+  // Show per-bar string labels on wrapped rows (since the left column
+  // only aligns with the first row)
+  .barsContainer {
+    gap: $space-md $space-lg;
+  }
+
+  .barWrapper {
+    width: calc(50% - $space-lg / 2);
+  }
+
+  // Show label column on all bars, hide on right bar of each row
+  .barWrapper:not(:first-child) [data-label-column] {
+    display: flex;
+  }
+
+  .barWrapper:nth-child(even) [data-label-column] {
+    display: none;
   }
 }

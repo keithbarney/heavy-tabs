@@ -372,8 +372,8 @@
 @media print {
   .printHeader {
     display: block;
-    margin-bottom: $space-lg;
-    padding-bottom: $space-md;
+    margin-bottom: $space-sm;
+    padding-bottom: $space-sm;
     border-bottom: 1px solid #ccc;
   }
 
@@ -405,5 +405,6 @@
   .content {
     padding: 0;
     overflow: visible;
+    gap: $space-sm;
   }
 }

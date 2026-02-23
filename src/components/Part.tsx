@@ -146,51 +146,32 @@ export default function Part({
 
       {/* Body */}
       <div className={styles.body}>
-        <div className={styles.barsList}>
-          {/* String Labels */}
-          <div className={styles.stringLabels}>
-            <div className={styles.stringLabelSpacer}>&nbsp;</div>
-            {stringLabels.map((label, i) => (
-              <div key={i} className={styles.stringLabel}>
-                {label}
-              </div>
-            ))}
-          </div>
-
-          {/* Bars */}
-          <div className={styles.barsContainer}>
-            {children || bars.map((barProps, barIndex) => (
-              <div key={barIndex} className={styles.barWrapper}>
-                <div className={styles.barHeader}>
-                  <span className={styles.barTitle} onClick={readOnly ? undefined : () => onBarTitleClick?.(barIndex)}>{barProps.title}</span>
-                  {!readOnly && (
-                    <div className={styles.barActions}>
-                      <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
-                      <span className={`${styles.barAction} ${styles.barActionDup}`} onClick={() => onCopyBar?.(barIndex)}>Duplicate</span>
-                      {bars.length > 1 && (
-                        <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className={styles.barContentRow}>
-                  <div className={styles.barStringLabels}>
-                    {stringLabels.map((label, i) => (
-                      <div key={i} className={styles.stringLabel}>{label}</div>
-                    ))}
+        <div className={styles.barsContainer}>
+          {children || bars.map((barProps, barIndex) => (
+            <div key={barIndex} className={styles.barWrapper}>
+              <div className={styles.barHeader}>
+                <span className={styles.barTitle} onClick={readOnly ? undefined : () => onBarTitleClick?.(barIndex)}>{barProps.title}</span>
+                {!readOnly && (
+                  <div className={styles.barActions}>
+                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
+                    <span className={`${styles.barAction} ${styles.barActionDup}`} onClick={() => onCopyBar?.(barIndex)}>Duplicate</span>
+                    {bars.length > 1 && (
+                      <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
+                    )}
                   </div>
-                  <BarGrid
-                    {...barProps}
-                    title={undefined}
-                    showLeftBoundary={barIndex === 0}
-                    onCellClick={readOnly ? undefined : (beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
-                    onCellMouseDown={readOnly ? undefined : (beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
-                    onCellMouseEnter={readOnly ? undefined : (beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
-                  />
-                </div>
+                )}
               </div>
-            ))}
-          </div>
+              <BarGrid
+                {...barProps}
+                title={undefined}
+                stringLabels={stringLabels}
+                showLeftBoundary={barIndex === 0}
+                onCellClick={readOnly ? undefined : (beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
+                onCellMouseDown={readOnly ? undefined : (beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
+                onCellMouseEnter={readOnly ? undefined : (beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>

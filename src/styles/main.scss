@@ -1,5 +1,6 @@
 @use './tokens' as *;
 @use './mixins' as *;
+@use './print';
 
 // Reset
 *,
@@ -87,17 +88,3 @@ pre,
   animation: spin 1s linear infinite;
 }
 
-// Print styles
-@media print {
-  @page {
-    margin: 0.5in;
-    size: letter portrait;
-  }
-
-  body {
-    background: #fff !important;
-    color: #000 !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-}
