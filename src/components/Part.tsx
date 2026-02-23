@@ -32,6 +32,7 @@ export interface PartProps {
   onCellMouseDown?: (barIndex: number, beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (barIndex: number, beat: number, row: number, cell: number) => void
   onBarTitleClick?: (barIndex: number) => void
+  readOnly?: boolean
   settingsSize?: 'default' | 'small'
   children?: ReactNode
   className?: string
@@ -66,6 +67,7 @@ export default function Part({
   onCellMouseDown,
   onCellMouseEnter,
   onBarTitleClick,
+  readOnly = false,
   settingsSize = 'default',
   children,
   className
@@ -77,60 +79,66 @@ export default function Part({
       {/* Header */}
       <div className={styles.header}>
         <UiInput
-          className={styles.titleInput}
+          className={`${styles.titleInput} ${readOnly ? styles.readOnlyInput : ''}`}
           placeholder="Title"
           value={title}
           onChange={(e) => onTitleChange?.(e.target.value)}
+          readOnly={readOnly}
         />
         <UiInput
-          className={styles.notesInput}
+          className={`${styles.notesInput} ${readOnly ? styles.readOnlyInput : ''} ${readOnly && !notes ? styles.readOnlyEmpty : ''}`}
           placeholder="Lyrics"
           value={notes}
           onChange={(e) => onNotesChange?.(e.target.value)}
+          readOnly={readOnly}
         />
-        <div className={`${styles.partSettings} ${settingsSize === 'small' ? styles.small : ''}`}>
-          <input
-            className={styles.partBpm}
-            type="text"
-            inputMode="numeric"
-            placeholder={globalBpm}
-            value={bpm || ''}
-            onChange={(e) => onBpmChange?.(e.target.value)}
-          />
-          <select
-            className={styles.partSelect}
-            value={time || ''}
-            onChange={(e) => onTimeChange?.(e.target.value)}
-          >
-            <option value="">{globalTime}</option>
-            {timeOptions.filter(t => t.label !== globalTime).map(t => (
-              <option key={t.label} value={t.label}>{t.label}</option>
-            ))}
-          </select>
-          <select
-            className={styles.partSelect}
-            value={grid || ''}
-            onChange={(e) => onGridChange?.(e.target.value)}
-          >
-            <option value="">{globalGrid}</option>
-            {gridOptions.filter(g => g.label !== globalGrid).map(g => (
-              <option key={g.label} value={g.label}>{g.label}</option>
-            ))}
-          </select>
-        </div>
-        <UiButton variant="secondary" onClick={onDuplicate}>
-          <CopyPlus size={16} />
-        </UiButton>
-        {confirmDelete ? (
-          <div className={styles.confirmDelete}>
-            <span className={styles.confirmLabel}>Delete?</span>
-            <UiButton variant="danger" size="small" onClick={() => { setConfirmDelete(false); onDelete?.() }}>Yes</UiButton>
-            <UiButton variant="secondary" size="small" onClick={() => setConfirmDelete(false)}>No</UiButton>
-          </div>
-        ) : (
-          <UiButton variant="secondary" onClick={() => setConfirmDelete(true)}>
-            <Trash2 size={16} />
-          </UiButton>
+        {!readOnly && (
+          <>
+            <div className={`${styles.partSettings} ${settingsSize === 'small' ? styles.small : ''}`}>
+              <input
+                className={styles.partBpm}
+                type="text"
+                inputMode="numeric"
+                placeholder={globalBpm}
+                value={bpm || ''}
+                onChange={(e) => onBpmChange?.(e.target.value)}
+              />
+              <select
+                className={styles.partSelect}
+                value={time || ''}
+                onChange={(e) => onTimeChange?.(e.target.value)}
+              >
+                <option value="">{globalTime}</option>
+                {timeOptions.filter(t => t.label !== globalTime).map(t => (
+                  <option key={t.label} value={t.label}>{t.label}</option>
+                ))}
+              </select>
+              <select
+                className={styles.partSelect}
+                value={grid || ''}
+                onChange={(e) => onGridChange?.(e.target.value)}
+              >
+                <option value="">{globalGrid}</option>
+                {gridOptions.filter(g => g.label !== globalGrid).map(g => (
+                  <option key={g.label} value={g.label}>{g.label}</option>
+                ))}
+              </select>
+            </div>
+            <UiButton variant="secondary" onClick={onDuplicate}>
+              <CopyPlus size={16} />
+            </UiButton>
+            {confirmDelete ? (
+              <div className={styles.confirmDelete}>
+                <span className={styles.confirmLabel}>Delete?</span>
+                <UiButton variant="danger" size="small" onClick={() => { setConfirmDelete(false); onDelete?.() }}>Yes</UiButton>
+                <UiButton variant="secondary" size="small" onClick={() => setConfirmDelete(false)}>No</UiButton>
+              </div>
+            ) : (
+              <UiButton variant="secondary" onClick={() => setConfirmDelete(true)}>
+                <Trash2 size={16} />
+              </UiButton>
+            )}
+          </>
         )}
       </div>
 
@@ -152,23 +160,32 @@ export default function Part({
             {children || bars.map((barProps, barIndex) => (
               <div key={barIndex} className={styles.barWrapper}>
                 <div className={styles.barHeader}>
-                  <span className={styles.barTitle} onClick={() => onBarTitleClick?.(barIndex)}>{barProps.title}</span>
-                  <div className={styles.barActions}>
-                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
-                    <span className={`${styles.barAction} ${styles.barActionDup}`} onClick={() => onCopyBar?.(barIndex)}>Duplicate</span>
-                    {bars.length > 1 && (
-                      <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
-                    )}
-                  </div>
+                  <span className={styles.barTitle} onClick={readOnly ? undefined : () => onBarTitleClick?.(barIndex)}>{barProps.title}</span>
+                  {!readOnly && (
+                    <div className={styles.barActions}>
+                      <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
+                      <span className={`${styles.barAction} ${styles.barActionDup}`} onClick={() => onCopyBar?.(barIndex)}>Duplicate</span>
+                      {bars.length > 1 && (
+                        <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <BarGrid
-                  {...barProps}
-                  title={undefined}
-                  showLeftBoundary={barIndex === 0}
-                  onCellClick={(beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
-                  onCellMouseDown={(beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
-                  onCellMouseEnter={(beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
-                />
+                <div className={styles.barContentRow}>
+                  <div className={styles.barStringLabels}>
+                    {stringLabels.map((label, i) => (
+                      <div key={i} className={styles.stringLabel}>{label}</div>
+                    ))}
+                  </div>
+                  <BarGrid
+                    {...barProps}
+                    title={undefined}
+                    showLeftBoundary={barIndex === 0}
+                    onCellClick={readOnly ? undefined : (beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
+                    onCellMouseDown={readOnly ? undefined : (beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
+                    onCellMouseEnter={readOnly ? undefined : (beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
+                  />
+                </div>
               </div>
             ))}
           </div>

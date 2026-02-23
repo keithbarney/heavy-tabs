@@ -1,5 +1,86 @@
 import type { LocalProject, Project } from '@/types'
+import { TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines } from './constants'
 import { MOCK_PROJECTS } from './mockData'
+
+// Part data structure used by the Part component
+export interface PartData {
+  id: string
+  title: string
+  notes: string
+  bpm: string | undefined
+  time: string | undefined
+  grid: string | undefined
+  bars: { data: string[][][]; title: string }[]
+}
+
+// Convert a LocalProject's sections + tabData into the Part[] format
+// Used by both TabEditorNew (load) and PublicViewer (practice mode)
+export function projectToParts(project: LocalProject): PartData[] {
+  const timeSig = project.timeSignature || TIME_SIGNATURES[0]
+  const noteRes = project.noteResolution || NOTE_RESOLUTIONS[2]
+  const projectNumBeats = timeSig.beats
+  const projectCellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+
+  const tabKeys = Object.keys(project.tabData || {})
+  const sections = project.sections || []
+  const { strings: numStrings } = getProjectInstrument(project)
+
+  if (sections.length === 0) {
+    const emptyBar = {
+      data: Array.from({ length: projectNumBeats }, () =>
+        Array.from({ length: numStrings }, () =>
+          Array.from({ length: projectCellsPerBeat }, () => '-')
+        )
+      ),
+      title: 'BAR 1',
+    }
+    return [{ id: '1', title: 'Intro', notes: '', bpm: undefined, time: undefined, grid: undefined, bars: [emptyBar] }]
+  }
+
+  return sections.map(section => {
+    const instKey = tabKeys.find(k => k.startsWith(`${section.id}-`)) || `${section.id}-guitar`
+    const measureData = project.tabData?.[instKey] || []
+
+    const bars = measureData.length > 0
+      ? measureData.map((measure: string[][], i: number) => {
+          const totalCells = measure[0]?.length ?? (projectNumBeats * projectCellsPerBeat)
+          const actualCellsPerBeat = Math.max(1, Math.floor(totalCells / projectNumBeats))
+          const data = Array.from({ length: projectNumBeats }, (_, beatIdx) =>
+            measure.map(stringCells =>
+              stringCells.slice(beatIdx * actualCellsPerBeat, (beatIdx + 1) * actualCellsPerBeat)
+            )
+          )
+          return { data, title: `BAR ${i + 1}` }
+        })
+      : [{
+          data: Array.from({ length: projectNumBeats }, () =>
+            Array.from({ length: numStrings }, () =>
+              Array.from({ length: projectCellsPerBeat }, () => '-')
+            )
+          ),
+          title: 'BAR 1',
+        }]
+
+    return {
+      id: section.id,
+      title: section.name,
+      notes: section.notes || '',
+      bpm: section.bpm ? String(section.bpm) : undefined,
+      time: section.time || undefined,
+      grid: section.grid || undefined,
+      bars,
+    }
+  })
+}
+
+// Determine instrument type from a LocalProject's tabData keys
+export function getProjectInstrument(project: LocalProject): { instrument: string; strings: number } {
+  const tabKeys = Object.keys(project.tabData || {})
+  const firstKey = tabKeys[0] || ''
+  if (firstKey.includes('-drums')) return { instrument: 'drums', strings: drumLines.length }
+  if (firstKey.includes('-bass')) return { instrument: 'bass', strings: project.stringCounts?.bass || 4 }
+  return { instrument: 'guitar', strings: project.stringCounts?.guitar || 6 }
+}
 
 const PROJECTS_KEY = 'tabEditorProjects'
 const ACTIVE_PROJECT_KEY = 'activeProjectId'

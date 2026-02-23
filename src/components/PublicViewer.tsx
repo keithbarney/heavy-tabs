@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Copy, Loader2, AlertCircle, Music, ArrowLeft } from 'lucide-react'
+import { Copy, Loader2, AlertCircle, Music, ArrowLeft, Eye } from 'lucide-react'
 import TabEditor from './TabEditor'
-import { supabaseToLocal } from '@/lib/storage'
+import UiButton from './UiButton'
+import Part from './Part'
+import { supabaseToLocal, projectToParts, getProjectInstrument } from '@/lib/storage'
+import { drumLines, getTuningNotes } from '@/lib/constants'
 import type { Project, ShareLink, LocalProject } from '@/types'
 import type { UseSharingReturn } from '@/hooks/useSharing'
 import type { UseAuthReturn } from '@/hooks/useAuth'
@@ -22,6 +25,7 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
   const [error, setError] = useState<string | null>(null)
   const [copying, setCopying] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [practiceMode, setPracticeMode] = useState(false)
 
   useEffect(() => {
     if (!slug) {
@@ -47,6 +51,27 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
 
     loadSharedProject()
   }, [slug, sharing])
+
+  // Escape key exits practice mode
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (practiceMode && e.key === 'Escape') {
+      e.preventDefault()
+      setPracticeMode(false)
+    }
+  }, [practiceMode])
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
+
+  // Dynamic document title for shared tabs
+  useEffect(() => {
+    if (project) {
+      document.title = `Heavy Tabs — ${project.project_name || 'Untitled'}`
+    }
+    return () => { document.title = 'Heavy Tabs — Free Online Guitar, Bass & Drum Tab Editor' }
+  }, [project])
 
   const handleCopyToLibrary = async () => {
     if (!auth.isAuthenticated) {
@@ -95,6 +120,14 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
 
   const localProject: LocalProject = supabaseToLocal(project)
 
+  // Practice mode content
+  if (practiceMode) {
+    return <PublicPracticeView
+      localProject={localProject}
+      onExit={() => setPracticeMode(false)}
+    />
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.banner}>
@@ -104,6 +137,13 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
             <span>Viewing shared tab</span>
           </div>
           <div className={styles.bannerRight}>
+            <button
+              className={styles.practiceButton}
+              onClick={() => setPracticeMode(true)}
+            >
+              <Eye size={14} />
+              Practice
+            </button>
             {shareLink?.allow_copy && (
               <button
                 className={styles.copyButton}
@@ -133,6 +173,51 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
       </div>
 
       <TabEditor initialProject={localProject} readOnly />
+    </div>
+  )
+}
+
+// Separate component for practice view to keep hooks clean
+function PublicPracticeView({ localProject, onExit }: { localProject: LocalProject; onExit: () => void }) {
+  const parts = useMemo(() => projectToParts(localProject), [localProject])
+  const { instrument, strings: numStrings } = useMemo(() => getProjectInstrument(localProject), [localProject])
+
+  const stringLabels = useMemo(() => {
+    if (instrument === 'drums') return drumLines.map(d => d.name)
+    const effectiveTuning = (localProject.tunings?.guitar === 'standard' || localProject.tunings?.guitar === 'drop')
+      ? localProject.tunings.guitar : 'standard'
+    return getTuningNotes(
+      instrument as 'guitar' | 'bass',
+      numStrings,
+      effectiveTuning,
+      (localProject.projectKey || 'E').toUpperCase()
+    )
+  }, [instrument, numStrings, localProject])
+
+  return (
+    <div className={`${styles.container} ${styles.practiceContainer} practiceMode`}>
+      <div className={styles.practiceBar}>
+        <span className={styles.practiceTitle}>
+          {localProject.artistName && <>{localProject.artistName} — </>}
+          {localProject.projectName || 'Untitled'}
+        </span>
+        <UiButton variant="secondary" selected onClick={onExit} title="Exit practice mode (Esc)">
+          <Eye size={16} />
+        </UiButton>
+      </div>
+
+      <main className={styles.practiceContent}>
+        {parts.map(part => (
+          <Part
+            key={part.id}
+            title={part.title}
+            notes={part.notes}
+            stringLabels={stringLabels}
+            readOnly
+            bars={part.bars}
+          />
+        ))}
+      </main>
     </div>
   )
 }

@@ -5,6 +5,7 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  gap: $space-sm;
   background-color: $color-bg-alt;
   border-radius: $radius-sm;
   overflow: hidden;
@@ -16,7 +17,7 @@
   display: flex;
   align-items: flex-start;
   gap: $space-sm;
-  padding: $space-sm $space-sm 0;
+  padding: $space-sm $space-lg;
   width: 100%;
   overflow: hidden;
 }
@@ -194,7 +195,6 @@ $_control-height-small: 28px;
   display: flex;
   align-items: baseline;
   gap: $space-md;
-  padding-left: 1px;
   margin-bottom: $space-sm;
 }
 
@@ -261,6 +261,98 @@ $_control-height-small: 28px;
   &:hover {
     color: $color-red;
     background: rgba($color-red, 0.25);
+  }
+}
+
+// Read-only input style (practice mode)
+.readOnlyInput {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  pointer-events: none;
+  color: $color-text-bright;
+  padding-left: 0;
+  padding-right: 0;
+
+  &::placeholder {
+    color: transparent;
+  }
+}
+
+// Hide empty notes input in readOnly (collapses to zero width)
+.readOnlyEmpty {
+  flex: 0;
+  min-width: 0;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+// Per-bar string labels (hidden on desktop, shown on mobile when bars stack)
+.barStringLabels {
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 7px;
+  flex-shrink: 0;
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: 0;
+  color: $color-placeholder;
+}
+
+.barContentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+}
+
+// Tablet: 2 bars per row
+@media (max-width: 1000px) {
+  .barsContainer {
+    row-gap: $space-md;
+  }
+
+  .barWrapper {
+    width: 50%;
+  }
+}
+
+// Mobile: 1 bar per row, compact layout, per-bar string labels
+@media (max-width: 575px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .titleInput {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .notesInput {
+    display: none;
+  }
+
+  .partSettings {
+    display: none;
+  }
+
+  .body {
+    padding: $space-sm;
+  }
+
+  .barWrapper {
+    width: 100%;
+  }
+
+  // Swap single column for per-bar labels when bars stack
+  .stringLabels {
+    display: none;
+  }
+
+  .barStringLabels {
+    display: flex;
   }
 }
 

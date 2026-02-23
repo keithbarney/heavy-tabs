@@ -12,6 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: $space-sm;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -195,10 +196,6 @@
   text-align: center;
 }
 
-.speedSelect {
-  // Sized by UiSelect — no extra styles needed
-}
-
 .chordToolbar {
   display: flex;
   align-items: center;
@@ -262,11 +259,87 @@
 
 .content {
   flex: 1;
-  padding: 0 $space-lg $space-lg;
+  padding: $space-lg;
   display: flex;
   flex-direction: column;
   gap: $space-lg;
   overflow-y: auto;
+}
+
+// Practice mode
+.practiceBar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm $space-lg;
+  background-color: rgba($color-bg-alt, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.practiceTitle {
+  font-family: $font-mono;
+  font-size: $font-size-md;
+  font-weight: 500;
+  color: $color-text-bright;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+// Small desktop: hide artist/album
+@media (max-width: 1460px) {
+  .hideOnSmallDesktop {
+    display: none !important;
+  }
+}
+
+// Tablet responsive
+@media (max-width: 1000px) {
+  .hideOnTablet {
+    display: none !important;
+  }
+
+  .header {
+    padding: $space-sm;
+  }
+
+  .headerLeft {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .headerCenter {
+    position: static;
+    transform: none;
+    flex-shrink: 0;
+  }
+
+  .headerRight {
+    flex-shrink: 0;
+  }
+
+  .projectInput {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .chordToolbar {
+    display: none;
+  }
+}
+
+// Mobile responsive
+@media (max-width: 575px) {
+  .content {
+    padding: $space-sm;
+    gap: $space-sm;
+  }
 }
 
 // Print header (hidden on screen)

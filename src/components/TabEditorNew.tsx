@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Play, Pause, Square, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save } from 'lucide-react'
+import { Menu, Plus, Play, Pause, Square, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save, Eye } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
@@ -35,6 +35,7 @@ export default function TabEditorNew() {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
+  const [practiceMode, setPracticeMode] = useState(false)
   const [powerChordMode, setPowerChordMode] = useState(true)
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
@@ -974,6 +975,13 @@ export default function TabEditorNew() {
     }
   }, [showUserMenu])
 
+  // Dynamic document title
+  useEffect(() => {
+    document.title = projectName
+      ? `Heavy Tabs — ${projectName}`
+      : 'Heavy Tabs — Free Online Guitar, Bass & Drum Tab Editor'
+  }, [projectName])
+
   // Clean up playback on unmount
   useEffect(() => {
     return () => {
@@ -984,7 +992,13 @@ export default function TabEditorNew() {
 
   // Keyboard handler
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Escape exits practice mode
+    if (e.key === 'Escape' && practiceMode) { e.preventDefault(); setPracticeMode(false); return }
+
     if ((e.target as HTMLElement).matches('input, textarea, select')) return
+
+    // Skip all editing shortcuts in practice mode
+    if (practiceMode) return
 
     // Space bar toggles play/pause regardless of cell selection
     if (e.key === ' ' && !e.repeat) { e.preventDefault(); togglePlayback(); return }
@@ -1005,7 +1019,7 @@ export default function TabEditorNew() {
       e.preventDefault()
       inputValue(e.key)
     }
-  }, [selectedCell, instrument, deleteCell, navigateSelection, inputValue, copySelection, pasteSelection, togglePlayback, undo, redo])
+  }, [selectedCell, instrument, practiceMode, deleteCell, navigateSelection, inputValue, copySelection, pasteSelection, togglePlayback, undo, redo])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -1017,7 +1031,20 @@ export default function TabEditorNew() {
   }, [handleKeyDown, handleMouseUp])
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${practiceMode ? 'practiceMode' : ''}`}>
+      {/* Practice Mode Top Bar */}
+      {practiceMode && (
+        <div className={styles.practiceBar}>
+          <span className={styles.practiceTitle}>
+            {artistName && <>{artistName} — </>}
+            {projectName || 'Untitled'}
+          </span>
+          <UiButton variant="secondary" selected onClick={() => setPracticeMode(false)} title="Exit practice mode (Esc)">
+            <Eye size={16} />
+          </UiButton>
+        </div>
+      )}
+
       {/* Print Header (hidden on screen, shown in print) */}
       <div className={styles.printHeader}>
         {(artistName || albumName) && (
@@ -1037,7 +1064,7 @@ export default function TabEditorNew() {
       </div>
 
       {/* Header */}
-      <header className={styles.header}>
+      {!practiceMode && <header className={styles.header}>
         <div className={styles.headerLeft}>
           <UiButton variant="secondary" onClick={() => setShowLibrary(true)}>
             <Menu size={16} />
@@ -1046,13 +1073,13 @@ export default function TabEditorNew() {
             placeholder="Artist"
             value={artistName}
             onChange={(e) => setArtistName(e.target.value)}
-            className={styles.artistInput}
+            className={`${styles.artistInput} ${styles.hideOnSmallDesktop}`}
           />
           <UiInput
             placeholder="Album"
             value={albumName}
             onChange={(e) => setAlbumName(e.target.value)}
-            className={styles.albumInput}
+            className={`${styles.albumInput} ${styles.hideOnSmallDesktop}`}
           />
           <UiInput
             placeholder="Song Title"
@@ -1064,6 +1091,7 @@ export default function TabEditorNew() {
             variant="action"
             disabled={!isDirty || isSaving}
             onClick={() => { hasLoadedRef.current = true; handleSave() }}
+            className={styles.hideOnTablet}
           >
             <Save size={16} />
             {isDirty ? 'Save' : 'Saved'}
@@ -1074,25 +1102,25 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" onClick={togglePlayback} title={isPlaying ? 'Pause' : 'Play'}>
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
           </UiButton>
-          <UiButton variant="secondary" onClick={stopPlayback} title="Stop">
+          <UiButton variant="secondary" onClick={stopPlayback} title="Stop" className={styles.hideOnTablet}>
             <Square size={16} />
           </UiButton>
-          <UiButton variant="secondary" selected={isLooping} onClick={() => { setIsLooping(!isLooping); loopingRef.current = !isLooping }} title="Loop">
+          <UiButton variant="secondary" selected={isLooping} onClick={() => { setIsLooping(!isLooping); loopingRef.current = !isLooping }} title="Loop" className={styles.hideOnTablet}>
             <Repeat size={16} />
           </UiButton>
           <UiButton variant="secondary" selected={clickTrack} onClick={() => setClickTrack(!clickTrack)} title="Click track">
             <Drum size={16} />
           </UiButton>
-          <UiButton variant="secondary" selected={countIn} onClick={() => setCountIn(!countIn)} title="Count-in">
+          <UiButton variant="secondary" selected={countIn} onClick={() => setCountIn(!countIn)} title="Count-in" className={styles.hideOnTablet}>
             <Timer size={16} />
           </UiButton>
           <UiInput
             value={bpm}
             onChange={(e) => setBpm(e.target.value)}
-            className={styles.bpmInput}
+            className={`${styles.bpmInput} ${styles.hideOnTablet}`}
           />
           <UiSelect
-            className={styles.speedSelect}
+            className={styles.hideOnTablet}
             value={playbackSpeed}
             onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
           >
@@ -1104,14 +1132,17 @@ export default function TabEditorNew() {
         </div>
 
         <div className={styles.headerRight}>
-          <UiButton variant="secondary" onClick={() => setShowSettings(!showSettings)}>
+          <UiButton variant="secondary" onClick={() => { stopPlayback(); setPracticeMode(true) }} title="Practice mode">
+            <Eye size={16} />
+          </UiButton>
+          <UiButton variant="secondary" onClick={() => setShowSettings(!showSettings)} className={styles.hideOnTablet}>
             <Settings size={16} />
           </UiButton>
-          <UiButton variant="secondary" onClick={() => window.print()} title="Print / Save as PDF">
+          <UiButton variant="secondary" onClick={() => window.print()} title="Print / Save as PDF" className={styles.hideOnTablet}>
             <Printer size={16} />
           </UiButton>
           {auth.isAuthenticated ? (
-            <div className={styles.userMenuContainer} ref={userMenuRef}>
+            <div className={`${styles.userMenuContainer} ${styles.hideOnTablet}`} ref={userMenuRef}>
               <button className={styles.userButton} onClick={() => setShowUserMenu(!showUserMenu)}>
                 {auth.user?.avatarUrl && !avatarError ? (
                   <img
@@ -1161,15 +1192,15 @@ export default function TabEditorNew() {
               )}
             </div>
           ) : (
-            <UiButton variant="primary" onClick={() => setShowAuthModal(true)}>
+            <UiButton variant="primary" onClick={() => setShowAuthModal(true)} className={styles.hideOnTablet}>
               Sign In
             </UiButton>
           )}
         </div>
-      </header>
+      </header>}
 
       {/* Advanced Settings */}
-      {showSettings && <PageAdvancedSettings
+      {!practiceMode && showSettings && <PageAdvancedSettings
         instrument={instrument}
         strings={strings}
         tuning={tuning}
@@ -1201,7 +1232,7 @@ export default function TabEditorNew() {
       />}
 
       {/* Chord Toolbar */}
-      {instrument !== 'drums' && (
+      {!practiceMode && instrument !== 'drums' && (
         <div className={styles.chordToolbar}>
           <UiCheckbox
             checked={powerChordMode}
@@ -1233,14 +1264,15 @@ export default function TabEditorNew() {
             globalGrid={grid}
             timeOptions={TIME_SIGNATURES}
             gridOptions={NOTE_RESOLUTIONS}
+            readOnly={practiceMode}
             bars={part.bars.map((bar, bi) => ({
               ...bar,
-              selectedCells: getSelectedCellsForBar(part.id, bi),
+              selectedCells: practiceMode ? [] : getSelectedCellsForBar(part.id, bi),
               playingPosition: getPlayingPositionForBar(partIndex, bi),
             }))}
-            onCellClick={(barIndex, beat, row, cell) => handleCellClick(part.id, barIndex, beat, row, cell)}
-            onCellMouseDown={(barIndex, beat, row, cell, e) => handleCellMouseDown(part.id, barIndex, beat, row, cell, e)}
-            onCellMouseEnter={(barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
+            onCellClick={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellClick(part.id, barIndex, beat, row, cell)}
+            onCellMouseDown={practiceMode ? undefined : (barIndex, beat, row, cell, e) => handleCellMouseDown(part.id, barIndex, beat, row, cell, e)}
+            onCellMouseEnter={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
             onBarTitleClick={(barIndex) => setPlaybackPosition({ partIndex, barIndex, beat: 0, cell: 0 })}
             onTitleChange={(value) => {
               setParts(parts.map(p => p.id === part.id ? { ...p, title: value } : p))
@@ -1322,7 +1354,7 @@ export default function TabEditorNew() {
           />
         ))}
 
-        <UiButton variant="action" className={styles.addPartButton} onClick={() => {
+        {!practiceMode && <UiButton variant="action" className={styles.addPartButton} onClick={() => {
           pushHistory()
           const newId = String(Date.now())
           // Clone settings from the last part
@@ -1338,7 +1370,7 @@ export default function TabEditorNew() {
         }}>
           <Plus size={16} />
           Add part
-        </UiButton>
+        </UiButton>}
       </main>
 
       {/* Library Drawer */}
@@ -1421,7 +1453,7 @@ export default function TabEditorNew() {
       )}
 
       {/* Footer */}
-      <PageFooter
+      {!practiceMode && <PageFooter
         expanded={showLegend}
         left={
           <UiButton variant="secondary" onClick={() => setShowLegend(!showLegend)}>
@@ -1478,7 +1510,7 @@ export default function TabEditorNew() {
             </LegendColumn>
           </>
         }
-      />
+      />}
     </div>
   )
 }
