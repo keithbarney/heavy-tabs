@@ -1315,14 +1315,14 @@ export default function TabEditorNew() {
             label="Power Chord"
             hideIcon
           />
-          <UiButton variant="secondary" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
-            P.M.
-          </UiButton>
           {instrument === 'guitar' && strings === '6' && (
             <UiButton variant="secondary" onClick={() => setShowChordPicker(true)}>
               Insert Chord
             </UiButton>
           )}
+          <UiButton variant="secondary" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
+            Palm Mute
+          </UiButton>
         </div>
       )}
 
