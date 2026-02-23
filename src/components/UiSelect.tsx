@@ -25,6 +25,7 @@ const UiSelect = forwardRef<HTMLSelectElement, UiSelectProps>(({
         <select
           ref={ref}
           className={selectClasses}
+          aria-label={props['aria-label'] || label}
           {...props}
         >
           {children}

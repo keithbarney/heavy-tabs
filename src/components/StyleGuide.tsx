@@ -197,42 +197,42 @@ export default function StyleGuide() {
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Secondary (default)</span>
           <UiButton>Button</UiButton>
-          <UiButton><Settings size={16} /></UiButton>
+          <UiButton aria-label="Settings"><Settings size={16} /></UiButton>
           <UiButton><Plus size={16} /> Add</UiButton>
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Primary</span>
           <UiButton variant="primary">Button</UiButton>
-          <UiButton variant="primary"><Save size={16} /></UiButton>
+          <UiButton variant="primary" aria-label="Save"><Save size={16} /></UiButton>
           <UiButton variant="primary"><Save size={16} /> Save</UiButton>
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Action</span>
           <UiButton variant="action">Button</UiButton>
-          <UiButton variant="action"><Plus size={16} /></UiButton>
+          <UiButton variant="action" aria-label="Add"><Plus size={16} /></UiButton>
           <UiButton variant="action"><Plus size={16} /> Add Bar</UiButton>
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Danger</span>
           <UiButton variant="danger">Button</UiButton>
-          <UiButton variant="danger"><Trash2 size={16} /></UiButton>
+          <UiButton variant="danger" aria-label="Delete"><Trash2 size={16} /></UiButton>
           <UiButton variant="danger"><Minus size={16} /> Remove</UiButton>
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Ghost</span>
           <UiButton variant="ghost">Button</UiButton>
-          <UiButton variant="ghost"><X size={16} /></UiButton>
+          <UiButton variant="ghost" aria-label="Close"><X size={16} /></UiButton>
         </div>
 
         <h3>Sizes</h3>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Default</span>
-          <UiButton><Plus size={16} /></UiButton>
+          <UiButton aria-label="Add"><Plus size={16} /></UiButton>
           <UiButton><Plus size={16} /> Add</UiButton>
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Small</span>
-          <UiButton size="small"><Plus size={12} /></UiButton>
+          <UiButton size="small" aria-label="Add"><Plus size={12} /></UiButton>
           <UiButton size="small"><Plus size={12} /> Add</UiButton>
         </div>
 
@@ -273,6 +273,7 @@ export default function StyleGuide() {
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Default</span>
           <UiSelect
+            aria-label="Default select"
             value={selectValue}
             onChange={(e) => setSelectValue(e.target.value)}
           >
@@ -291,7 +292,7 @@ export default function StyleGuide() {
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Disabled</span>
-          <UiSelect disabled>
+          <UiSelect aria-label="Disabled select" disabled>
             <SelectOptions />
           </UiSelect>
         </div>
@@ -303,8 +304,8 @@ export default function StyleGuide() {
 
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Icon Only</span>
-          <UiCheckbox checked={checkbox1} onChange={setCheckbox1} />
-          <UiCheckbox checked={checkbox2} onChange={setCheckbox2} />
+          <UiCheckbox aria-label="Option 1" checked={checkbox1} onChange={setCheckbox1} />
+          <UiCheckbox aria-label="Option 2" checked={checkbox2} onChange={setCheckbox2} />
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>With Label</span>
@@ -313,8 +314,8 @@ export default function StyleGuide() {
         </div>
         <div className={styles.componentRow}>
           <span className={styles.componentLabel}>Disabled</span>
-          <UiCheckbox disabled />
-          <UiCheckbox checked disabled />
+          <UiCheckbox aria-label="Disabled unchecked" disabled />
+          <UiCheckbox aria-label="Disabled checked" checked disabled />
         </div>
       </section>
 

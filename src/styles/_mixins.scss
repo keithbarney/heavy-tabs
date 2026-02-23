@@ -106,7 +106,7 @@ $breakpoint-xl: 1200px;
 @mixin button-action {
   @include button-base;
   background-color: rgba($color-green, 0.3);
-  color: $color-green;
+  color: #c8ddb5;
 
   &:hover:not(:disabled) {
     background-color: rgba($color-green, 0.5);
@@ -126,7 +126,7 @@ $breakpoint-xl: 1200px;
 @mixin button-danger {
   @include button-base;
   background-color: rgba($color-red, 0.15);
-  color: $color-red;
+  color: #e5a0a6;
 
   &:hover:not(:disabled) {
     background-color: rgba($color-red, 0.25);
