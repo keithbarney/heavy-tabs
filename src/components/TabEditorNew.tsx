@@ -1249,7 +1249,7 @@ export default function TabEditorNew() {
       )}
 
       {/* Main Content */}
-      <main className={styles.content} onClick={(e) => { if (e.target === e.currentTarget) { setSelectedCell(null); setSelectedCells([]) } }}>
+      <main className={styles.content} onClick={practiceMode ? undefined : (e) => { if (e.target === e.currentTarget) { setSelectedCell(null); setSelectedCells([]) } }}>
         {parts.map((part, partIndex) => (
           <Part
             key={part.id}

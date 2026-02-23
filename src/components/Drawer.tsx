@@ -63,8 +63,6 @@ const Drawer = forwardRef<HTMLDivElement, DrawerProps>(({
               key={song.id}
               songName={song.name}
               updated={song.updated}
-              bpm={song.bpm}
-              timeSignature={song.timeSignature}
               selected={song.id === selectedSongId}
               onClick={() => onSelectSong?.(song)}
               action={
