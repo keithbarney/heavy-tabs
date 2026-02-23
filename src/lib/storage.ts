@@ -46,6 +46,8 @@ export function localToSupabase(local: LocalProject, userId: string): Omit<Proje
     id: local.id,
     user_id: userId,
     project_name: local.projectName,
+    artist: local.artistName || '',
+    album: local.albumName || '',
     bpm: local.bpm,
     time_signature: local.timeSignature,
     note_resolution: local.noteResolution,
@@ -64,6 +66,8 @@ export function supabaseToLocal(project: Project): LocalProject {
     id: project.local_id || project.id, // Use local_id if available, else cloud id
     cloudId: project.id, // Always store the cloud UUID
     projectName: project.project_name,
+    artistName: project.artist || '',
+    albumName: project.album || '',
     bpm: project.bpm,
     timeSignature: project.time_signature,
     noteResolution: project.note_resolution,

@@ -1,8 +1,6 @@
 /**
- * Mock data for local development.
- * Auto-seeded into localStorage when empty and running in dev mode.
- *
- * Captured from Keith's manual entry — Cowboys from Hell (Pantera), main riff.
+ * Demo song seeded into localStorage for new users.
+ * Cowboys from Hell (Pantera) — main riff, captured from manual entry.
  */
 import type { LocalProject } from '@/types'
 
@@ -10,6 +8,8 @@ export const MOCK_PROJECTS: LocalProject[] = [
   {
     id: 'mock-cowboys-from-hell',
     projectName: 'Cowboys From Hell',
+    artistName: 'Pantera',
+    albumName: 'Cowboys From Hell',
     bpm: 113,
     timeSignature: { label: '4/4', beats: 4, noteValue: 4 },
     noteResolution: { label: '1/16', perQuarter: 4 },

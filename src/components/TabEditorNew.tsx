@@ -25,6 +25,8 @@ export default function TabEditorNew() {
   const projectsHook = useProjects({ user: auth.user })
 
   const [projectName, setProjectName] = useState('')
+  const [artistName, setArtistName] = useState('')
+  const [albumName, setAlbumName] = useState('')
   const [bpm, setBpm] = useState('120')
   const [showLegend, setShowLegend] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -77,31 +79,29 @@ export default function TabEditorNew() {
   const [time, setTime] = useState('4/4')
   const [grid, setGrid] = useState('1/16')
 
-  // Create an empty bar using time signature, grid resolution, and string count
-  // Accepts optional overrides for per-part settings
-  const createEmptyBar = useCallback((overrides?: { time?: string; grid?: string }): BarGridProps => {
+  // Compute grid dimensions from time signature and note resolution
+  const getGridDimensions = useCallback((timeName: string, gridName: string) => {
     const numStrings = instrument === 'drums' ? drumLines.length : (parseInt(strings) || 6)
-    const effectiveTime = overrides?.time || time
-    const effectiveGrid = overrides?.grid || grid
-    const timeSig = TIME_SIGNATURES.find(t => t.label === effectiveTime) || TIME_SIGNATURES[0]
-    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === effectiveGrid) || NOTE_RESOLUTIONS[2]
-    const numBeats = timeSig.beats
+    const timeSig = TIME_SIGNATURES.find(t => t.label === timeName) || TIME_SIGNATURES[0]
+    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === gridName) || NOTE_RESOLUTIONS[2]
     const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+    return { numBeats: timeSig.beats, numStrings, cellsPerBeat }
+  }, [strings, instrument])
+
+  // Create an empty bar, with optional per-part time/grid overrides
+  const createEmptyBar = useCallback((overrides?: { time?: string; grid?: string }): BarGridProps => {
+    const { numBeats, numStrings, cellsPerBeat } = getGridDimensions(overrides?.time || time, overrides?.grid || grid)
     const data = Array.from({ length: numBeats }, () =>
       Array.from({ length: numStrings }, () =>
         Array.from({ length: cellsPerBeat }, () => '-')
       )
     )
     return { data, title: '' }
-  }, [strings, instrument, time, grid])
+  }, [getGridDimensions, time, grid])
 
   // Rebuild a bar's data to match a new time/grid, preserving existing values where possible
   const rebuildBar = useCallback((bar: { data: string[][][]; title: string }, newTime: string, newGrid: string) => {
-    const numStrings = instrument === 'drums' ? drumLines.length : (parseInt(strings) || 6)
-    const timeSig = TIME_SIGNATURES.find(t => t.label === newTime) || TIME_SIGNATURES[0]
-    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === newGrid) || NOTE_RESOLUTIONS[2]
-    const numBeats = timeSig.beats
-    const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+    const { numBeats, numStrings, cellsPerBeat } = getGridDimensions(newTime, newGrid)
     const data = Array.from({ length: numBeats }, (_, beatIdx) =>
       Array.from({ length: numStrings }, (_, rowIdx) =>
         Array.from({ length: cellsPerBeat }, (_, cellIdx) =>
@@ -110,7 +110,7 @@ export default function TabEditorNew() {
       )
     )
     return { ...bar, data }
-  }, [strings, instrument])
+  }, [getGridDimensions])
 
   // Parts state (bpm/time/grid are optional per-part overrides)
   const [parts, setParts] = useState([
@@ -769,6 +769,8 @@ export default function TabEditorNew() {
       id: projectId,
       ...(cloudId ? { cloudId } : {}),
       projectName: projectName || 'Untitled',
+      artistName: artistName || '',
+      albumName: albumName || '',
       bpm: parseInt(bpm) || 120,
       timeSignature,
       noteResolution,
@@ -797,7 +799,7 @@ export default function TabEditorNew() {
     }
     setIsDirty(false)
     setIsSaving(false)
-  }, [projectId, cloudId, projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
+  }, [projectId, cloudId, projectName, artistName, albumName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
 
   // Keep ref in sync for auto-save
   handleSaveRef.current = handleSave
@@ -809,6 +811,8 @@ export default function TabEditorNew() {
     setCloudId(project.cloudId || null)
     setCurrentProjectId(project.id)
     setProjectName(project.projectName)
+    setArtistName(project.artistName || '')
+    setAlbumName(project.albumName || '')
     setBpm(String(project.bpm))
     setKeySignature(project.projectKey)
     setTime(project.timeSignature?.label || '4/4')
@@ -894,6 +898,8 @@ export default function TabEditorNew() {
     setCloudId(null)
     setCurrentProjectId(null)
     setProjectName('')
+    setArtistName('')
+    setAlbumName('')
     setBpm('120')
     setInstrument('guitar')
     setStrings('6')
@@ -943,7 +949,7 @@ export default function TabEditorNew() {
         clearTimeout(autoSaveTimerRef.current)
       }
     }
-  }, [projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
+  }, [projectName, artistName, albumName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
 
   // Restore active project on mount (after projects finish loading)
   useEffect(() => {
@@ -1015,6 +1021,13 @@ export default function TabEditorNew() {
     <div className={styles.container}>
       {/* Print Header (hidden on screen, shown in print) */}
       <div className={styles.printHeader}>
+        {(artistName || albumName) && (
+          <div className={styles.printSubtitle}>
+            {artistName && <span>{artistName}</span>}
+            {artistName && albumName && <span> — </span>}
+            {albumName && <span>{albumName}</span>}
+          </div>
+        )}
         <h1 className={styles.printTitle}>{projectName || 'Untitled'}</h1>
         <div className={styles.printMeta}>
           <span>{instrument.charAt(0).toUpperCase() + instrument.slice(1)}</span>
@@ -1031,7 +1044,19 @@ export default function TabEditorNew() {
             <Menu size={16} />
           </UiButton>
           <UiInput
-            placeholder="Project Name"
+            placeholder="Artist"
+            value={artistName}
+            onChange={(e) => setArtistName(e.target.value)}
+            className={styles.artistInput}
+          />
+          <UiInput
+            placeholder="Album"
+            value={albumName}
+            onChange={(e) => setAlbumName(e.target.value)}
+            className={styles.albumInput}
+          />
+          <UiInput
+            placeholder="Song Title"
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             className={styles.projectInput}

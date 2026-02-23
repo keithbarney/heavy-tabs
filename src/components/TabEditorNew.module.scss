@@ -182,6 +182,14 @@
   width: 160px;
 }
 
+.artistInput {
+  width: 120px;
+}
+
+.albumInput {
+  width: 120px;
+}
+
 .bpmInput {
   width: 60px;
   text-align: center;
@@ -271,6 +279,12 @@
   font-weight: 700;
   color: #000;
   margin: 0;
+}
+
+.printSubtitle {
+  font-size: 16px;
+  color: #333;
+  margin-top: $space-xs;
 }
 
 .printMeta {

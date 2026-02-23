@@ -47,6 +47,8 @@ export interface Project {
   id: string
   user_id?: string
   project_name: string
+  artist?: string
+  album?: string
   bpm: number
   time_signature: TimeSignature
   note_resolution: NoteResolution
@@ -65,6 +67,8 @@ export interface LocalProject {
   id: string
   cloudId?: string // UUID from Supabase
   projectName: string
+  artistName?: string
+  albumName?: string
   bpm: number
   timeSignature: TimeSignature
   noteResolution: NoteResolution

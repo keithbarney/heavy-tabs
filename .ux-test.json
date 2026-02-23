@@ -1,0 +1,105 @@
+{
+  "port": 3002,
+  "startCommand": "npm run dev",
+  "type": "vite",
+  "flows": [
+    {
+      "name": "Edit song title",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "type", "selector": "input[placeholder='Song Title']", "value": "My New Song" },
+        { "action": "assertVisible", "selector": "input[placeholder='Song Title']" }
+      ]
+    },
+    {
+      "name": "Play and stop",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "click", "selector": "button[title='Play']" },
+        { "action": "assertVisible", "selector": "button[title='Pause']" },
+        { "action": "click", "selector": "button[title='Stop']" },
+        { "action": "assertVisible", "selector": "button[title='Play']" }
+      ]
+    },
+    {
+      "name": "Toggle loop mode",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "click", "selector": "button[title='Loop']" },
+        { "action": "assertVisible", "selector": "button[title='Loop']" },
+        { "action": "click", "selector": "button[title='Loop']" }
+      ]
+    },
+    {
+      "name": "Toggle click track",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "click", "selector": "button[title='Click track']" },
+        { "action": "assertVisible", "selector": "button[title='Click track']" }
+      ]
+    },
+    {
+      "name": "Edit part title and lyrics",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "type", "selector": "input[placeholder='Title']", "value": "Verse 1" },
+        { "action": "type", "selector": "input[placeholder='Lyrics']", "value": "Walk on home boy" }
+      ]
+    },
+    {
+      "name": "Cell input and arrow key navigation",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 300 },
+        { "action": "click", "selector": "[class*='cell']:first-child" },
+        { "action": "press", "key": "5" },
+        { "action": "press", "key": "ArrowRight" },
+        { "action": "press", "key": "7" },
+        { "action": "press", "key": "ArrowDown" },
+        { "action": "press", "key": "3" },
+        { "action": "assertNoErrors" }
+      ]
+    },
+    {
+      "name": "Undo with Ctrl+Z",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 300 },
+        { "action": "click", "selector": "[class*='cell']:first-child" },
+        { "action": "press", "key": "9" },
+        { "action": "press", "key": "Control+z" },
+        { "action": "assertNoErrors" }
+      ]
+    },
+    {
+      "name": "Delete cell value",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 300 },
+        { "action": "click", "selector": "[class*='cell']:first-child" },
+        { "action": "press", "key": "5" },
+        { "action": "press", "key": "Delete" },
+        { "action": "assertNoErrors" }
+      ]
+    },
+    {
+      "name": "Space bar toggles playback",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "press", "key": " " },
+        { "action": "assertVisible", "selector": "button[title='Pause']" },
+        { "action": "press", "key": " " },
+        { "action": "assertVisible", "selector": "button[title='Play']" }
+      ]
+    }
+  ]
+}

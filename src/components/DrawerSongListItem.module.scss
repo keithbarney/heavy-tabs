@@ -52,6 +52,17 @@
   text-overflow: ellipsis;
 }
 
+.artistName {
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  line-height: normal;
+  color: $color-text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .meta {
   display: flex;
   align-items: center;
