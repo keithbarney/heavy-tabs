@@ -107,6 +107,7 @@ export default function Part({
                 className={styles.partSelect}
                 value={time || ''}
                 onChange={(e) => onTimeChange?.(e.target.value)}
+                aria-label="Time signature"
               >
                 <option value="">{globalTime}</option>
                 {timeOptions.filter(t => t.label !== globalTime).map(t => (
@@ -117,6 +118,7 @@ export default function Part({
                 className={styles.partSelect}
                 value={grid || ''}
                 onChange={(e) => onGridChange?.(e.target.value)}
+                aria-label="Grid resolution"
               >
                 <option value="">{globalGrid}</option>
                 {gridOptions.filter(g => g.label !== globalGrid).map(g => (
@@ -124,7 +126,7 @@ export default function Part({
                 ))}
               </select>
             </div>
-            <UiButton variant="secondary" onClick={onDuplicate}>
+            <UiButton variant="secondary" onClick={onDuplicate} title="Duplicate part">
               <CopyPlus size={16} />
             </UiButton>
             {confirmDelete ? (
@@ -134,7 +136,7 @@ export default function Part({
                 <UiButton variant="secondary" size="small" onClick={() => setConfirmDelete(false)}>No</UiButton>
               </div>
             ) : (
-              <UiButton variant="secondary" onClick={() => setConfirmDelete(true)}>
+              <UiButton variant="secondary" onClick={() => setConfirmDelete(true)} title="Delete part">
                 <Trash2 size={16} />
               </UiButton>
             )}

@@ -33,12 +33,18 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 - ✅ TabEditorNew promoted to main editor at `/`
 - ✅ Auth session persistence fix (waitForSession before render)
 - ✅ Active project persists across page refresh (localStorage)
+- ✅ Google OAuth sign-in with profile photo
+- ✅ Practice mode (distraction-free sheet music view)
+- ✅ Dynamic browser tab title (Heavy Tabs — [song name])
+- ✅ SVG favicon
+- ✅ Supabase Pro + custom domain (api.heavytabs.app)
+- ✅ Responsive breakpoints: 1460px / 1000px / 575px
+- ✅ Landing page for conversions
+- ✅ Payment integration (Lemon Squeezy)
+- ✅ PDF export
 
 ### Next Priorities
-1. Landing page for conversions
-3. Payment integration (Lemon Squeezy or Stripe)
-4. PDF export
-5. Get feedback from initial users
+1. Get feedback from initial users
 
 ---
 
@@ -50,8 +56,8 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 | Styling | Sass (SCSS modules) |
 | Icons | Lucide React |
 | Routing | React Router |
-| Backend | Supabase (Postgres + Auth + RLS) |
-| Auth | Magic link (no passwords) |
+| Backend | Supabase Pro (Postgres + Auth + RLS) |
+| Auth | Google OAuth + Magic link (passwordless) |
 | Hosting | Vercel (deployed, auto-deploys from GitHub) |
 
 ---
@@ -124,9 +130,11 @@ npm run preview # Preview production build
 Create `.env` in project root:
 
 ```
-VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_URL=https://api.heavytabs.app
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
+
+The Supabase URL uses a custom domain (`api.heavytabs.app`) instead of the default `mffldntdtsqckmhuwylm.supabase.co`. Both resolve to the same project. The custom domain shows `api.heavytabs.app` in Google OAuth consent screens instead of a random subdomain.
 
 ---
 
@@ -212,13 +220,13 @@ Most input fields show as text until clicked:
 
 ## Services
 
-| Service | Purpose |
-|---------|---------|
-| **Supabase** | Database (Postgres), user authentication, security rules |
-| **SendGrid** | Sends magic link emails for passwordless login |
-| **Vercel** | Hosts the app, auto-deploys from GitHub |
+| Service | Purpose | Cost |
+|---------|---------|------|
+| **Supabase** | Database (Postgres), auth (Google OAuth + magic link), RLS | $35/mo (Pro + custom domain) |
+| **SendGrid** | Sends magic link emails from noreply@heavytabs.app | Free tier |
+| **Vercel** | Hosts the app, auto-deploys from GitHub main branch | Free tier |
 
-All three have generous free tiers - this project costs $0/month to run.
+**Supabase custom domain:** `api.heavytabs.app` — all Supabase API/auth/storage requests route through this instead of `mffldntdtsqckmhuwylm.supabase.co`. DNS: CNAME `api` → `mffldntdtsqckmhuwylm.supabase.co` + TXT `_acme-challenge.api` for SSL.
 
 ---
 

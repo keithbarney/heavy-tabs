@@ -10,6 +10,7 @@ import Part from './Part'
 import PageFooter, { LegendColumn, LegendItem } from './PageFooter'
 import footerStyles from './PageFooter.module.scss'
 import Library from './Library'
+import UpgradeModal from './UpgradeModal'
 import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
@@ -32,6 +33,7 @@ export default function TabEditorNew() {
   const [showSettings, setShowSettings] = useState(false)
   const [showLibrary, setShowLibrary] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
@@ -1066,7 +1068,7 @@ export default function TabEditorNew() {
       {/* Header */}
       {!practiceMode && <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <UiButton variant="secondary" onClick={() => setShowLibrary(true)}>
+          <UiButton variant="secondary" onClick={() => setShowLibrary(true)} title="Projects">
             <Menu size={16} />
           </UiButton>
           <UiInput
@@ -1118,11 +1120,13 @@ export default function TabEditorNew() {
             value={bpm}
             onChange={(e) => setBpm(e.target.value)}
             className={`${styles.bpmInput} ${styles.hideOnTablet}`}
+            aria-label="BPM"
           />
           <UiSelect
             className={styles.hideOnTablet}
             value={playbackSpeed}
             onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+            aria-label="Playback speed"
           >
             <option value={0.25}>25%</option>
             <option value={0.5}>50%</option>
@@ -1135,7 +1139,7 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" onClick={() => { stopPlayback(); setPracticeMode(true) }} title="Practice mode">
             <Eye size={16} />
           </UiButton>
-          <UiButton variant="secondary" onClick={() => setShowSettings(!showSettings)} className={styles.hideOnTablet}>
+          <UiButton variant="secondary" onClick={() => setShowSettings(!showSettings)} title="Settings" className={styles.hideOnTablet}>
             <Settings size={16} />
           </UiButton>
           <UiButton variant="secondary" onClick={() => window.print()} title="Print / Save as PDF" className={styles.hideOnTablet}>
@@ -1381,6 +1385,7 @@ export default function TabEditorNew() {
         currentProjectId={currentProjectId}
         onSelectProject={loadProject}
         onNewProject={resetToNew}
+        onShowUpgradeModal={() => { setShowLibrary(false); setShowUpgradeModal(true) }}
       />
 
       {/* Auth Modal */}
@@ -1388,6 +1393,13 @@ export default function TabEditorNew() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         auth={auth}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        projectCount={projectsHook.projects.length}
       />
 
       {/* Sign Out Confirmation Modal */}

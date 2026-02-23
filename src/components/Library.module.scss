@@ -72,6 +72,18 @@
   margin: 0;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.projectCount {
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+}
+
 .authRow {
   display: flex;
   align-items: center;

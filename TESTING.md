@@ -1437,3 +1437,107 @@
 **Given** I navigate to `/styleguide`
 **When** the page loads
 **Then** the StyleGuide renders showing colors, typography, spacing, buttons, inputs, and checkboxes
+
+---
+
+## Upgrade Gate
+
+### US-124: Project count shown in Library header
+**As a** user browsing my projects,
+**I want to** see how many tabs I've used out of the free limit,
+**So that** I know how close I am to the cap.
+
+**Given** the Library drawer is open with projects
+**When** I view the header
+**Then** a count like "3 / 10" appears next to the New Song button
+
+---
+
+### US-125: New Song allowed under the limit
+**As a** free user with fewer than 10 tabs,
+**I want** New Song to work normally,
+**So that** I can keep creating.
+
+**Given** I have fewer than 10 projects
+**When** I click "New Song" in the Library
+**Then** a new blank project is created and the Library closes
+
+---
+
+### US-126: New Song blocked at limit
+**As a** free user who has reached 10 tabs,
+**I want** to be shown an upgrade prompt instead of creating a new tab,
+**So that** I understand the limitation and how to unlock more.
+
+**Given** I have 10 or more projects
+**When** I click "New Song" in the Library header
+**Then** the Library closes and the upgrade modal appears
+
+---
+
+### US-127: New Song blocked at limit (empty state)
+**As a** free user at the limit viewing the empty-state button,
+**I want** the same gate behavior on the "Create your first tab" button,
+**So that** the limit is enforced consistently.
+
+**Given** I have 10 or more projects and the Library shows the empty state
+**When** I click "Create your first tab"
+**Then** the Library closes and the upgrade modal appears
+
+---
+
+### US-128: Upgrade modal content
+**As a** user seeing the upgrade modal,
+**I want** clear information about pricing and what I get,
+**So that** I can make an informed decision.
+
+**Given** the upgrade modal is open
+**When** I view it
+**Then** it shows: orange Lock icon, "You've hit the free limit" title, description mentioning 10 free tabs and $10 lifetime Pro, a count of tabs used (e.g., "10 of 10 free tabs used"), and two buttons
+
+---
+
+### US-129: Upgrade button opens Stripe
+**As a** user ready to upgrade,
+**I want** the upgrade button to take me to the payment page,
+**So that** I can complete the purchase.
+
+**Given** the upgrade modal is open
+**When** I click "Upgrade to Pro — $10"
+**Then** the Stripe Payment Link opens in a new browser tab
+
+---
+
+### US-130: Close upgrade modal
+**As a** user who wants to dismiss the upgrade prompt,
+**I want** multiple ways to close it,
+**So that** I'm not trapped.
+
+**Given** the upgrade modal is open
+**When** I click "Maybe Later", press Escape, or click the overlay
+**Then** the modal closes
+
+---
+
+### US-131: Creating tabs again after deleting
+**As a** free user who deleted a tab to get back under the limit,
+**I want** New Song to work normally again,
+**So that** the gate is based on current count, not lifetime count.
+
+**Given** I had 10 projects and deleted one (now 9)
+**When** I click "New Song"
+**Then** a new blank project is created normally (no upgrade modal)
+
+---
+
+### US-132: Upgrade modal analytics
+**As a** product owner,
+**I want** the upgrade modal to fire analytics events,
+**So that** I can measure conversion funnel performance.
+
+**Given** the upgrade modal
+**When** it opens
+**Then** an `upgrade_modal_shown` event fires
+
+**When** I click "Upgrade to Pro — $10"
+**Then** an `upgrade_modal_click` event fires

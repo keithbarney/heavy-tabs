@@ -24,6 +24,8 @@ type AnalyticsEvents = {
   copy_selection: undefined
   paste_selection: undefined
   migration_complete: { migrated: number; failed: number }
+  upgrade_modal_shown: undefined
+  upgrade_modal_click: undefined
 }
 
 export function trackEvent<T extends keyof AnalyticsEvents>(

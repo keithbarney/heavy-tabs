@@ -67,14 +67,14 @@ A web-based guitar/bass/drum tablature editor with cloud sync, public sharing, a
 
 | Tier | Price | Includes |
 |------|-------|---------|
-| **Free** | $0 | 3 projects, local storage, basic playback |
-| **Pro (Lifetime)** | $29 one-time | Unlimited projects, cloud sync, sharing, PDF export, priority support |
+| **Free** | $0 | 10 tabs, local storage, basic playback |
+| **Pro (Lifetime)** | $10 one-time | Unlimited tabs, cloud sync, sharing, PDF export, priority support |
 
 **Why lifetime, not subscription:**
 - Tab editors aren't "daily use" SaaS — musicians use them in bursts
 - Lifetime removes friction ("just buy it once")
 - Differentiator vs. Ultimate Guitar ($40/yr) and Songsterr ($120/yr)
-- Simple to implement with Lemon Squeezy (already has account at heavy.lemonsqueezy.com)
+- Simple to implement with Stripe Payment Links
 
 **Revenue projections (conservative):**
 
@@ -185,7 +185,7 @@ A web-based guitar/bass/drum tablature editor with cloud sync, public sharing, a
 | Vercel | $0 | Free tier: 100GB bandwidth |
 | Domain | ~$1 | .app domain ~$12/yr |
 | SendGrid | $0 | Free tier for magic links |
-| Lemon Squeezy | 5% + $0.50/txn | Only on revenue |
+| Stripe | 2.9% + $0.30/txn | Only on revenue |
 | **Total fixed** | **~$1/mo** | Until hitting free tier limits |
 
 Breakeven on Supabase Pro ($25/mo) at ~1 sale/month. Breakeven on Vercel Pro ($20/mo) at ~2 sales/month.

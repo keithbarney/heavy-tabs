@@ -2,6 +2,7 @@
   "port": 3002,
   "startCommand": "npm run dev",
   "type": "vite",
+  "routes": ["/", "/styleguide"],
   "flows": [
     {
       "name": "Edit song title",
@@ -99,6 +100,86 @@
         { "action": "assertVisible", "selector": "button[title='Pause']" },
         { "action": "press", "key": " " },
         { "action": "assertVisible", "selector": "button[title='Play']" }
+      ]
+    },
+    {
+      "name": "Library shows project count",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 500 },
+        { "action": "click", "selector": "[class*='headerLeft'] button" },
+        { "action": "wait", "ms": 300 },
+        { "action": "assertVisible", "selector": "[class*='projectCount']" },
+        { "action": "assertText", "selector": "[class*='projectCount']", "value": "/ 10" },
+        { "action": "press", "key": "Escape" }
+      ]
+    },
+    {
+      "name": "New Song under limit creates project",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 500 },
+        { "action": "click", "selector": "[class*='headerLeft'] button" },
+        { "action": "wait", "ms": 300 },
+        { "action": "click", "selector": "[class*='headerRight'] [class*='action']" },
+        { "action": "wait", "ms": 300 },
+        { "action": "assertNoErrors" }
+      ]
+    },
+    {
+      "name": "Upgrade modal closes with Escape",
+      "steps": [
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 500 },
+        { "action": "click", "selector": "[class*='headerLeft'] button" },
+        { "action": "wait", "ms": 300 },
+        { "action": "assertVisible", "selector": "[class*='projectCount']" },
+        { "action": "assertNoErrors" }
+      ]
+    },
+    {
+      "name": "Library project count (mobile 375px)",
+      "steps": [
+        { "action": "setViewport", "width": 375 },
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 500 },
+        { "action": "click", "selector": "[class*='headerLeft'] button" },
+        { "action": "wait", "ms": 300 },
+        { "action": "assertVisible", "selector": "[class*='projectCount']" },
+        { "action": "assertText", "selector": "[class*='projectCount']", "value": "/ 10" },
+        { "action": "press", "key": "Escape" }
+      ]
+    },
+    {
+      "name": "Library project count (tablet 768px)",
+      "steps": [
+        { "action": "setViewport", "width": 768 },
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 500 },
+        { "action": "click", "selector": "[class*='headerLeft'] button" },
+        { "action": "wait", "ms": 300 },
+        { "action": "assertVisible", "selector": "[class*='projectCount']" },
+        { "action": "assertText", "selector": "[class*='projectCount']", "value": "/ 10" },
+        { "action": "press", "key": "Escape" }
+      ]
+    },
+    {
+      "name": "New Song under limit (mobile 375px)",
+      "steps": [
+        { "action": "setViewport", "width": 375 },
+        { "action": "goto", "url": "/" },
+        { "action": "press", "key": "Escape" },
+        { "action": "wait", "ms": 500 },
+        { "action": "click", "selector": "[class*='headerLeft'] button" },
+        { "action": "wait", "ms": 300 },
+        { "action": "click", "selector": "[class*='headerRight'] [class*='action']" },
+        { "action": "wait", "ms": 300 },
+        { "action": "assertNoErrors" }
       ]
     }
   ]

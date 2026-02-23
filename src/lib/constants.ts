@@ -1,5 +1,9 @@
 import type { TimeSignature, NoteResolution } from '@/types'
 
+// Monetization
+export const FREE_PROJECT_LIMIT = 10
+export const STRIPE_UPGRADE_URL = 'https://buy.stripe.com/6oU00l85E3te6Vhenj87K00'
+
 // All 12 keys for transposition
 export const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 export const KEY_SEMITONES: Record<string, number> = {

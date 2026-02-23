@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, RefreshCw, Music } from 'lucide-react'
 import UiButton from './UiButton'
 import DrawerSongListItem from './DrawerSongListItem'
+import { FREE_PROJECT_LIMIT } from '@/lib/constants'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
 import styles from './Library.module.scss'
@@ -13,6 +14,7 @@ interface LibraryProps {
   currentProjectId: string | null
   onSelectProject: (project: LocalProject) => void
   onNewProject: () => void
+  onShowUpgradeModal: () => void
   message?: string | null
 }
 
@@ -23,6 +25,7 @@ export default function Library({
   currentProjectId,
   onSelectProject,
   onNewProject,
+  onShowUpgradeModal,
   message,
 }: LibraryProps) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -61,6 +64,15 @@ export default function Library({
     setConfirmDelete(null)
   }
 
+  const handleNewProject = () => {
+    if (projects.projects.length >= FREE_PROJECT_LIMIT) {
+      onShowUpgradeModal()
+    } else {
+      onNewProject()
+      handleClose()
+    }
+  }
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return ''
     const date = new Date(dateString)
@@ -85,10 +97,13 @@ export default function Library({
       <div className={`${styles.panel} ${isClosing ? styles.panelClosing : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>Projects</h2>
-          <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
-            <Plus size={16} />
-            New Song
-          </UiButton>
+          <div className={styles.headerRight}>
+            <span className={styles.projectCount}>{projects.projects.length} / {FREE_PROJECT_LIMIT}</span>
+            <UiButton variant="action" onClick={handleNewProject}>
+              <Plus size={16} />
+              New Song
+            </UiButton>
+          </div>
         </div>
 
         {message && (
@@ -107,7 +122,7 @@ export default function Library({
               <Music size={40} />
               <h3>No tabs yet</h3>
               <p>Create your first tab to start writing music.</p>
-              <UiButton variant="action" onClick={() => { onNewProject(); handleClose() }}>
+              <UiButton variant="action" onClick={handleNewProject}>
                 <Plus size={16} />
                 Create your first tab
               </UiButton>
