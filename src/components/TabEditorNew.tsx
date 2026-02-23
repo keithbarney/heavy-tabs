@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Play, Pause, Square, Repeat, Volume2, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut } from 'lucide-react'
+import { Menu, Plus, Play, Pause, Square, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
+import UiSelect from './UiSelect'
 import PageAdvancedSettings from './PageAdvancedSettings'
 import Part from './Part'
 import PageFooter, { LegendColumn, LegendItem } from './PageFooter'
@@ -24,6 +25,8 @@ export default function TabEditorNew() {
   const projectsHook = useProjects({ user: auth.user })
 
   const [projectName, setProjectName] = useState('')
+  const [artistName, setArtistName] = useState('')
+  const [albumName, setAlbumName] = useState('')
   const [bpm, setBpm] = useState('120')
   const [showLegend, setShowLegend] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -58,7 +61,9 @@ export default function TabEditorNew() {
   const countInRef = useRef(false)
   const audioContextRef = useRef<AudioContext | null>(null)
 
-  // Auto-save refs
+  // Save state
+  const [isDirty, setIsDirty] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasLoadedRef = useRef(false)
   const handleSaveRef = useRef<() => Promise<void>>(async () => {})
@@ -73,23 +78,38 @@ export default function TabEditorNew() {
   const [time, setTime] = useState('4/4')
   const [grid, setGrid] = useState('1/16')
 
-  // Create an empty bar using time signature, grid resolution, and string count
-  // Accepts optional overrides for per-part settings
-  const createEmptyBar = useCallback((overrides?: { time?: string; grid?: string }): BarGridProps => {
+  // Compute grid dimensions from time signature and note resolution
+  const getGridDimensions = useCallback((timeName: string, gridName: string) => {
     const numStrings = instrument === 'drums' ? drumLines.length : (parseInt(strings) || 6)
-    const effectiveTime = overrides?.time || time
-    const effectiveGrid = overrides?.grid || grid
-    const timeSig = TIME_SIGNATURES.find(t => t.label === effectiveTime) || TIME_SIGNATURES[0]
-    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === effectiveGrid) || NOTE_RESOLUTIONS[1]
-    const numBeats = timeSig.beats
+    const timeSig = TIME_SIGNATURES.find(t => t.label === timeName) || TIME_SIGNATURES[0]
+    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === gridName) || NOTE_RESOLUTIONS[2]
     const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+    return { numBeats: timeSig.beats, numStrings, cellsPerBeat }
+  }, [strings, instrument])
+
+  // Create an empty bar, with optional per-part time/grid overrides
+  const createEmptyBar = useCallback((overrides?: { time?: string; grid?: string }): BarGridProps => {
+    const { numBeats, numStrings, cellsPerBeat } = getGridDimensions(overrides?.time || time, overrides?.grid || grid)
     const data = Array.from({ length: numBeats }, () =>
       Array.from({ length: numStrings }, () =>
         Array.from({ length: cellsPerBeat }, () => '-')
       )
     )
     return { data, title: '' }
-  }, [strings, instrument, time, grid])
+  }, [getGridDimensions, time, grid])
+
+  // Rebuild a bar's data to match a new time/grid, preserving existing values where possible
+  const rebuildBar = useCallback((bar: { data: string[][][]; title: string }, newTime: string, newGrid: string) => {
+    const { numBeats, numStrings, cellsPerBeat } = getGridDimensions(newTime, newGrid)
+    const data = Array.from({ length: numBeats }, (_, beatIdx) =>
+      Array.from({ length: numStrings }, (_, rowIdx) =>
+        Array.from({ length: cellsPerBeat }, (_, cellIdx) =>
+          bar.data[beatIdx]?.[rowIdx]?.[cellIdx] ?? '-'
+        )
+      )
+    )
+    return { ...bar, data }
+  }, [getGridDimensions])
 
   // Parts state (bpm/time/grid are optional per-part overrides)
   const [parts, setParts] = useState([
@@ -196,6 +216,7 @@ export default function TabEditorNew() {
     const isDropTuning = instrument !== 'drums' && tuning === 'drop'
 
     pushHistory()
+    hasLoadedRef.current = true
 
     setParts(prev => prev.map(p => {
       if (p.id !== partId) return p
@@ -464,7 +485,7 @@ export default function TabEditorNew() {
     // Global defaults (used when part has no override)
     const globalBpm = parseInt(bpm) || 120
     const globalTimeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
-    const globalNoteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
+    const globalNoteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[2]
 
     // Compute msPerCell for a given part (uses per-part overrides with global fallback)
     const getMsPerCell = (part: { bpm?: string; time?: string; grid?: string }) => {
@@ -717,7 +738,7 @@ export default function TabEditorNew() {
   // Save project to localStorage and cloud
   const handleSave = useCallback(async () => {
     const timeSignature = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
-    const noteResolution = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[1]
+    const noteResolution = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[2]
     const numStrings = parseInt(strings) || 6
 
     // Convert parts into sections and tabData for the LocalProject format
@@ -747,6 +768,8 @@ export default function TabEditorNew() {
       id: projectId,
       ...(cloudId ? { cloudId } : {}),
       projectName: projectName || 'Untitled',
+      artistName: artistName || '',
+      albumName: albumName || '',
       bpm: parseInt(bpm) || 120,
       timeSignature,
       noteResolution,
@@ -764,6 +787,7 @@ export default function TabEditorNew() {
       updatedAt: new Date().toISOString(),
     }
 
+    setIsSaving(true)
     saveLocalProject(project)
     const result = await projectsHook.saveProject(project)
     if (result?.project?.cloudId && !cloudId) {
@@ -772,7 +796,9 @@ export default function TabEditorNew() {
     if (result?.success) {
       trackEvent('project_save', { instrument }, cloudId || result?.project?.cloudId)
     }
-  }, [projectId, cloudId, projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
+    setIsDirty(false)
+    setIsSaving(false)
+  }, [projectId, cloudId, projectName, artistName, albumName, bpm, instrument, strings, tuning, keySignature, time, grid, parts, projectsHook])
 
   // Keep ref in sync for auto-save
   handleSaveRef.current = handleSave
@@ -784,6 +810,8 @@ export default function TabEditorNew() {
     setCloudId(project.cloudId || null)
     setCurrentProjectId(project.id)
     setProjectName(project.projectName)
+    setArtistName(project.artistName || '')
+    setAlbumName(project.albumName || '')
     setBpm(String(project.bpm))
     setKeySignature(project.projectKey)
     setTime(project.timeSignature?.label || '4/4')
@@ -806,7 +834,7 @@ export default function TabEditorNew() {
 
     // Derive beat/cell counts from the project's saved time signature and resolution
     const timeSig = project.timeSignature || TIME_SIGNATURES[0]
-    const noteRes = project.noteResolution || NOTE_RESOLUTIONS[1]
+    const noteRes = project.noteResolution || NOTE_RESOLUTIONS[2]
     const projectNumBeats = timeSig.beats
     const projectCellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
 
@@ -852,6 +880,7 @@ export default function TabEditorNew() {
 
     setSelectedCell(null)
     setShowLibrary(false)
+    setIsDirty(false)
 
     // Mark as loaded to enable auto-save
     hasLoadedRef.current = true
@@ -868,6 +897,8 @@ export default function TabEditorNew() {
     setCloudId(null)
     setCurrentProjectId(null)
     setProjectName('')
+    setArtistName('')
+    setAlbumName('')
     setBpm('120')
     setInstrument('guitar')
     setStrings('6')
@@ -883,6 +914,7 @@ export default function TabEditorNew() {
 
     setSelectedCell(null)
     setShowLibrary(false)
+    setIsDirty(false)
 
     // Mark as loaded to enable auto-save
     hasLoadedRef.current = true
@@ -899,6 +931,8 @@ export default function TabEditorNew() {
       return
     }
 
+    setIsDirty(true)
+
     // Clear any pending auto-save
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current)
@@ -914,7 +948,7 @@ export default function TabEditorNew() {
         clearTimeout(autoSaveTimerRef.current)
       }
     }
-  }, [projectName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
+  }, [projectName, artistName, albumName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
 
   // Restore active project on mount (after projects finish loading)
   useEffect(() => {
@@ -986,6 +1020,13 @@ export default function TabEditorNew() {
     <div className={styles.container}>
       {/* Print Header (hidden on screen, shown in print) */}
       <div className={styles.printHeader}>
+        {(artistName || albumName) && (
+          <div className={styles.printSubtitle}>
+            {artistName && <span>{artistName}</span>}
+            {artistName && albumName && <span> — </span>}
+            {albumName && <span>{albumName}</span>}
+          </div>
+        )}
         <h1 className={styles.printTitle}>{projectName || 'Untitled'}</h1>
         <div className={styles.printMeta}>
           <span>{instrument.charAt(0).toUpperCase() + instrument.slice(1)}</span>
@@ -1002,11 +1043,31 @@ export default function TabEditorNew() {
             <Menu size={16} />
           </UiButton>
           <UiInput
-            placeholder="Project Name"
+            placeholder="Artist"
+            value={artistName}
+            onChange={(e) => setArtistName(e.target.value)}
+            className={styles.artistInput}
+          />
+          <UiInput
+            placeholder="Album"
+            value={albumName}
+            onChange={(e) => setAlbumName(e.target.value)}
+            className={styles.albumInput}
+          />
+          <UiInput
+            placeholder="Song Title"
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             className={styles.projectInput}
           />
+          <UiButton
+            variant="action"
+            disabled={!isDirty || isSaving}
+            onClick={() => { hasLoadedRef.current = true; handleSave() }}
+          >
+            <Save size={16} />
+            {isDirty ? 'Save' : 'Saved'}
+          </UiButton>
         </div>
 
         <div className={styles.headerCenter}>
@@ -1020,7 +1081,7 @@ export default function TabEditorNew() {
             <Repeat size={16} />
           </UiButton>
           <UiButton variant="secondary" selected={clickTrack} onClick={() => setClickTrack(!clickTrack)} title="Click track">
-            <Volume2 size={16} />
+            <Drum size={16} />
           </UiButton>
           <UiButton variant="secondary" selected={countIn} onClick={() => setCountIn(!countIn)} title="Count-in">
             <Timer size={16} />
@@ -1030,18 +1091,16 @@ export default function TabEditorNew() {
             onChange={(e) => setBpm(e.target.value)}
             className={styles.bpmInput}
           />
-          <div className={styles.speedControl}>
-            {[0.25, 0.5, 0.75, 1].map(speed => (
-              <button
-                key={speed}
-                className={`${styles.speedButton} ${playbackSpeed === speed ? styles.speedActive : ''}`}
-                onClick={() => setPlaybackSpeed(speed)}
-                title={`${speed * 100}% speed`}
-              >
-                {speed === 1 ? '1×' : `${speed * 100}%`}
-              </button>
-            ))}
-          </div>
+          <UiSelect
+            className={styles.speedSelect}
+            value={playbackSpeed}
+            onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+          >
+            <option value={0.25}>25%</option>
+            <option value={0.5}>50%</option>
+            <option value={0.75}>75%</option>
+            <option value={1}>100%</option>
+          </UiSelect>
         </div>
 
         <div className={styles.headerRight}>
@@ -1121,8 +1180,23 @@ export default function TabEditorNew() {
         onStringsChange={setStrings}
         onTuningChange={setTuning}
         onKeyChange={setKeySignature}
-        onTimeChange={setTime}
-        onGridChange={setGrid}
+        onTimeChange={(value) => {
+          setTime(value)
+          const sig = TIME_SIGNATURES.find(t => t.label === value)
+          const newGrid = sig && sig.noteValue === 8 ? '1/8' : '1/16'
+          setGrid(newGrid)
+          setParts(prev => prev.map(p => {
+            if (p.time) return p // part has its own override, skip
+            return { ...p, bars: p.bars.map(b => rebuildBar(b, value, p.grid || newGrid)) }
+          }))
+        }}
+        onGridChange={(value) => {
+          setGrid(value)
+          setParts(prev => prev.map(p => {
+            if (p.grid) return p // part has its own override, skip
+            return { ...p, bars: p.bars.map(b => rebuildBar(b, p.time || time, value)) }
+          }))
+        }}
         projectId={cloudId}
       />}
 
@@ -1178,30 +1252,57 @@ export default function TabEditorNew() {
               setParts(parts.map(p => p.id === part.id ? { ...p, bpm: value || undefined } : p))
             }}
             onTimeChange={(value) => {
-              setParts(parts.map(p => p.id === part.id ? { ...p, time: value || undefined } : p))
+              const sig = TIME_SIGNATURES.find(t => t.label === value)
+              const newGrid = sig ? (sig.noteValue === 8 ? '1/8' : '1/16') : undefined
+              const effectiveTime = value || time
+              const effectiveGrid = newGrid || grid
+              setParts(parts.map(p => p.id === part.id
+                ? { ...p, time: value || undefined, grid: newGrid, bars: p.bars.map(b => rebuildBar(b, effectiveTime, effectiveGrid)) }
+                : p
+              ))
             }}
             onGridChange={(value) => {
-              setParts(parts.map(p => p.id === part.id ? { ...p, grid: value || undefined } : p))
+              const effectiveTime = part.time || time
+              const effectiveGrid = value || grid
+              setParts(parts.map(p => p.id === part.id
+                ? { ...p, grid: value || undefined, bars: p.bars.map(b => rebuildBar(b, effectiveTime, effectiveGrid)) }
+                : p
+              ))
             }}
-            onAddBar={() => {
+            onAddBar={(barIndex) => {
               pushHistory()
-              const refBar = part.bars[0]
+              const refBar = part.bars[barIndex] || part.bars[0]
               const newBar = refBar
-                ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: `BAR ${part.bars.length + 1}` }
-                : { ...createEmptyBar({ time: part.time, grid: part.grid }), title: `BAR ${part.bars.length + 1}` }
-              setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, newBar] } : p))
+                ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: '' }
+                : { ...createEmptyBar({ time: part.time, grid: part.grid }), title: '' }
+              setParts(parts.map(p => {
+                if (p.id !== part.id) return p
+                const newBars = [...p.bars]
+                newBars.splice(barIndex + 1, 0, newBar)
+                return { ...p, bars: newBars.map((b, i) => ({ ...b, title: `BAR ${i + 1}` })) }
+              }))
             }}
-            onRemoveBar={() => {
+            onRemoveBar={(barIndex) => {
               if (part.bars.length > 1) {
                 pushHistory()
-                setParts(parts.map(p => p.id === part.id ? { ...p, bars: p.bars.slice(0, -1) } : p))
+                setParts(parts.map(p => {
+                  if (p.id !== part.id) return p
+                  const newBars = p.bars.filter((_, i) => i !== barIndex)
+                  return { ...p, bars: newBars.map((b, i) => ({ ...b, title: `BAR ${i + 1}` })) }
+                }))
               }
             }}
-            onCopyBar={() => {
-              const lastBar = part.bars[part.bars.length - 1]
-              if (lastBar) {
+            onCopyBar={(barIndex) => {
+              const bar = part.bars[barIndex]
+              if (bar) {
                 pushHistory()
-                setParts(parts.map(p => p.id === part.id ? { ...p, bars: [...p.bars, { ...lastBar, data: lastBar.data.map(b => b.map(r => [...r])), title: `BAR ${p.bars.length + 1}` }] } : p))
+                setParts(parts.map(p => {
+                  if (p.id !== part.id) return p
+                  const copy = { ...bar, data: bar.data.map(b => b.map(r => [...r])), title: '' }
+                  const newBars = [...p.bars]
+                  newBars.splice(barIndex + 1, 0, copy)
+                  return { ...p, bars: newBars.map((b, i) => ({ ...b, title: `BAR ${i + 1}` })) }
+                }))
               }
             }}
             onDelete={() => {

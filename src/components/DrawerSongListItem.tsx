@@ -3,6 +3,7 @@ import styles from './DrawerSongListItem.module.scss'
 
 export interface DrawerSongListItemProps extends HTMLAttributes<HTMLDivElement> {
   songName: string
+  artistName?: string
   updated?: string
   bpm?: string | number
   timeSignature?: string
@@ -12,6 +13,7 @@ export interface DrawerSongListItemProps extends HTMLAttributes<HTMLDivElement> 
 
 const DrawerSongListItem = forwardRef<HTMLDivElement, DrawerSongListItemProps>(({
   songName,
+  artistName,
   updated,
   bpm,
   timeSignature,
@@ -29,6 +31,7 @@ const DrawerSongListItem = forwardRef<HTMLDivElement, DrawerSongListItemProps>((
   return (
     <div ref={ref} className={classNames} {...props}>
       <div className={styles.content}>
+        {artistName && <span className={styles.artistName}>{artistName}</span>}
         <span className={styles.songName}>{songName}</span>
         <div className={styles.meta}>
           {updated && <span className={styles.updated}>{updated}</span>}

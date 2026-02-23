@@ -47,7 +47,7 @@ export function BarGridRow({
   return (
     <div className={styles.row}>
       {cells.map((value, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+        <div key={i} style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
           {i > 0 && i % cellsPerBeat === 0 && (
             <div className={styles.beatDivider} />
           )}
@@ -116,6 +116,7 @@ export interface BarGridProps {
   onCellMouseDown?: (beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (beat: number, row: number, cell: number) => void
   onBarTitleClick?: () => void
+  showLeftBoundary?: boolean
   className?: string
 }
 
@@ -129,15 +130,16 @@ export default function BarGrid({
   onCellMouseDown,
   onCellMouseEnter,
   onBarTitleClick,
+  showLeftBoundary = true,
   className
 }: BarGridProps) {
   return (
     <div className={`${styles.barGrid} ${className || ''}`}>
       {title && <span className={styles.barTitle} onClick={onBarTitleClick}>{title}</span>}
       <div className={styles.bars}>
-        <div className={`${styles.dividerVertical} ${styles.barBoundary}`} />
+        {showLeftBoundary && <div className={`${styles.dividerVertical} ${styles.barBoundary}`} />}
         {data.map((beatData, beatIndex) => (
-          <div key={beatIndex} style={{ display: 'flex', alignItems: 'center' }}>
+          <div key={beatIndex} style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
             <BarGridPartial
               rows={beatData}
               cellsPerBeat={cellsPerBeat}

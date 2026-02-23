@@ -57,6 +57,7 @@ $_control-height-small: 28px;
 }
 
 .partBpm {
+  width: 60px;
   height: $_control-height;
   padding: $space-sm $space-md;
   font-family: $font-mono;
@@ -128,7 +129,6 @@ $_control-height-small: 28px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0;
   padding: $space-lg;
   width: 100%;
   overflow: hidden;
@@ -139,6 +139,7 @@ $_control-height-small: 28px;
   display: flex;
   align-items: flex-start;
   gap: $space-sm;
+  width: 100%;
 }
 
 // String labels column
@@ -174,18 +175,93 @@ $_control-height-small: 28px;
 // Bars container
 .barsContainer {
   display: flex;
-  align-items: center;
-  gap: $space-sm;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
-// Bar action buttons
-.barButtons {
+// Per-bar wrapper
+.barWrapper {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: $space-sm;
-  padding-top: 18px;
+  width: 25%;
+  min-width: 0;
+}
+
+// Bar header (title + actions)
+.barHeader {
+  display: flex;
+  align-items: baseline;
+  gap: $space-md;
+  padding-left: 1px;
+  margin-bottom: $space-sm;
+}
+
+.barTitle {
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  color: $color-text;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-bright;
+  }
+}
+
+// Per-bar action links
+.barActions {
+  display: flex;
+  gap: $space-xs;
+  opacity: 0;
+  transition: opacity $transition-fast;
+
+  .barWrapper:hover & {
+    opacity: 1;
+  }
+}
+
+.barAction {
+  font-family: $font-mono;
+  font-size: 9px;
+  border: none;
+  border-radius: $radius-sm;
+  padding: 1px 5px;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.2;
+}
+
+.barActionAdd {
+  color: $color-green;
+  background: rgba($color-green, 0.12);
+
+  &:hover {
+    color: $color-green;
+    background: rgba($color-green, 0.25);
+  }
+}
+
+.barActionDup {
+  color: $color-accent;
+  background: rgba($color-accent, 0.12);
+
+  &:hover {
+    color: $color-accent;
+    background: rgba($color-accent, 0.25);
+  }
+}
+
+.barActionDanger {
+  color: $color-red;
+  background: rgba($color-red, 0.12);
+
+  &:hover {
+    color: $color-red;
+    background: rgba($color-red, 0.25);
+  }
 }
 
 // Print styles
@@ -212,7 +288,7 @@ $_control-height-small: 28px;
     box-shadow: none !important;
   }
 
-  .barButtons {
+  .barActions {
     display: none !important;
   }
 

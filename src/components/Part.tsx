@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Plus, Minus, CopyPlus, Trash2 } from 'lucide-react'
+import { Trash2, CopyPlus } from 'lucide-react'
 import UiButton from './UiButton'
 import UiInput from './UiInput'
 import BarGrid, { type BarGridProps } from './BarGrid'
@@ -25,9 +25,9 @@ export interface PartProps {
   onGridChange?: (value: string) => void
   onDuplicate?: () => void
   onDelete?: () => void
-  onAddBar?: () => void
-  onRemoveBar?: () => void
-  onCopyBar?: () => void
+  onAddBar?: (barIndex: number) => void
+  onRemoveBar?: (barIndex: number) => void
+  onCopyBar?: (barIndex: number) => void
   onCellClick?: (barIndex: number, beat: number, row: number, cell: number) => void
   onCellMouseDown?: (barIndex: number, beat: number, row: number, cell: number, e: React.MouseEvent) => void
   onCellMouseEnter?: (barIndex: number, beat: number, row: number, cell: number) => void
@@ -103,7 +103,7 @@ export default function Part({
             onChange={(e) => onTimeChange?.(e.target.value)}
           >
             <option value="">{globalTime}</option>
-            {timeOptions.map(t => (
+            {timeOptions.filter(t => t.label !== globalTime).map(t => (
               <option key={t.label} value={t.label}>{t.label}</option>
             ))}
           </select>
@@ -113,7 +113,7 @@ export default function Part({
             onChange={(e) => onGridChange?.(e.target.value)}
           >
             <option value="">{globalGrid}</option>
-            {gridOptions.map(g => (
+            {gridOptions.filter(g => g.label !== globalGrid).map(g => (
               <option key={g.label} value={g.label}>{g.label}</option>
             ))}
           </select>
@@ -150,28 +150,27 @@ export default function Part({
           {/* Bars */}
           <div className={styles.barsContainer}>
             {children || bars.map((barProps, barIndex) => (
-              <BarGrid
-                key={barIndex}
-                {...barProps}
-                onCellClick={(beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
-                onCellMouseDown={(beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
-                onCellMouseEnter={(beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
-                onBarTitleClick={() => onBarTitleClick?.(barIndex)}
-              />
+              <div key={barIndex} className={styles.barWrapper}>
+                <div className={styles.barHeader}>
+                  <span className={styles.barTitle} onClick={() => onBarTitleClick?.(barIndex)}>{barProps.title}</span>
+                  <div className={styles.barActions}>
+                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
+                    <span className={`${styles.barAction} ${styles.barActionDup}`} onClick={() => onCopyBar?.(barIndex)}>Duplicate</span>
+                    {bars.length > 1 && (
+                      <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
+                    )}
+                  </div>
+                </div>
+                <BarGrid
+                  {...barProps}
+                  title={undefined}
+                  showLeftBoundary={barIndex === 0}
+                  onCellClick={(beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
+                  onCellMouseDown={(beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
+                  onCellMouseEnter={(beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}
+                />
+              </div>
             ))}
-          </div>
-
-          {/* Bar Action Buttons */}
-          <div className={styles.barButtons}>
-            <UiButton variant="action" size="small" onClick={onAddBar}>
-              <Plus size={12} />
-            </UiButton>
-            <UiButton variant="secondary" size="small" onClick={onRemoveBar}>
-              <Minus size={12} />
-            </UiButton>
-            <UiButton variant="secondary" size="small" onClick={onCopyBar}>
-              <CopyPlus size={12} />
-            </UiButton>
           </div>
         </div>
       </div>

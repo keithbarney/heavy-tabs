@@ -117,6 +117,7 @@ export default function Library({
               <DrawerSongListItem
                 key={project.cloudId || project.id}
                 songName={project.projectName || 'Untitled'}
+                artistName={project.artistName}
                 updated={formatDate(project.updatedAt)}
                 bpm={project.bpm || 120}
                 timeSignature={project.timeSignature?.label || '4/4'}
