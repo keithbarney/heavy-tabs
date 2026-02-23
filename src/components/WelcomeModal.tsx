@@ -41,12 +41,16 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (!isOpen) return
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose()
+      if (e.key === 'Enter') {
+        if (step >= steps.length - 1) handleClose()
+        else setStep(s => s + 1)
+      }
     }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, handleClose])
+    document.addEventListener('keydown', handleKeydown)
+    return () => document.removeEventListener('keydown', handleKeydown)
+  }, [isOpen, handleClose, step])
 
   if (!isOpen) return null
 

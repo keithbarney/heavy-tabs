@@ -87,16 +87,14 @@ export const TIME_SIGNATURES: TimeSignature[] = [
 
 // Note resolution presets (cells per quarter note)
 export const NOTE_RESOLUTIONS: NoteResolution[] = [
-  { label: '1/32', perQuarter: 8 },
-  { label: '1/16', perQuarter: 4 },
-  { label: '1/8', perQuarter: 2 },
   { label: '1/4', perQuarter: 1 },
-  { label: '1/2', perQuarter: 0.5 },
-  { label: '1/32T', perQuarter: 12 },
-  { label: '1/16T', perQuarter: 6 },
-  { label: '1/8T', perQuarter: 3 },
+  { label: '1/8', perQuarter: 2 },
+  { label: '1/16', perQuarter: 4 },
+  { label: '1/32', perQuarter: 8 },
   { label: '1/4T', perQuarter: 1.5 },
-  { label: '1/2T', perQuarter: 0.75 },
+  { label: '1/8T', perQuarter: 3 },
+  { label: '1/16T', perQuarter: 6 },
+  { label: '1/32T', perQuarter: 12 },
 ]
 
 // Section colors for visual organization

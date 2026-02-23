@@ -1,7 +1,13 @@
 import type { LocalProject, Project } from '@/types'
+import { MOCK_PROJECTS } from './mockData'
 
 const PROJECTS_KEY = 'tabEditorProjects'
 const ACTIVE_PROJECT_KEY = 'activeProjectId'
+
+// Seed demo song for new users when localStorage is empty
+if (!localStorage.getItem(PROJECTS_KEY)) {
+  localStorage.setItem(PROJECTS_KEY, JSON.stringify(MOCK_PROJECTS))
+}
 
 // Get all local projects
 export function getLocalProjects(): LocalProject[] {
