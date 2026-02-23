@@ -165,7 +165,7 @@ export default function Part({
                 {...barProps}
                 title={undefined}
                 stringLabels={stringLabels}
-                showLeftBoundary={barIndex === 0}
+                showLeftBoundary
                 onCellClick={readOnly ? undefined : (beat, row, cell) => onCellClick?.(barIndex, beat, row, cell)}
                 onCellMouseDown={readOnly ? undefined : (beat, row, cell, e) => onCellMouseDown?.(barIndex, beat, row, cell, e)}
                 onCellMouseEnter={readOnly ? undefined : (beat, row, cell) => onCellMouseEnter?.(barIndex, beat, row, cell)}

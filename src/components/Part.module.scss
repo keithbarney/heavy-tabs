@@ -251,12 +251,13 @@ $_control-height-small: 28px;
   overflow: hidden;
 }
 
-// Desktop: only show string label column on first bar
-.barWrapper:not(:first-child) [data-label-column] {
+// Desktop: only show labels and left boundary on first bar
+.barWrapper:not(:first-child) [data-label-column],
+.barWrapper:not(:first-child) [data-left-boundary] {
   display: none;
 }
 
-// Tablet: 2 bars per row
+// Tablet: 2 bars per row, show labels on first bar of each row
 @media (max-width: 1000px) {
   .barsContainer {
     row-gap: $space-md;
@@ -265,9 +266,14 @@ $_control-height-small: 28px;
   .barWrapper {
     width: 50%;
   }
+
+  .barWrapper:nth-child(odd) [data-label-column],
+  .barWrapper:nth-child(odd) [data-left-boundary] {
+    display: flex;
+  }
 }
 
-// Mobile: 1 bar per row, compact layout, per-bar string labels
+// Mobile: 1 bar per row, compact layout
 @media (max-width: 575px) {
   .header {
     flex-wrap: wrap;
@@ -294,8 +300,9 @@ $_control-height-small: 28px;
     width: 100%;
   }
 
-  // Show label column on every bar when bars stack
-  .barWrapper:not(:first-child) [data-label-column] {
+  // Show label column and left boundary on every bar when bars stack
+  .barWrapper:not(:first-child) [data-label-column],
+  .barWrapper:not(:first-child) [data-left-boundary] {
     display: flex;
   }
 }
@@ -351,9 +358,7 @@ $_control-height-small: 28px;
     padding: $space-xs $space-sm $space-xs 0;
   }
 
-  // Show per-bar string labels on wrapped rows (since the left column
-  // only aligns with the first row)
-  .barsContainer {
+    .barsContainer {
     gap: $space-md $space-lg;
   }
 
@@ -361,12 +366,14 @@ $_control-height-small: 28px;
     width: calc(50% - $space-lg / 2);
   }
 
-  // Show label column on all bars, hide on right bar of each row
-  .barWrapper:not(:first-child) [data-label-column] {
+  // Show label column and left boundary on odd bars, hide on even
+  .barWrapper:not(:first-child) [data-label-column],
+  .barWrapper:not(:first-child) [data-left-boundary] {
     display: flex;
   }
 
-  .barWrapper:nth-child(even) [data-label-column] {
+  .barWrapper:nth-child(even) [data-label-column],
+  .barWrapper:nth-child(even) [data-left-boundary] {
     display: none;
   }
 }

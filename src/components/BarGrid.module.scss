@@ -115,8 +115,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  min-width: 0;
   height: $cell-height;
   font-family: $font-mono;
   font-size: $font-size-xs;
@@ -124,6 +122,14 @@
   line-height: 10px;
   color: $color-placeholder;
   user-select: none;
+}
+
+// Flex wrapper for beats and cells
+.flexItem {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 
 // Beat divider (darker line between cells in a row)
@@ -137,16 +143,6 @@
 @media print {
   .barGrid {
     break-inside: avoid;
-  }
-
-  // Every bar gets a left boundary in print (handles wrapped rows)
-  .bars {
-    border-left: 1px solid #000;
-  }
-
-  // Hide the JS-rendered left boundary div on bar 0 to avoid doubling
-  .bars > .barBoundary:first-child {
-    display: none;
   }
 
   .cell {

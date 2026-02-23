@@ -47,7 +47,7 @@ export function BarGridRow({
   return (
     <div className={styles.row}>
       {cells.map((value, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+        <div key={i} className={styles.flexItem}>
           {i > 0 && i % cellsPerBeat === 0 && (
             <div className={styles.beatDivider} />
           )}
@@ -149,9 +149,9 @@ export default function BarGrid({
             ))}
           </div>
         )}
-        {showLeftBoundary && <div className={`${styles.dividerVertical} ${styles.barBoundary}`} />}
+        {showLeftBoundary && <div className={`${styles.dividerVertical} ${styles.barBoundary}`} data-left-boundary />}
         {data.map((beatData, beatIndex) => (
-          <div key={beatIndex} style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+          <div key={beatIndex} className={styles.flexItem}>
             <BarGridPartial
               rows={beatData}
               cellsPerBeat={cellsPerBeat}
