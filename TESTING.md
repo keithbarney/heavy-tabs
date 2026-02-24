@@ -1541,3 +1541,82 @@
 
 **When** I click "Upgrade to Pro — $10"
 **Then** an `upgrade_modal_click` event fires
+
+---
+
+## Palm Mute Annotations
+
+### US-133: Apply palm mute annotation via keyboard
+**As a** guitarist,
+**I want** to select a range of cells and press Shift+M to apply a palm mute annotation,
+**So that** I can notate palm-muted sections without overwriting fret numbers.
+
+**Given** I have cells selected (click or drag)
+**When** I press Shift+M
+**Then** a PM annotation row appears below the last string row, showing "PM" at the start of the range and "–" for continuation cells
+
+---
+
+### US-134: Apply palm mute annotation via button
+**As a** guitarist,
+**I want** to click the "Palm Mute" button to apply a palm mute annotation,
+**So that** I have a discoverable UI option for adding annotations.
+
+**Given** I have cells selected
+**When** I click the "Palm Mute" button in the chord toolbar
+**Then** a PM annotation is applied to the selected range (same as Shift+M)
+
+---
+
+### US-135: Toggle palm mute annotation off
+**As a** guitarist,
+**I want** to remove a palm mute annotation by selecting the same range and pressing Shift+M again,
+**So that** I can correct mistakes.
+
+**Given** a PM annotation exists on cells 0–7
+**When** I select the same range (cells 0–7) and press Shift+M
+**Then** the annotation is removed and the PM row disappears if no annotations remain
+
+---
+
+### US-136: Palm mute annotation row is non-interactive
+**As a** guitarist,
+**I want** the PM annotation row to be display-only,
+**So that** I don't accidentally click or select annotation cells.
+
+**Given** a bar has a PM annotation row visible
+**When** I hover over or click the PM annotation cells
+**Then** nothing happens — no hover highlight, no selection, no cursor change
+
+---
+
+### US-137: Palm mute annotations persist across save/reload
+**As a** guitarist,
+**I want** my palm mute annotations to be saved and restored when I reload,
+**So that** I don't lose my work.
+
+**Given** I have applied PM annotations to one or more bars
+**When** I save the project and reload the page
+**Then** the PM annotations appear exactly as before
+
+---
+
+### US-138: Palm mute annotations span across beats
+**As a** guitarist,
+**I want** a palm mute annotation to span across beat boundaries within a bar,
+**So that** I can notate sustained palm muting across the full measure.
+
+**Given** I select cells spanning beats 1 through 3
+**When** I press Shift+M
+**Then** the PM annotation spans across all selected cells regardless of beat boundaries
+
+---
+
+### US-139: Palm Mute button disabled when no selection
+**As a** guitarist,
+**I want** the Palm Mute button to be disabled when no cells are selected,
+**So that** it's clear I need to select cells first.
+
+**Given** no cells are selected
+**When** I look at the chord toolbar
+**Then** the Palm Mute button appears disabled
