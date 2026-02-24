@@ -108,9 +108,9 @@ export function BarGridPartial({
               .filter(c => c.row === rowIndex)
               .map(c => c.cell)}
             playingCell={(playingCell?.row === rowIndex || playingCell?.row === -1) ? playingCell.cell : undefined}
-            onCellClick={(cell) => onCellClick?.(rowIndex, cell)}
-            onCellMouseDown={(cell, e) => onCellMouseDown?.(rowIndex, cell, e)}
-            onCellMouseEnter={(cell) => onCellMouseEnter?.(rowIndex, cell)}
+            onCellClick={rowIndex !== annotationRowIndex ? (cell) => onCellClick?.(rowIndex, cell) : undefined}
+            onCellMouseDown={rowIndex !== annotationRowIndex ? (cell, e) => onCellMouseDown?.(rowIndex, cell, e) : undefined}
+            onCellMouseEnter={rowIndex !== annotationRowIndex ? (cell) => onCellMouseEnter?.(rowIndex, cell) : undefined}
           />
         </div>
       ))}

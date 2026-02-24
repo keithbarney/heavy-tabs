@@ -110,6 +110,13 @@
 
   &.noBorders {
     border-right-color: transparent;
+    cursor: default;
+    pointer-events: none;
+
+    &:hover,
+    &:active {
+      background-color: transparent;
+    }
   }
 }
 
