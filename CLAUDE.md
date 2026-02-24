@@ -42,6 +42,7 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 - ✅ Landing page for conversions
 - ✅ Payment integration (Lemon Squeezy)
 - ✅ PDF export
+- ✅ Palm mute annotations (Shift+M / toolbar button, US-133–139)
 
 ### Next Priorities
 1. Get feedback from initial users
@@ -196,6 +197,14 @@ All buttons use `@include button-base` which provides:
 - Cell key format: `partId-barIndex-beat-row-cell` (5-part string)
 - Full column selection: clicking a cell selects all rows (strings) at that beat+cell position
 
+### Annotations (Palm Mute)
+- `BarAnnotation { type: 'pm', startCell: number, endCell: number }` — absolute cell indices across beats
+- Stored in `tabData` JSONB via `${instKey}-annotations` key (array of `BarAnnotation[]` per bar) — no DB migration needed
+- BarGrid augments beat data with a PM row appended to each beat's row array, ensuring pixel-perfect alignment
+- PM row cells are non-interactive (`pointer-events: none`, no event handlers)
+- Bar boundary dividers use `clip-path: inset(0 0 $cell-height 0)` to stop above PM row
+- Toggle via Shift+M or "Palm Mute" toolbar button — exact range match removes, otherwise replaces overlapping
+
 ### Inline Editable Fields
 Most input fields show as text until clicked:
 - Project name, BPM, section name, lyrics, bars count, repeat count
@@ -277,6 +286,7 @@ Most input fields show as text until clicked:
 | Ctrl+Z | Undo |
 | Ctrl+Shift+Z | Redo |
 | Ctrl+C/V | Copy/Paste |
+| Shift+M | Toggle palm mute annotation |
 | ? | Show shortcuts |
 
 ---
