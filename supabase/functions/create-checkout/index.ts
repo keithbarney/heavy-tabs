@@ -13,18 +13,25 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client with the user's auth token
-    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization') || ''
+    // Extract the JWT from the Authorization header
+    const authHeader = req.headers.get('authorization') || ''
+    const token = authHeader.replace('Bearer ', '')
+
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Create Supabase client and verify user by passing JWT directly
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get('SUPABASE_ANON_KEY')!
     )
 
-    // Verify user — this validates the JWT server-side
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      console.error('Auth failed:', authError?.message, 'Header present:', !!authHeader)
       return new Response(
         JSON.stringify({ error: 'Not authenticated' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

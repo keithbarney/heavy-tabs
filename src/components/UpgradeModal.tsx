@@ -30,10 +30,9 @@ export default function UpgradeModal({ isOpen, onClose, projectCount, isPro }: U
       }
 
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout')
-      console.log('create-checkout response:', { data, error: fnError })
       if (fnError || !data?.url) {
-        console.error('create-checkout failed:', fnError, 'data:', data)
-        setError(`Error: ${JSON.stringify(data || fnError?.message || 'Unknown error')}`)
+        console.error('create-checkout failed:', fnError)
+        setError('Something went wrong. Please try again.')
         return
       }
 
