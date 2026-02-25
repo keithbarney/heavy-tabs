@@ -45,6 +45,12 @@
   margin-bottom: $space-2xl;
 }
 
+.error {
+  font-size: $font-size-sm;
+  color: $color-red;
+  margin-bottom: $space-md;
+}
+
 .actions {
   display: flex;
   flex-direction: column;

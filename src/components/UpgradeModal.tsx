@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Lock } from 'lucide-react'
 import UiButton from './UiButton'
-import { FREE_PROJECT_LIMIT, STRIPE_UPGRADE_URL } from '@/lib/constants'
+import { FREE_PROJECT_LIMIT } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { trackEvent } from '@/lib/analytics'
 import styles from './UpgradeModal.module.scss'
@@ -16,24 +16,31 @@ interface UpgradeModalProps {
 export default function UpgradeModal({ isOpen, onClose, projectCount, isPro }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false)
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleUpgrade = useCallback(async () => {
     trackEvent('upgrade_modal_click')
     setLoading(true)
+    setError(null)
 
     try {
-      // Try edge function for Stripe Checkout Session
-      if (supabase) {
-        const { data, error } = await supabase.functions.invoke('create-checkout')
-        if (!error && data?.url) {
-          trackEvent('upgrade_checkout_started')
-          window.location.href = data.url
-          return
-        }
-        console.warn('create-checkout failed, falling back to payment link:', error)
+      if (!supabase) {
+        setError('Cloud features not configured')
+        return
       }
 
-      // Fallback to static Stripe Payment Link
-      window.open(STRIPE_UPGRADE_URL, '_blank')
+      const { data, error: fnError } = await supabase.functions.invoke('create-checkout')
+      if (fnError || !data?.url) {
+        console.error('create-checkout failed:', fnError)
+        setError('Something went wrong. Please try again.')
+        return
+      }
+
+      trackEvent('upgrade_checkout_started')
+      window.location.href = data.url
+    } catch (err) {
+      console.error('Upgrade error:', err)
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -64,6 +71,7 @@ export default function UpgradeModal({ isOpen, onClose, projectCount, isPro }: U
         <div className={styles.count}>
           {projectCount} of {FREE_PROJECT_LIMIT} free tabs used
         </div>
+        {error && <div className={styles.error}>{error}</div>}
         <div className={styles.actions}>
           <UiButton variant="action" onClick={handleUpgrade} disabled={loading}>
             {loading ? 'Loading…' : 'Unlock Unlimited Tabs — $10'}

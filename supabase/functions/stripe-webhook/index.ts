@@ -1,30 +1,49 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno'
+
+// Verify Stripe webhook signature using Web Crypto API (no Stripe SDK needed)
+async function verifySignature(body: string, signature: string, secret: string): Promise<boolean> {
+  const parts = signature.split(',')
+  const timestamp = parts.find(p => p.startsWith('t='))?.split('=')[1]
+  const v1Sig = parts.find(p => p.startsWith('v1='))?.split('=')[1]
+
+  if (!timestamp || !v1Sig) return false
+
+  const signedPayload = `${timestamp}.${body}`
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload))
+  const expectedSig = Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+
+  return expectedSig === v1Sig
+}
 
 serve(async (req) => {
   try {
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
-      apiVersion: '2023-10-16',
-    })
-
-    // Verify webhook signature
     const body = await req.text()
     const signature = req.headers.get('stripe-signature')
 
     if (!signature) {
+      console.error('Missing stripe-signature header')
       return new Response('Missing stripe-signature header', { status: 400 })
     }
 
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
-    let event: Stripe.Event
+    const valid = await verifySignature(body, signature, webhookSecret)
 
-    try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err)
+    if (!valid) {
+      console.error('Webhook signature verification failed')
       return new Response('Invalid signature', { status: 400 })
     }
+
+    const event = JSON.parse(body)
 
     // Only handle checkout.session.completed
     if (event.type !== 'checkout.session.completed') {
@@ -34,9 +53,9 @@ serve(async (req) => {
       })
     }
 
-    const session = event.data.object as Stripe.Checkout.Session
+    const session = event.data.object
     const userId = session.client_reference_id
-    const stripeCustomerId = session.customer as string | null
+    const stripeCustomerId = session.customer
 
     if (!userId) {
       console.error('No client_reference_id in checkout session')
@@ -53,7 +72,7 @@ serve(async (req) => {
       .from('profiles')
       .update({
         is_pro: true,
-        stripe_customer_id: stripeCustomerId,
+        stripe_customer_id: stripeCustomerId || null,
       })
       .eq('id', userId)
 
@@ -62,7 +81,7 @@ serve(async (req) => {
       return new Response('Database update failed', { status: 500 })
     }
 
-    console.log(`Pro upgrade complete for user ${userId}`)
+    console.log(`Upgrade complete for user ${userId}`)
 
     return new Response(JSON.stringify({ received: true }), {
       status: 200,

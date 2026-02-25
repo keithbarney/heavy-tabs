@@ -8,29 +8,36 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Verify user is authenticated
+    // Create Supabase client with the user's auth token
+    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization') || ''
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { global: { headers: { Authorization: authHeader } } }
     )
 
+    // Verify user — this validates the JWT server-side
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('Auth failed:', authError?.message, 'Header present:', !!authHeader)
       return new Response(
         JSON.stringify({ error: 'Not authenticated' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if already Pro
-    const { data: profile } = await supabase
+    // Check if already paid (use service role to bypass RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('is_pro')
       .eq('id', user.id)
@@ -38,7 +45,7 @@ serve(async (req) => {
 
     if (profile?.is_pro) {
       return new Response(
-        JSON.stringify({ error: 'Already a Pro user' }),
+        JSON.stringify({ error: 'Already unlocked' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
