@@ -28,5 +28,5 @@ https://heavytabs.app
 
 ## Pricing
 
-- Free: up to 10 projects
-- Pro: $10 one-time payment for unlimited projects
+- Free: up to 10 tabs
+- $10 one-time payment for unlimited tabs

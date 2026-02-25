@@ -63,7 +63,7 @@ export default function UpgradeSuccess({ auth }: UpgradeSuccessProps) {
             <div className={styles.iconCircle}>
               <CheckCircle size={32} />
             </div>
-            <h1 className={styles.title}>You're a Pro!</h1>
+            <h1 className={styles.title}>You're all set!</h1>
             <p className={styles.description}>
               Unlimited tabs unlocked. Redirecting to the editor…
             </p>

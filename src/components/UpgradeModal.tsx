@@ -59,14 +59,14 @@ export default function UpgradeModal({ isOpen, onClose, projectCount, isPro }: U
         </div>
         <h2 className={styles.title}>You've hit the free limit</h2>
         <p className={styles.description}>
-          Heavy Tabs lets you create up to {FREE_PROJECT_LIMIT} tabs for free. Upgrade to Pro for unlimited tabs — one-time $10 payment, yours forever.
+          Heavy Tabs lets you create up to {FREE_PROJECT_LIMIT} tabs for free. Unlock unlimited tabs with a one-time $10 payment — yours forever.
         </p>
         <div className={styles.count}>
           {projectCount} of {FREE_PROJECT_LIMIT} free tabs used
         </div>
         <div className={styles.actions}>
           <UiButton variant="action" onClick={handleUpgrade} disabled={loading}>
-            {loading ? 'Loading…' : 'Upgrade to Pro — $10'}
+            {loading ? 'Loading…' : 'Unlock Unlimited Tabs — $10'}
           </UiButton>
           <UiButton variant="secondary" onClick={onClose}>
             Maybe Later

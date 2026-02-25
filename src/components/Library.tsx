@@ -100,7 +100,7 @@ export default function Library({
         <div className={styles.header}>
           <h2 className={styles.title}>Projects</h2>
           <div className={styles.headerRight}>
-            <span className={styles.projectCount}>{isPro ? 'Pro' : `${projects.projects.length} / ${FREE_PROJECT_LIMIT}`}</span>
+            <span className={styles.projectCount}>{isPro ? projects.projects.length : `${projects.projects.length} / ${FREE_PROJECT_LIMIT}`}</span>
             <UiButton variant="action" onClick={handleNewProject}>
               <Plus size={16} />
               New Song

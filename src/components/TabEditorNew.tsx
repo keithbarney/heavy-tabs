@@ -1251,9 +1251,6 @@ export default function TabEditorNew() {
                       )}
                       <span className={styles.userMenuEmail}>{auth.user?.email}</span>
                     </div>
-                    {auth.user?.isPro && (
-                      <span className={styles.proBadge}>Pro</span>
-                    )}
                   </div>
                   <div className={styles.userMenuDivider} />
                   <button

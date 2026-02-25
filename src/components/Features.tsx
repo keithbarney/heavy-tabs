@@ -85,8 +85,8 @@ export default function Features() {
         <section className={styles.pricing}>
           <h2>Simple pricing</h2>
           <p>
-            Heavy Tabs is free for up to 10 projects. Need more?
-            Upgrade to Pro for a one-time payment of $10 — unlimited tabs, yours forever.
+            Heavy Tabs is free for up to 10 tabs. Need more?
+            Unlock unlimited tabs with a one-time $10 payment — yours forever.
           </p>
         </section>
 
