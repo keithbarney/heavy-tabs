@@ -1,0 +1,32 @@
+# Heavy Tabs
+
+> Free online guitar, bass, and drum tablature editor
+
+Heavy Tabs is a browser-based tab editor for writing guitar, bass, and drum tablature. No download or account required to start writing.
+
+## Features
+
+- Write guitar tabs with 6, 7, or 8 strings
+- Write bass tabs with 4, 5, or 6 strings
+- Write drum tabs with a 10-line kit (crash, ride, hi-hats, toms, snare, kick)
+- Standard and drop tunings with transposition by key
+- Instant audio playback with click track and loop mode
+- Techniques: hammer-on, pull-off, slide, bend, vibrato, palm mute
+- Power chord mode for fast riff entry
+- Palm mute annotation spans
+- Chord library with all major and minor chords
+- Undo/redo, copy/paste, keyboard shortcuts
+- Cloud sync across devices (free with account)
+- Share tabs via public link
+- Print / export to PDF
+- Works offline via localStorage
+- Dark theme
+
+## URL
+
+https://heavytabs.app
+
+## Pricing
+
+- Free: up to 10 projects
+- Pro: $10 one-time payment for unlimited projects

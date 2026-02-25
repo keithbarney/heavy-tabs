@@ -12,6 +12,7 @@ import AuthModal from '@/components/AuthModal'
 import WelcomeModal from '@/components/WelcomeModal'
 import PublicViewer from '@/components/PublicViewer'
 import UpgradeSuccess from '@/components/UpgradeSuccess'
+import Features from '@/components/Features'
 
 function App() {
   const auth = useAuth()
@@ -51,6 +52,12 @@ function App() {
         <Route
           path="/upgrade/success"
           element={<UpgradeSuccess auth={auth} />}
+        />
+
+        {/* Features page (SEO) */}
+        <Route
+          path="/features"
+          element={<Features />}
         />
 
         {/* Style guide */}
