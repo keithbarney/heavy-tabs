@@ -98,14 +98,11 @@ export default function Library({
     <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`} onClick={handleClose}>
       <div className={`${styles.panel} ${isClosing ? styles.panelClosing : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Projects</h2>
-          <div className={styles.headerRight}>
-            <span className={styles.projectCount}>{isPro ? projects.projects.length : `${projects.projects.length} / ${FREE_PROJECT_LIMIT}`}</span>
-            <UiButton variant="action" onClick={handleNewProject}>
-              <Plus size={16} />
-              New Song
-            </UiButton>
-          </div>
+          <h2 className={styles.title}>Projects ({projects.projects.length})</h2>
+          <UiButton variant="action" onClick={handleNewProject}>
+            <Plus size={16} />
+            New Song
+          </UiButton>
         </div>
 
         {message && (
