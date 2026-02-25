@@ -15,7 +15,7 @@ import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
 import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
-import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId } from '@/lib/storage'
+import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId, resetToDemo, getLocalProjects } from '@/lib/storage'
 import { trackEvent } from '@/lib/analytics'
 import type { LocalProject, BarAnnotation } from '@/types'
 import styles from './TabEditorNew.module.scss'
@@ -36,6 +36,7 @@ export default function TabEditorNew() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
+  const [showSignedOutModal, setShowSignedOutModal] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
   const [practiceMode, setPracticeMode] = useState(false)
   const [powerChordMode, setPowerChordMode] = useState(true)
@@ -1491,12 +1492,36 @@ export default function TabEditorNew() {
               </UiButton>
               <UiButton
                 variant="danger"
-                onClick={() => {
+                onClick={async () => {
                   setShowSignOutConfirm(false)
-                  auth.signOut()
+                  resetToDemo()
+                  await auth.signOut()
+                  setShowSignedOutModal(true)
                 }}
               >
                 Sign Out
+              </UiButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signed Out Confirmation Modal */}
+      {showSignedOutModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <h3>You've been signed out</h3>
+            <p>Your tabs are safe in the cloud — sign back in anytime to access them.</p>
+            <div className={styles.confirmActions}>
+              <UiButton
+                variant="primary"
+                onClick={() => {
+                  setShowSignedOutModal(false)
+                  const demo = getLocalProjects()[0]
+                  if (demo) loadProject(demo)
+                }}
+              >
+                OK
               </UiButton>
             </div>
           </div>

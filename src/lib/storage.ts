@@ -178,6 +178,12 @@ export function clearActiveProjectId(): void {
   localStorage.removeItem(ACTIVE_PROJECT_KEY)
 }
 
+// Reset localStorage to just the demo song (used on sign-out)
+export function resetToDemo(): void {
+  localStorage.setItem(PROJECTS_KEY, JSON.stringify(MOCK_PROJECTS))
+  localStorage.removeItem(ACTIVE_PROJECT_KEY)
+}
+
 // Generate unique ID
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 11)
