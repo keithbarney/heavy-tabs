@@ -1,0 +1,66 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: $color-bg;
+  padding: $space-lg;
+}
+
+.card {
+  @include card;
+  max-width: 400px;
+  width: 100%;
+  padding: $space-3xl;
+  text-align: center;
+}
+
+.iconCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba($color-green, 0.15);
+  color: $color-green;
+  margin-bottom: $space-lg;
+}
+
+.spinnerCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba($color-accent, 0.15);
+  color: $color-accent;
+  margin-bottom: $space-lg;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: 600;
+  color: $color-text-bright;
+  margin: 0 0 $space-sm;
+}
+
+.description {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  line-height: 1.6;
+  margin: 0;
+}

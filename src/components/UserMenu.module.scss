@@ -104,6 +104,18 @@
   color: $color-green;
 }
 
+.proBadge {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-xs;
+  font-weight: 500;
+  padding: 2px $space-sm;
+  border-radius: $radius-full;
+  background-color: rgba($color-green, 0.15);
+  color: $color-green;
+  white-space: nowrap;
+}
+
 .localBadge {
   background-color: rgba($color-text-muted, 0.15);
   color: $color-text-muted;

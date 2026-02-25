@@ -67,10 +67,14 @@ export default function UserMenu({ auth, onShowLibrary, onShare, canShare }: Use
               )}
               <span className={styles.menuEmail}>{user?.email}</span>
             </div>
-            <span className={styles.syncBadge}>
-              <Cloud size={12} />
-              Synced
-            </span>
+            {auth.user?.isPro ? (
+              <span className={styles.proBadge}>Pro</span>
+            ) : (
+              <span className={styles.syncBadge}>
+                <Cloud size={12} />
+                Synced
+              </span>
+            )}
           </div>
 
           <div className={styles.menuDivider} />

@@ -15,6 +15,7 @@ interface LibraryProps {
   onSelectProject: (project: LocalProject) => void
   onNewProject: () => void
   onShowUpgradeModal: () => void
+  isPro?: boolean
   message?: string | null
 }
 
@@ -26,6 +27,7 @@ export default function Library({
   onSelectProject,
   onNewProject,
   onShowUpgradeModal,
+  isPro,
   message,
 }: LibraryProps) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -65,7 +67,7 @@ export default function Library({
   }
 
   const handleNewProject = () => {
-    if (projects.projects.length >= FREE_PROJECT_LIMIT) {
+    if (!isPro && projects.projects.length >= FREE_PROJECT_LIMIT) {
       onShowUpgradeModal()
     } else {
       onNewProject()
@@ -98,7 +100,7 @@ export default function Library({
         <div className={styles.header}>
           <h2 className={styles.title}>Projects</h2>
           <div className={styles.headerRight}>
-            <span className={styles.projectCount}>{projects.projects.length} / {FREE_PROJECT_LIMIT}</span>
+            <span className={styles.projectCount}>{isPro ? 'Pro' : `${projects.projects.length} / ${FREE_PROJECT_LIMIT}`}</span>
             <UiButton variant="action" onClick={handleNewProject}>
               <Plus size={16} />
               New Song

@@ -1,7 +1,8 @@
-import { useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Lock } from 'lucide-react'
 import UiButton from './UiButton'
 import { FREE_PROJECT_LIMIT, STRIPE_UPGRADE_URL } from '@/lib/constants'
+import { supabase } from '@/lib/supabase'
 import { trackEvent } from '@/lib/analytics'
 import styles from './UpgradeModal.module.scss'
 
@@ -9,12 +10,33 @@ interface UpgradeModalProps {
   isOpen: boolean
   onClose: () => void
   projectCount: number
+  isPro?: boolean
 }
 
-export default function UpgradeModal({ isOpen, onClose, projectCount }: UpgradeModalProps) {
-  const handleUpgrade = useCallback(() => {
+export default function UpgradeModal({ isOpen, onClose, projectCount, isPro }: UpgradeModalProps) {
+  const [loading, setLoading] = useState(false)
+
+  const handleUpgrade = useCallback(async () => {
     trackEvent('upgrade_modal_click')
-    window.open(STRIPE_UPGRADE_URL, '_blank')
+    setLoading(true)
+
+    try {
+      // Try edge function for Stripe Checkout Session
+      if (supabase) {
+        const { data, error } = await supabase.functions.invoke('create-checkout')
+        if (!error && data?.url) {
+          trackEvent('upgrade_checkout_started')
+          window.location.href = data.url
+          return
+        }
+        console.warn('create-checkout failed, falling back to payment link:', error)
+      }
+
+      // Fallback to static Stripe Payment Link
+      window.open(STRIPE_UPGRADE_URL, '_blank')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -27,7 +49,7 @@ export default function UpgradeModal({ isOpen, onClose, projectCount }: UpgradeM
     return () => document.removeEventListener('keydown', handleKeydown)
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen || isPro) return null
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -43,8 +65,8 @@ export default function UpgradeModal({ isOpen, onClose, projectCount }: UpgradeM
           {projectCount} of {FREE_PROJECT_LIMIT} free tabs used
         </div>
         <div className={styles.actions}>
-          <UiButton variant="action" onClick={handleUpgrade}>
-            Upgrade to Pro — $10
+          <UiButton variant="action" onClick={handleUpgrade} disabled={loading}>
+            {loading ? 'Loading…' : 'Upgrade to Pro — $10'}
           </UiButton>
           <UiButton variant="secondary" onClick={onClose}>
             Maybe Later

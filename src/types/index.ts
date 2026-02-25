@@ -112,6 +112,7 @@ export interface User {
   email: string
   avatarUrl?: string    // Google profile photo
   displayName?: string  // Google display name
+  isPro?: boolean       // Stripe Pro upgrade
 }
 
 // Playback position

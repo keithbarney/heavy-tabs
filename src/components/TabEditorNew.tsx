@@ -1251,6 +1251,9 @@ export default function TabEditorNew() {
                       )}
                       <span className={styles.userMenuEmail}>{auth.user?.email}</span>
                     </div>
+                    {auth.user?.isPro && (
+                      <span className={styles.proBadge}>Pro</span>
+                    )}
                   </div>
                   <div className={styles.userMenuDivider} />
                   <button
@@ -1461,6 +1464,7 @@ export default function TabEditorNew() {
         onSelectProject={loadProject}
         onNewProject={resetToNew}
         onShowUpgradeModal={() => { setShowLibrary(false); setShowUpgradeModal(true) }}
+        isPro={auth.user?.isPro}
       />
 
       {/* Auth Modal */}
@@ -1475,6 +1479,7 @@ export default function TabEditorNew() {
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         projectCount={projectsHook.projects.length}
+        isPro={auth.user?.isPro}
       />
 
       {/* Sign Out Confirmation Modal */}

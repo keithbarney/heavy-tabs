@@ -26,6 +26,9 @@ type AnalyticsEvents = {
   migration_complete: { migrated: number; failed: number }
   upgrade_modal_shown: undefined
   upgrade_modal_click: undefined
+  upgrade_checkout_started: undefined
+  upgrade_success: undefined
+  upgrade_poll_timeout: undefined
 }
 
 export function trackEvent<T extends keyof AnalyticsEvents>(

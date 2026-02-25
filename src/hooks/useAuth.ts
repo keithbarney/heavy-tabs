@@ -15,6 +15,17 @@ function buildUser(supabaseUser: SupabaseUser): User {
   }
 }
 
+// Fetch is_pro from profiles table and merge into user
+async function fetchProStatus(user: User): Promise<User> {
+  if (!supabase) return user
+  const { data } = await supabase
+    .from('profiles')
+    .select('is_pro')
+    .eq('id', user.id)
+    .single()
+  return { ...user, isPro: data?.is_pro ?? false }
+}
+
 export function useAuth() {
   const [state, setState] = useState<AuthState>({
     user: null,
@@ -30,29 +41,23 @@ export function useAuth() {
     }
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
         console.error('Auth session error:', error)
         setState({ user: null, loading: false, error: error.message })
       } else if (session?.user) {
-        setState({
-          user: buildUser(session.user),
-          loading: false,
-          error: null,
-        })
+        const user = await fetchProStatus(buildUser(session.user))
+        setState({ user, loading: false, error: null })
       } else {
         setState({ user: null, loading: false, error: null })
       }
     })
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        setState({
-          user: buildUser(session.user),
-          loading: false,
-          error: null,
-        })
+        const user = await fetchProStatus(buildUser(session.user))
+        setState({ user, loading: false, error: null })
       } else {
         setState({ user: null, loading: false, error: null })
       }
@@ -143,6 +148,13 @@ export function useAuth() {
     setState(prev => ({ ...prev, error: null }))
   }, [])
 
+  // Re-fetch Pro status (used after Stripe checkout)
+  const refreshProStatus = useCallback(async () => {
+    if (!state.user) return
+    const updated = await fetchProStatus(state.user)
+    setState(prev => ({ ...prev, user: updated }))
+  }, [state.user])
+
   return {
     user: state.user,
     loading: state.loading,
@@ -153,6 +165,7 @@ export function useAuth() {
     signInWithGoogle,
     signOut,
     clearError,
+    refreshProStatus,
   }
 }
 

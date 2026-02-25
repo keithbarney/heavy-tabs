@@ -11,6 +11,7 @@ import StyleGuide from '@/components/StyleGuide'
 import AuthModal from '@/components/AuthModal'
 import WelcomeModal from '@/components/WelcomeModal'
 import PublicViewer from '@/components/PublicViewer'
+import UpgradeSuccess from '@/components/UpgradeSuccess'
 
 function App() {
   const auth = useAuth()
@@ -44,6 +45,12 @@ function App() {
               onShowAuth={() => setShowAuthModal(true)}
             />
           }
+        />
+
+        {/* Upgrade success */}
+        <Route
+          path="/upgrade/success"
+          element={<UpgradeSuccess auth={auth} />}
         />
 
         {/* Style guide */}
