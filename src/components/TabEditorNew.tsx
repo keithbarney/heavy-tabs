@@ -14,7 +14,7 @@ import UpgradeModal from './UpgradeModal'
 import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
-import { KEYS, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
+import { KEYS, KEY_SEMITONES, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
 import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId, resetToDemo, getLocalProjects } from '@/lib/storage'
 import { trackEvent } from '@/lib/analytics'
 import type { LocalProject, BarAnnotation } from '@/types'
@@ -517,20 +517,32 @@ export default function TabEditorNew() {
 
   const fretToFrequency = (stringIdx: number, fret: number, inst: 'guitar' | 'bass') => {
     const numStrings = parseInt(strings) || 6
-    const baseFrequencies: Record<string, Record<number, number[]>> = {
+    // Standard tuning MIDI note numbers (high string to low string)
+    const standardMidi: Record<string, Record<number, number[]>> = {
       guitar: {
-        6: [329.63, 246.94, 196.00, 146.83, 110.00, 82.41],
-        7: [329.63, 246.94, 196.00, 146.83, 110.00, 82.41, 61.74],
-        8: [329.63, 246.94, 196.00, 146.83, 110.00, 82.41, 61.74, 46.25],
+        6: [64, 59, 55, 50, 45, 40],     // E4 B3 G3 D3 A2 E2
+        7: [64, 59, 55, 50, 45, 40, 35],  // + B1
+        8: [64, 59, 55, 50, 45, 40, 35, 30], // + F#1
       },
       bass: {
-        4: [196.00, 146.83, 110.00, 82.41],
-        5: [196.00, 146.83, 110.00, 82.41, 61.74],
-        6: [261.63, 196.00, 146.83, 110.00, 82.41, 61.74],
+        4: [55, 50, 45, 40],             // G3 D3 A2 E2
+        5: [55, 50, 45, 40, 35],          // + B1
+        6: [60, 55, 50, 45, 40, 35],      // C4 G3 D3 A2 E2 B1
       }
     }
-    const baseFreq = baseFrequencies[inst]?.[numStrings]?.[stringIdx] || 110
-    return baseFreq * Math.pow(2, fret / 12)
+    let midi = standardMidi[inst]?.[numStrings]?.[stringIdx] ?? 45
+    // Drop tuning: lowest string drops 2 semitones
+    if (tuning === 'drop' && stringIdx === numStrings - 1) {
+      midi -= 2
+    }
+    // Key transposition (shortest path, preferring downward)
+    const baseKey = tuning === 'drop' ? 'D' : 'E'
+    let semitones = KEY_SEMITONES[keySignature.toUpperCase()] - KEY_SEMITONES[baseKey]
+    if (semitones > 6) semitones -= 12
+    if (semitones < -6) semitones += 12
+    midi += semitones
+    // MIDI to frequency: A4 (MIDI 69) = 440 Hz
+    return 440 * Math.pow(2, (midi + fret - 69) / 12)
   }
 
   // Playback controls
@@ -859,6 +871,7 @@ export default function TabEditorNew() {
 
     setIsSaving(true)
     saveLocalProject(project)
+    saveActiveProjectId(projectId)
     const result = await projectsHook.saveProject(project)
     if (result?.project?.cloudId && !cloudId) {
       setCloudId(result.project.cloudId)
@@ -995,7 +1008,7 @@ export default function TabEditorNew() {
     clearActiveProjectId()
   }, [createEmptyBar])
 
-  // Auto-save with 5 second debounce after changes
+  // Auto-save with 2 second debounce after changes
   // Only triggers after user explicitly creates or loads a project (hasLoadedRef.current = true)
   useEffect(() => {
     // Skip auto-save until user has loaded or created a project
@@ -1010,10 +1023,10 @@ export default function TabEditorNew() {
       clearTimeout(autoSaveTimerRef.current)
     }
 
-    // Schedule auto-save after 5 seconds
+    // Schedule auto-save after 2 seconds
     autoSaveTimerRef.current = setTimeout(() => {
       handleSaveRef.current()
-    }, 5000)
+    }, 2000)
 
     return () => {
       if (autoSaveTimerRef.current) {
@@ -1021,6 +1034,17 @@ export default function TabEditorNew() {
       }
     }
   }, [projectName, artistName, albumName, bpm, instrument, strings, tuning, keySignature, time, grid, parts])
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isDirty])
 
   // Restore active project on mount (after projects finish loading)
   useEffect(() => {
