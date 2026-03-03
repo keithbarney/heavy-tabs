@@ -73,6 +73,7 @@ export default function TabEditorNew() {
   const handleSaveRef = useRef<() => Promise<void>>(async () => {})
   const userMenuRef = useRef<HTMLDivElement>(null)
   const partsRef = useRef<typeof parts>([])
+  const lastDigitRef = useRef<{ cell: string; time: number; value: string } | null>(null)
 
   // Settings state
   const [instrument, setInstrument] = useState('guitar')
@@ -218,7 +219,25 @@ export default function TabEditorNew() {
     // Don't input values on the PM annotation row
     const effectiveStrings = instrument === 'drums' ? drumLines.length : numStrings
     if (row >= effectiveStrings) return
-    const fret = parseInt(value)
+
+    // Two-digit fret accumulation: if a digit was recently entered in this same cell, try concatenating
+    const isDigit = /^[0-9]$/.test(value)
+    let resolvedValue = value
+    if (isDigit && lastDigitRef.current && lastDigitRef.current.cell === selectedCell && Date.now() - lastDigitRef.current.time < 600) {
+      const combined = parseInt(lastDigitRef.current.value + value)
+      if (combined <= 24) {
+        resolvedValue = String(combined)
+        lastDigitRef.current = null
+      } else {
+        lastDigitRef.current = { cell: selectedCell, time: Date.now(), value }
+      }
+    } else if (isDigit) {
+      lastDigitRef.current = { cell: selectedCell, time: Date.now(), value }
+    } else {
+      lastDigitRef.current = null
+    }
+
+    const fret = parseInt(resolvedValue)
     const isPowerChord = powerChordMode && !isNaN(fret) && instrument !== 'drums'
     const isDropTuning = instrument !== 'drums' && tuning === 'drop'
 
@@ -233,7 +252,7 @@ export default function TabEditorNew() {
           beatData.map((rowData, rIdx) =>
             rowData.map((cellVal, cIdx) => {
               if (bIdx !== beat || cIdx !== cell) return cellVal
-              if (rIdx === row) return value
+              if (rIdx === row) return resolvedValue
               if (isPowerChord) {
                 const isRootOnLowest = row === numStrings - 1
                 if (rIdx === row - 1 && row - 1 >= 0) {
