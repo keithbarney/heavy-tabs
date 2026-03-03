@@ -149,6 +149,40 @@ export const CHORD_SHAPES = {
   },
 } as const
 
+// Standard tuning MIDI note numbers (high string to low string)
+export const STANDARD_MIDI: Record<string, Record<number, number[]>> = {
+  guitar: {
+    6: [64, 59, 55, 50, 45, 40],           // E4 B3 G3 D3 A2 E2
+    7: [64, 59, 55, 50, 45, 40, 35],        // + B1
+    8: [64, 59, 55, 50, 45, 40, 35, 30],    // + F#1
+  },
+  bass: {
+    4: [55, 50, 45, 40],                    // G3 D3 A2 E2
+    5: [55, 50, 45, 40, 35],                // + B1
+    6: [60, 55, 50, 45, 40, 35],            // C4 G3 D3 A2 E2 B1
+  }
+}
+
+// Get the MIDI note number for an open string, accounting for tuning and key
+export const getOpenStringMidi = (
+  inst: 'guitar' | 'bass',
+  stringCount: number,
+  tuning: 'standard' | 'drop',
+  key: string,
+  stringIdx: number
+): number => {
+  let midi = STANDARD_MIDI[inst]?.[stringCount]?.[stringIdx] ?? 40
+  if (tuning === 'drop' && stringIdx === stringCount - 1) {
+    midi -= 2
+  }
+  const baseKey = tuning === 'drop' ? 'D' : 'E'
+  let semitones = (KEY_SEMITONES[key.toUpperCase()] ?? 0) - (KEY_SEMITONES[baseKey] ?? 0)
+  if (semitones > 6) semitones -= 12
+  if (semitones < -6) semitones += 12
+  midi += semitones
+  return midi
+}
+
 // Helper functions
 export const transposeNote = (note: string, semitones: number): string => {
   const baseNote = note.replace(/[0-9]/g, '')

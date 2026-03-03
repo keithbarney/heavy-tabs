@@ -140,6 +140,7 @@ $_control-height-small: 28px;
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
+  row-gap: $space-md;
   width: 100%;
   min-width: 0;
 }
@@ -257,9 +258,9 @@ $_control-height-small: 28px;
   overflow: hidden;
 }
 
-// Desktop: only show labels and left boundary on first bar
-.barWrapper:not(:first-child) [data-label-column],
-.barWrapper:not(:first-child) [data-left-boundary] {
+// Desktop: show labels and left boundary on the first bar of each 4-bar row
+.barWrapper:not(:nth-child(4n+1)) [data-label-column],
+.barWrapper:not(:nth-child(4n+1)) [data-left-boundary] {
   display: none;
 }
 

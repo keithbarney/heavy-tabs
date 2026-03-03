@@ -29,6 +29,7 @@ type AnalyticsEvents = {
   upgrade_checkout_started: undefined
   upgrade_success: undefined
   upgrade_poll_timeout: undefined
+  generate_bass: { guitarStrings: number; bassStrings: number }
 }
 
 export function trackEvent<T extends keyof AnalyticsEvents>(

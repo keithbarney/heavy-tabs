@@ -14,9 +14,10 @@ import UpgradeModal from './UpgradeModal'
 import AuthModal from './AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
-import { KEYS, KEY_SEMITONES, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes } from '@/lib/constants'
+import { KEYS, KEY_SEMITONES, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes, STANDARD_MIDI, getOpenStringMidi } from '@/lib/constants'
 import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId, resetToDemo, getLocalProjects } from '@/lib/storage'
 import { trackEvent } from '@/lib/analytics'
+import { generateBassBar } from '@/lib/generateBass'
 import type { LocalProject, BarAnnotation } from '@/types'
 import styles from './TabEditorNew.module.scss'
 
@@ -144,8 +145,9 @@ export default function TabEditorNew() {
   const [isSelecting, setIsSelecting] = useState(false)
   const justFinishedSelectingRef = useRef(false)
 
-  // Clipboard: stores all row values at a column position
+  // Clipboard: stores all row values at a column position, plus source instrument context
   const [clipboard, setClipboard] = useState<string[][] | null>(null)
+  const [clipboardSource, setClipboardSource] = useState<{ instrument: string; stringCount: number } | null>(null)
 
   // Undo/redo history
   const historyRef = useRef<string[]>([])
@@ -335,10 +337,12 @@ export default function TabEditorNew() {
       grid.push(rowValues)
     }
     setClipboard(grid)
+    setClipboardSource({ instrument, stringCount: parseInt(strings) || 6 })
     trackEvent('copy_selection', cloudId)
-  }, [selectedCells, selectedCell, parts, cloudId])
+  }, [selectedCells, selectedCell, parts, instrument, strings, cloudId])
 
   // Paste 2D clipboard grid at the current selection position
+  // When pasting between instruments (guitar↔bass), notes are pitch-mapped to the target instrument
   const pasteSelection = useCallback(() => {
     if (!clipboard || !selectedCell) return
     const { partId, barIndex, beat, row, cell } = parseCell(selectedCell)
@@ -348,18 +352,34 @@ export default function TabEditorNew() {
     const cellsPerBeat = part.bars[0]?.data[0]?.[0]?.length ?? 4
     const numBeats = part.bars[0]?.data.length ?? 4
     const numBars = part.bars.length
-    const numStrings = part.bars[0]?.data[0]?.length ?? parseInt(strings) ?? 6
+    const targetStringCount = parseInt(strings) || 6
+    const numStrings = part.bars[0]?.data[0]?.length ?? targetStringCount
+
+    // Determine if cross-instrument paste needs pitch mapping
+    const crossInstrument = clipboardSource &&
+      clipboardSource.instrument !== instrument &&
+      clipboardSource.instrument !== 'drums' &&
+      instrument !== 'drums'
+
+    // Pre-compute MIDI values for cross-instrument mapping
+    const srcInst = clipboardSource?.instrument as 'guitar' | 'bass' | undefined
+    const srcStringCount = clipboardSource?.stringCount ?? 6
+    const dstInst = instrument as 'guitar' | 'bass'
+
+    // For cross-instrument: build target string MIDI values
+    const dstMidi = crossInstrument
+      ? Array.from({ length: targetStringCount }, (_, i) =>
+          getOpenStringMidi(dstInst, targetStringCount, tuning as 'standard' | 'drop', keySignature, i)
+        )
+      : null
 
     pushHistory()
     clipboard.forEach((rowValues, rowOffset) => {
-      const targetRow = row + rowOffset
-      if (targetRow >= numStrings) return
       rowValues.forEach((value, colOffset) => {
         // Walk forward through cells across bar boundaries
-        let totalCellOffset = colOffset
         let targetBar = barIndex
         let targetBeat = beat
-        let targetCell = cell + totalCellOffset
+        let targetCell = cell + colOffset
 
         // Normalize cell → beat → bar overflow
         while (targetCell >= cellsPerBeat) {
@@ -372,11 +392,51 @@ export default function TabEditorNew() {
         }
         if (targetBar >= numBars) return
 
-        updateCell(partId, targetBar, targetBeat, targetRow, targetCell, value)
+        if (crossInstrument && srcInst && dstMidi) {
+          // Cross-instrument: pitch-map each numeric fret
+          const fret = parseInt(value)
+          if (!isNaN(fret)) {
+            // Source string index = row offset relative to the first copied row
+            const srcStringIdx = row + rowOffset
+            if (srcStringIdx >= srcStringCount) return
+            const srcMidi = getOpenStringMidi(srcInst, srcStringCount, tuning as 'standard' | 'drop', keySignature, srcStringIdx)
+            const noteMidi = srcMidi + fret
+
+            // Find best target string/fret (try as-is, then ±12, ±24)
+            let bestString = -1
+            let bestFret = Infinity
+            for (const offset of [0, -12, 12, -24, 24]) {
+              const target = noteMidi + offset
+              for (let s = targetStringCount - 1; s >= 0; s--) {
+                const f = target - dstMidi[s]
+                if (f >= 0 && f <= 24 && f < bestFret) {
+                  bestFret = f
+                  bestString = s
+                }
+              }
+              if (bestString >= 0) break
+            }
+            if (bestString >= 0) {
+              updateCell(partId, targetBar, targetBeat, bestString, targetCell, String(bestFret))
+            }
+          } else if (value === 'x') {
+            // Dead note → place on target row if in range
+            const targetRow = row + rowOffset
+            if (targetRow < numStrings) {
+              updateCell(partId, targetBar, targetBeat, targetRow, targetCell, value)
+            }
+          }
+          // Skip technique markers (h, p, /, \, b, ~) and rests (-) — rests are already default
+        } else {
+          // Same-instrument paste: direct placement
+          const targetRow = row + rowOffset
+          if (targetRow >= numStrings) return
+          updateCell(partId, targetBar, targetBeat, targetRow, targetCell, value)
+        }
       })
     })
     trackEvent('paste_selection', cloudId)
-  }, [clipboard, selectedCell, parts, strings, updateCell, pushHistory, cloudId])
+  }, [clipboard, clipboardSource, selectedCell, parts, instrument, strings, tuning, keySignature, updateCell, pushHistory, cloudId])
 
   // Toggle palm mute annotation on the current selection
   const togglePalmMute = useCallback(() => {
@@ -576,20 +636,7 @@ export default function TabEditorNew() {
 
   const fretToFrequency = (stringIdx: number, fret: number, inst: 'guitar' | 'bass') => {
     const numStrings = parseInt(strings) || 6
-    // Standard tuning MIDI note numbers (high string to low string)
-    const standardMidi: Record<string, Record<number, number[]>> = {
-      guitar: {
-        6: [64, 59, 55, 50, 45, 40],     // E4 B3 G3 D3 A2 E2
-        7: [64, 59, 55, 50, 45, 40, 35],  // + B1
-        8: [64, 59, 55, 50, 45, 40, 35, 30], // + F#1
-      },
-      bass: {
-        4: [55, 50, 45, 40],             // G3 D3 A2 E2
-        5: [55, 50, 45, 40, 35],          // + B1
-        6: [60, 55, 50, 45, 40, 35],      // C4 G3 D3 A2 E2 B1
-      }
-    }
-    let midi = standardMidi[inst]?.[numStrings]?.[stringIdx] ?? 45
+    let midi = STANDARD_MIDI[inst]?.[numStrings]?.[stringIdx] ?? 45
     // Drop tuning: lowest string drops 2 semitones
     if (tuning === 'drop' && stringIdx === numStrings - 1) {
       midi -= 2
@@ -892,7 +939,19 @@ export default function TabEditorNew() {
       ...(part.loop ? { loop: true } : {}),
     }))
 
+    // Start with existing tabData from other instruments so switching doesn't erase data
+    const existingProjects = getLocalProjects()
+    const existingProject = existingProjects.find(p => p.id === projectId)
     const tabData: Record<string, unknown> = {}
+    if (existingProject?.tabData) {
+      for (const [key, value] of Object.entries(existingProject.tabData)) {
+        // Keep keys that don't belong to the current instrument
+        const isCurrentInstrument = key.includes(`-${instrument}`)
+        if (!isCurrentInstrument) {
+          tabData[key] = value
+        }
+      }
+    }
     parts.forEach(part => {
       tabData[`${part.id}-${instrument}`] = part.bars.map(bar => {
         const numRows = bar.data[0]?.length ?? numStrings
@@ -946,6 +1005,161 @@ export default function TabEditorNew() {
 
   // Keep ref in sync for auto-save
   handleSaveRef.current = handleSave
+
+  // Switch instrument: save current data first, then load existing data for the new instrument
+  const handleInstrumentChange = useCallback(async (newInstrument: string) => {
+    // Save current instrument's data first
+    await handleSave()
+
+    // Set new instrument and appropriate string count
+    setInstrument(newInstrument)
+    const defaultStrings = newInstrument === 'drums' ? String(drumLines.length) : newInstrument === 'bass' ? '4' : '6'
+    setStrings(defaultStrings)
+
+    // Load tuning for the new instrument
+    if (newInstrument !== 'drums') {
+      const existingProject = getLocalProjects().find(p => p.id === projectId)
+      const savedTuning = existingProject?.tunings?.[newInstrument as 'guitar' | 'bass']
+      if (savedTuning) setTuning(savedTuning)
+      const savedStrings = existingProject?.stringCounts?.[newInstrument as 'guitar' | 'bass']
+      if (savedStrings) setStrings(String(savedStrings))
+    }
+
+    // Check if saved data exists for the new instrument
+    const existingProject = getLocalProjects().find(p => p.id === projectId)
+    const tabKeys = Object.keys(existingProject?.tabData || {})
+    const hasDataForInstrument = tabKeys.some(k => k.includes(`-${newInstrument}`) && !k.includes('-annotations'))
+
+    if (hasDataForInstrument && existingProject) {
+      // Reload the project to pick up the other instrument's data
+      const sections = existingProject.sections || []
+      const timeSig = existingProject.timeSignature || TIME_SIGNATURES[0]
+      const noteRes = existingProject.noteResolution || NOTE_RESOLUTIONS[2]
+      const projectNumBeats = timeSig.beats
+      const projectCellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+
+      const newParts = sections.map(section => {
+        const instKey = `${section.id}-${newInstrument}`
+        const measureData = existingProject.tabData?.[instKey] || []
+        const annotationsData = (existingProject.tabData as Record<string, unknown>)?.[`${instKey}-annotations`] as BarAnnotation[][] | undefined
+
+        const bars = measureData.length > 0
+          ? measureData.map((measure: string[][], i: number) => {
+              const totalCells = measure[0]?.length ?? (projectNumBeats * projectCellsPerBeat)
+              const actualCellsPerBeat = Math.max(1, Math.floor(totalCells / projectNumBeats))
+              const data = Array.from({ length: projectNumBeats }, (_, beatIdx) =>
+                measure.map(stringCells =>
+                  stringCells.slice(beatIdx * actualCellsPerBeat, (beatIdx + 1) * actualCellsPerBeat)
+                )
+              )
+              const annotations = annotationsData?.[i]
+              return { data, title: `BAR ${i + 1}`, ...(annotations?.length ? { annotations } : {}) }
+            })
+          : [{ data: Array.from({ length: projectNumBeats }, () =>
+              Array.from({ length: parseInt(defaultStrings) || 6 }, () =>
+                Array.from({ length: projectCellsPerBeat }, () => '-')
+              )
+            ), title: 'BAR 1' }]
+
+        return {
+          id: section.id,
+          title: section.name,
+          notes: section.notes || '',
+          bpm: section.bpm ? String(section.bpm) : undefined,
+          time: section.time || undefined,
+          grid: section.grid || undefined,
+          loop: !!(section as unknown as Record<string, unknown>).loop,
+          bars,
+        }
+      })
+      setParts(newParts)
+    } else {
+      // No data for this instrument — create empty parts matching existing structure
+      const timeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
+      const noteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[2]
+      const numBeats = timeSig.beats
+      const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+      const newStringCount = parseInt(defaultStrings) || 6
+
+      setParts(prev => prev.map(part => ({
+        ...part,
+        bars: part.bars.map((bar, i) => ({
+          data: Array.from({ length: numBeats }, () =>
+            Array.from({ length: newStringCount }, () =>
+              Array.from({ length: cellsPerBeat }, () => '-')
+            )
+          ),
+          title: bar.title || `BAR ${i + 1}`,
+        })),
+      })))
+    }
+
+    setSelectedCell(null)
+    setSelectedCells([])
+  }, [handleSave, projectId, time, grid])
+
+  // Generate bass tab data from existing guitar tab data
+  const handleGenerateBass = useCallback(() => {
+    if (instrument !== 'bass') return
+
+    const existingProject = getLocalProjects().find(p => p.id === projectId)
+    if (!existingProject) return
+
+    const tabKeys = Object.keys(existingProject.tabData || {})
+    const hasGuitarData = tabKeys.some(k => k.includes('-guitar') && !k.includes('-annotations'))
+    if (!hasGuitarData) return
+
+    // Check if bass data already exists
+    const hasBassData = parts.some(part =>
+      part.bars.some(bar =>
+        bar.data.some(beat =>
+          beat.some(row => row.some(cell => cell !== '-'))
+        )
+      )
+    )
+    if (hasBassData && !window.confirm('This will overwrite existing bass data. Continue?')) return
+
+    const guitarStringCount = existingProject.stringCounts?.guitar || 6
+    const bassStringCount = parseInt(strings) || 4
+
+    const timeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
+    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[2]
+    const numBeats = timeSig.beats
+    const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
+
+    const newParts = parts.map(part => {
+      const guitarKey = `${part.id}-guitar`
+      const guitarMeasures = existingProject.tabData?.[guitarKey] || []
+
+      const newBars = part.bars.map((bar, barIdx) => {
+        const guitarMeasure = guitarMeasures[barIdx] as string[][] | undefined
+        if (!guitarMeasure || guitarMeasure.length === 0) return bar
+
+        const bassData = generateBassBar(guitarMeasure, {
+          guitarStringCount,
+          bassStringCount,
+          guitarTuning: existingProject.tunings?.guitar || 'standard',
+          bassTuning: tuning as 'standard' | 'drop',
+          guitarKey: existingProject.projectKey || 'e',
+          bassKey: keySignature,
+        })
+
+        // Convert flat bass data (strings x allCells) to beat structure (beats x strings x cellsPerBeat)
+        const data = Array.from({ length: numBeats }, (_, beatIdx) =>
+          bassData.map(stringCells =>
+            stringCells.slice(beatIdx * cellsPerBeat, (beatIdx + 1) * cellsPerBeat)
+          )
+        )
+
+        return { ...bar, data }
+      })
+
+      return { ...part, bars: newBars }
+    })
+
+    setParts(newParts)
+    trackEvent('generate_bass', { guitarStrings: guitarStringCount, bassStrings: bassStringCount })
+  }, [instrument, projectId, parts, strings, tuning, keySignature, time, grid])
 
   // Load a project from the library into editor state
   const loadProject = useCallback((project: LocalProject) => {
@@ -1372,7 +1586,7 @@ export default function TabEditorNew() {
         keySignature={keySignature}
         time={time}
         grid={grid}
-        onInstrumentChange={setInstrument}
+        onInstrumentChange={handleInstrumentChange}
         onStringsChange={setStrings}
         onTuningChange={setTuning}
         onKeyChange={setKeySignature}
@@ -1413,6 +1627,15 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
             Palm Mute
           </UiButton>
+          {instrument === 'bass' && (() => {
+            const existingProject = getLocalProjects().find(p => p.id === projectId)
+            const hasGuitarData = existingProject && Object.keys(existingProject.tabData || {}).some(k => k.includes('-guitar') && !k.includes('-annotations'))
+            return (
+              <UiButton variant="secondary" disabled={!hasGuitarData} onClick={handleGenerateBass} title="Generate bass from guitar tab data">
+                Generate Bass
+              </UiButton>
+            )
+          })()}
         </div>
       )}
 
@@ -1444,7 +1667,11 @@ export default function TabEditorNew() {
             onCellMouseEnter={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
             loop={part.loop}
             onLoopChange={() => setParts(parts.map(p => p.id === part.id ? { ...p, loop: !p.loop } : p))}
-            onBarTitleClick={(barIndex) => setPlaybackPosition({ partIndex, barIndex, beat: 0, cell: 0 })}
+            onBarTitleClick={(barIndex) => {
+              // Disable loop on all other parts when starting playback from a bar title
+              setParts(prev => prev.map(p => p.id === part.id ? p : { ...p, loop: false }))
+              setPlaybackPosition({ partIndex, barIndex, beat: 0, cell: 0 })
+            }}
             onTitleChange={(value) => {
               setParts(parts.map(p => p.id === part.id ? { ...p, title: value } : p))
             }}

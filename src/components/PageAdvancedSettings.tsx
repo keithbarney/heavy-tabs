@@ -32,7 +32,7 @@ export interface PageAdvancedSettingsProps {
 
 const DEFAULT_INSTRUMENTS: SettingOption[] = [
   { value: 'guitar', label: 'Guitar' },
-  // { value: 'bass', label: 'Bass' },
+  { value: 'bass', label: 'Bass' },
   // { value: 'drums', label: 'Drums' },
 ]
 

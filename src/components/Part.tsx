@@ -165,7 +165,7 @@ export default function Part({
                       <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
                     )}
                     <span className={styles.barActionsSpacer} />
-                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
+                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add Bar</span>
                   </div>
                 )}
               </div>
