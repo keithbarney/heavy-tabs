@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Trash2, CopyPlus } from 'lucide-react'
+import { Trash2, CopyPlus, Repeat } from 'lucide-react'
 import UiButton from './UiButton'
 import UiInput from './UiInput'
 import BarGrid, { type BarGridProps } from './BarGrid'
@@ -23,6 +23,8 @@ export interface PartProps {
   onBpmChange?: (value: string) => void
   onTimeChange?: (value: string) => void
   onGridChange?: (value: string) => void
+  loop?: boolean
+  onLoopChange?: () => void
   onDuplicate?: () => void
   onDelete?: () => void
   onAddBar?: (barIndex: number) => void
@@ -58,6 +60,8 @@ export default function Part({
   onBpmChange,
   onTimeChange,
   onGridChange,
+  loop = false,
+  onLoopChange,
   onDuplicate,
   onDelete,
   onAddBar,
@@ -94,6 +98,9 @@ export default function Part({
         />
         {!readOnly && (
           <>
+            <UiButton variant={loop ? 'primary' : 'secondary'} onClick={onLoopChange} title="Loop this part">
+              <Repeat size={16} />
+            </UiButton>
             <div className={`${styles.partSettings} ${settingsSize === 'small' ? styles.small : ''}`}>
               <input
                 className={styles.partBpm}

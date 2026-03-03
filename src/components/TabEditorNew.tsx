@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Play, Pause, Square, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save, Eye } from 'lucide-react'
+import { Menu, Plus, Play, Pause, RotateCcw, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save, Eye } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
@@ -118,7 +118,7 @@ export default function TabEditorNew() {
 
   // Parts state (bpm/time/grid are optional per-part overrides)
   const [parts, setParts] = useState([
-    { id: '1', title: 'Intro', notes: '', bpm: undefined as string | undefined, time: undefined as string | undefined, grid: undefined as string | undefined, bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }
+    { id: '1', title: 'Intro', notes: '', bpm: undefined as string | undefined, time: undefined as string | undefined, grid: undefined as string | undefined, loop: false, bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }
   ])
 
   // Keep refs in sync with state for use inside playback closures
@@ -709,7 +709,11 @@ export default function TabEditorNew() {
           curBar++
           if (curBar >= part.bars.length) {
             curBar = 0
-            curPart++
+            if (part.loop) {
+              // Stay on this part — loop back to its first bar
+            } else {
+              curPart++
+            }
           }
         }
       }
@@ -885,6 +889,7 @@ export default function TabEditorNew() {
       ...(part.bpm ? { bpm: parseInt(part.bpm) } : {}),
       ...(part.time ? { time: part.time } : {}),
       ...(part.grid ? { grid: part.grid } : {}),
+      ...(part.loop ? { loop: true } : {}),
     }))
 
     const tabData: Record<string, unknown> = {}
@@ -1009,6 +1014,7 @@ export default function TabEditorNew() {
           bpm: section.bpm ? String(section.bpm) : undefined,
           time: section.time || undefined,
           grid: section.grid || undefined,
+          loop: !!(section as unknown as Record<string, unknown>).loop,
           bars,
         }
       })
@@ -1047,7 +1053,7 @@ export default function TabEditorNew() {
     setKeySignature('e')
     setTime('4/4')
     setGrid('1/16')
-    setParts([{ id: '1', title: 'Intro', notes: '', bpm: undefined, time: undefined, grid: undefined, bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }])
+    setParts([{ id: '1', title: 'Intro', notes: '', bpm: undefined, time: undefined, grid: undefined, loop: false, bars: [{ ...createEmptyBar(), title: 'BAR 1' }] }])
 
     // Reset history when creating a new project
     historyRef.current = []
@@ -1256,11 +1262,11 @@ export default function TabEditorNew() {
         </div>
 
         <div className={styles.headerCenter}>
+          <UiButton variant="secondary" onClick={stopPlayback} title="Reset" className={styles.hideOnTablet}>
+            <RotateCcw size={16} />
+          </UiButton>
           <UiButton variant="secondary" onClick={togglePlayback} title={isPlaying ? 'Pause' : 'Play'}>
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-          </UiButton>
-          <UiButton variant="secondary" onClick={stopPlayback} title="Stop" className={styles.hideOnTablet}>
-            <Square size={16} />
           </UiButton>
           <UiButton variant="secondary" selected={isLooping} onClick={() => { setIsLooping(!isLooping); loopingRef.current = !isLooping }} title="Loop" className={styles.hideOnTablet}>
             <Repeat size={16} />
@@ -1436,6 +1442,8 @@ export default function TabEditorNew() {
             onCellClick={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellClick(part.id, barIndex, beat, row, cell)}
             onCellMouseDown={practiceMode ? undefined : (barIndex, beat, row, cell, e) => handleCellMouseDown(part.id, barIndex, beat, row, cell, e)}
             onCellMouseEnter={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
+            loop={part.loop}
+            onLoopChange={() => setParts(parts.map(p => p.id === part.id ? { ...p, loop: !p.loop } : p))}
             onBarTitleClick={(barIndex) => setPlaybackPosition({ partIndex, barIndex, beat: 0, cell: 0 })}
             onTitleChange={(value) => {
               setParts(parts.map(p => p.id === part.id ? { ...p, title: value } : p))
@@ -1508,7 +1516,7 @@ export default function TabEditorNew() {
             }}
             onDuplicate={() => {
               pushHistory()
-              const newPart = { ...part, id: String(Date.now()), title: `${part.title} (copy)`, bpm: part.bpm, time: part.time, grid: part.grid, bars: part.bars.map(b => ({ ...b, data: b.data.map(beat => beat.map(row => [...row])) })) }
+              const newPart = { ...part, id: String(Date.now()), title: `${part.title} (copy)`, bpm: part.bpm, time: part.time, grid: part.grid, loop: false, bars: part.bars.map(b => ({ ...b, data: b.data.map(beat => beat.map(row => [...row])) })) }
               const idx = parts.findIndex(p => p.id === part.id)
               const newParts = [...parts]
               newParts.splice(idx + 1, 0, newPart)
@@ -1529,7 +1537,7 @@ export default function TabEditorNew() {
           const newBar = refBar
             ? { data: refBar.data.map(beat => beat.map(row => row.map(() => '-'))), title: 'BAR 1' }
             : { ...createEmptyBar({ time: partTime, grid: partGrid }), title: 'BAR 1' }
-          setParts([...parts, { id: newId, title: '', notes: '', bpm: lastPart?.bpm, time: partTime, grid: partGrid, bars: [newBar] }])
+          setParts([...parts, { id: newId, title: '', notes: '', bpm: lastPart?.bpm, time: partTime, grid: partGrid, loop: false, bars: [newBar] }])
         }}>
           <Plus size={16} />
           Add part
