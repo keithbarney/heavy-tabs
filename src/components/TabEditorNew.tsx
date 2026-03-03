@@ -145,7 +145,7 @@ export default function TabEditorNew() {
   const justFinishedSelectingRef = useRef(false)
 
   // Clipboard: stores all row values at a column position
-  const [clipboard, setClipboard] = useState<string[] | null>(null)
+  const [clipboard, setClipboard] = useState<string[][] | null>(null)
 
   // Undo/redo history
   const historyRef = useRef<string[]>([])
@@ -274,69 +274,109 @@ export default function TabEditorNew() {
     }))
   }, [selectedCell, powerChordMode, instrument, tuning, strings, pushHistory])
 
-  // Delete all cells in the selected columns (supports multi-column selection)
+  // Delete all individually selected cells
   const deleteCell = useCallback(() => {
     if (selectedCells.length === 0 && !selectedCell) return
-    // Collect all unique column positions to clear
     const cellsToClear = selectedCells.length > 0 ? selectedCells : (selectedCell ? [selectedCell] : [])
-    // Group by partId+barIndex+beat+cell (column), deduplicate
-    const columns = new Map<string, { partId: string; barIndex: number; beat: number; cell: number }>()
-    cellsToClear.forEach(key => {
-      const { partId, barIndex, beat, cell } = parseCell(key)
-      const colKey = `${partId}-${barIndex}-${beat}-${cell}`
-      if (!columns.has(colKey)) columns.set(colKey, { partId, barIndex, beat, cell })
-    })
+    const cellSet = new Set(cellsToClear)
     pushHistory()
 
-    // Apply all clears in a single setParts call
-    setParts(prev => {
-      let result = prev
-      columns.forEach(({ partId, barIndex, beat, cell }) => {
-        result = result.map(p => {
-          if (p.id !== partId) return p
-          const newBars = p.bars.map((bar, bi) => {
-            if (bi !== barIndex) return bar
-            const numStrings = bar.data[0]?.length ?? parseInt(strings) ?? 6
-            const newData = bar.data.map((beatData, bIdx) =>
-              beatData.map((rowData, rIdx) =>
-                rowData.map((cellVal, cIdx) => {
-                  if (bIdx === beat && cIdx === cell && rIdx < numStrings) return '-'
-                  return cellVal
-                })
-              )
-            )
-            return { ...bar, data: newData }
-          })
-          return { ...p, bars: newBars }
-        })
+    setParts(prev => prev.map(p => ({
+      ...p,
+      bars: p.bars.map((bar, bi) => {
+        const newData = bar.data.map((beatData, bIdx) =>
+          beatData.map((rowData, rIdx) =>
+            rowData.map((cellVal, cIdx) => {
+              const key = `${p.id}-${bi}-${bIdx}-${rIdx}-${cIdx}`
+              return cellSet.has(key) ? '-' : cellVal
+            })
+          )
+        )
+        return { ...bar, data: newData }
       })
-      return result
-    })
-  }, [selectedCells, selectedCell, strings, pushHistory])
+    })))
+  }, [selectedCells, selectedCell, pushHistory])
 
-  // Copy all row values at the selected column position
+  // Copy the selected rectangle of cells as a 2D grid (rows × columns)
   const copySelection = useCallback(() => {
-    if (!selectedCell) return
-    const { partId, barIndex, beat, cell } = parseCell(selectedCell)
-    const part = parts.find(p => p.id === partId)
-    if (!part) return
-    const bar = part.bars[barIndex]
-    if (!bar) return
-    const values = bar.data[beat]?.map(rowData => rowData[cell] ?? '-') ?? []
-    setClipboard(values)
-    trackEvent('copy_selection', cloudId)
-  }, [selectedCell, parts, cloudId])
+    const cellKeys = selectedCells.length > 0 ? selectedCells : (selectedCell ? [selectedCell] : [])
+    if (cellKeys.length === 0) return
 
-  // Paste clipboard values at the current selection position
+    // Find bounding rectangle
+    const parsed = cellKeys.map(parseCell)
+    const minRow = Math.min(...parsed.map(c => c.row))
+    const maxRow = Math.max(...parsed.map(c => c.row))
+
+    // Build a flat column index for ordering
+    const part = parts.find(p => p.id === parsed[0].partId)
+    if (!part) return
+    const cellsPerBeat = part.bars[0]?.data[0]?.[0]?.length ?? 4
+    const numBeats = part.bars[0]?.data.length ?? 4
+    const toFlat = (barIdx: number, b: number, c: number) =>
+      barIdx * (numBeats * cellsPerBeat) + b * cellsPerBeat + c
+
+    // Get unique sorted column positions
+    const colSet = new Map<number, { barIndex: number; beat: number; cell: number }>()
+    parsed.forEach(c => {
+      const flat = toFlat(c.barIndex, c.beat, c.cell)
+      if (!colSet.has(flat)) colSet.set(flat, { barIndex: c.barIndex, beat: c.beat, cell: c.cell })
+    })
+    const cols = [...colSet.entries()].sort((a, b) => a[0] - b[0]).map(e => e[1])
+
+    // Build 2D grid: rows × columns
+    const grid: string[][] = []
+    for (let r = minRow; r <= maxRow; r++) {
+      const rowValues: string[] = []
+      for (const col of cols) {
+        const bar = part.bars[col.barIndex]
+        const val = bar?.data[col.beat]?.[r]?.[col.cell] ?? '-'
+        rowValues.push(val)
+      }
+      grid.push(rowValues)
+    }
+    setClipboard(grid)
+    trackEvent('copy_selection', cloudId)
+  }, [selectedCells, selectedCell, parts, cloudId])
+
+  // Paste 2D clipboard grid at the current selection position
   const pasteSelection = useCallback(() => {
     if (!clipboard || !selectedCell) return
-    const { partId, barIndex, beat, cell } = parseCell(selectedCell)
+    const { partId, barIndex, beat, row, cell } = parseCell(selectedCell)
+    const part = parts.find(p => p.id === partId)
+    if (!part) return
+
+    const cellsPerBeat = part.bars[0]?.data[0]?.[0]?.length ?? 4
+    const numBeats = part.bars[0]?.data.length ?? 4
+    const numBars = part.bars.length
+    const numStrings = part.bars[0]?.data[0]?.length ?? parseInt(strings) ?? 6
+
     pushHistory()
-    clipboard.forEach((value, row) => {
-      updateCell(partId, barIndex, beat, row, cell, value)
+    clipboard.forEach((rowValues, rowOffset) => {
+      const targetRow = row + rowOffset
+      if (targetRow >= numStrings) return
+      rowValues.forEach((value, colOffset) => {
+        // Walk forward through cells across bar boundaries
+        let totalCellOffset = colOffset
+        let targetBar = barIndex
+        let targetBeat = beat
+        let targetCell = cell + totalCellOffset
+
+        // Normalize cell → beat → bar overflow
+        while (targetCell >= cellsPerBeat) {
+          targetCell -= cellsPerBeat
+          targetBeat++
+        }
+        while (targetBeat >= numBeats) {
+          targetBeat -= numBeats
+          targetBar++
+        }
+        if (targetBar >= numBars) return
+
+        updateCell(partId, targetBar, targetBeat, targetRow, targetCell, value)
+      })
     })
     trackEvent('paste_selection', cloudId)
-  }, [clipboard, selectedCell, updateCell, pushHistory, cloudId])
+  }, [clipboard, selectedCell, parts, strings, updateCell, pushHistory, cloudId])
 
   // Toggle palm mute annotation on the current selection
   const togglePalmMute = useCallback(() => {
@@ -721,21 +761,19 @@ export default function TabEditorNew() {
     return { beat: playbackPosition.beat, row: -1, cell: playbackPosition.cell }
   }
 
-  // Get all cells between two column positions (full column selection across bars)
+  // Get all cells in the rectangular selection between two cell positions
   const getCellsBetween = useCallback((
-    start: { partId: string; barIndex: number; beat: number; cell: number },
-    end: { partId: string; barIndex: number; beat: number; cell: number }
+    start: { partId: string; barIndex: number; beat: number; row: number; cell: number },
+    end: { partId: string; barIndex: number; beat: number; row: number; cell: number }
   ): string[] => {
+    const minRow = Math.min(start.row, end.row)
+    const maxRow = Math.max(start.row, end.row)
+
     // Only support range within the same part
     if (start.partId !== end.partId) {
-      // Fall back to single column at end position
-      const part = parts.find(p => p.id === end.partId)
-      if (!part) return []
-      const bar = part.bars[end.barIndex]
-      if (!bar) return []
-      const numStrings = bar.data[0]?.length ?? parseInt(strings) ?? 6
+      // Fall back to single cell at end position
       const cells: string[] = []
-      for (let r = 0; r < numStrings; r++) {
+      for (let r = minRow; r <= maxRow; r++) {
         cells.push(`${end.partId}-${end.barIndex}-${end.beat}-${r}-${end.cell}`)
       }
       return cells
@@ -762,7 +800,6 @@ export default function TabEditorNew() {
     for (let bi = minBar; bi <= maxBar; bi++) {
       const bar = part.bars[bi]
       if (!bar) continue
-      const numStrings = bar.data[0]?.length ?? parseInt(strings) ?? 6
       const barBeats = bar.data.length
       const barCellsPerBeat = bar.data[0]?.[0]?.length ?? 4
 
@@ -770,7 +807,7 @@ export default function TabEditorNew() {
         for (let c = 0; c < barCellsPerBeat; c++) {
           const flat = toFlat(bi, b, c)
           if (flat >= minFlat && flat <= maxFlat) {
-            for (let r = 0; r < numStrings; r++) {
+            for (let r = minRow; r <= maxRow; r++) {
               cells.push(`${start.partId}-${bi}-${b}-${r}-${c}`)
             }
           }
@@ -804,7 +841,7 @@ export default function TabEditorNew() {
   // Mouse enter on a cell during drag: extend selection
   const handleCellMouseEnter = useCallback((partId: string, barIndex: number, beat: number, row: number, cell: number) => {
     if (!isSelecting || !selectionStart) return
-    const cells = getCellsBetween(selectionStart, { partId, barIndex, beat, cell })
+    const cells = getCellsBetween(selectionStart, { partId, barIndex, beat, row, cell })
     setSelectedCells(cells)
     // Keep selectedCell pointing at the current hover position for keyboard input
     setSelectedCell(`${partId}-${barIndex}-${beat}-${row}-${cell}`)
