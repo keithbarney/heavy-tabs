@@ -160,11 +160,12 @@ export default function Part({
                 <span className={styles.barTitle} onClick={readOnly ? undefined : () => onBarTitleClick?.(barIndex)}>{barProps.title}</span>
                 {!readOnly && (
                   <div className={styles.barActions}>
-                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
                     <span className={`${styles.barAction} ${styles.barActionDup}`} onClick={() => onCopyBar?.(barIndex)}>Duplicate</span>
                     {bars.length > 1 && (
                       <span className={`${styles.barAction} ${styles.barActionDanger}`} onClick={() => onRemoveBar?.(barIndex)}>Remove</span>
                     )}
+                    <span className={styles.barActionsSpacer} />
+                    <span className={`${styles.barAction} ${styles.barActionAdd}`} onClick={() => onAddBar?.(barIndex)}>Add</span>
                   </div>
                 )}
               </div>

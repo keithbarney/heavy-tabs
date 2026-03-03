@@ -177,13 +177,19 @@ $_control-height-small: 28px;
 // Per-bar action links
 .barActions {
   display: flex;
+  flex: 1;
   gap: $space-xs;
+  padding-right: $space-md;
   opacity: 0;
   transition: opacity $transition-fast;
 
   .barWrapper:hover & {
     opacity: 1;
   }
+}
+
+.barActionsSpacer {
+  flex: 1;
 }
 
 .barAction {
