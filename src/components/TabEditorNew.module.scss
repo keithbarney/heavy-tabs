@@ -214,7 +214,7 @@
   display: flex;
   align-items: center;
   gap: $space-sm;
-  padding: $space-lg;
+  padding: $space-lg $space-lg 0;
 }
 
 .modalOverlay {
@@ -276,7 +276,7 @@
   padding: $space-lg;
   display: flex;
   flex-direction: column;
-  gap: $space-lg;
+  gap: $space-lg * 2;
   overflow-y: auto;
 }
 

@@ -5,7 +5,6 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: $space-sm;
   background-color: $color-bg-alt;
   border-radius: $radius-sm;
   overflow: hidden;
@@ -17,7 +16,7 @@
   display: flex;
   align-items: flex-start;
   gap: $space-sm;
-  padding: $space-sm $space-lg;
+  padding: $space-sm;
   width: 100%;
   overflow: hidden;
 }
@@ -130,7 +129,7 @@ $_control-height-small: 28px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: $space-lg;
+  padding: $space-sm;
   width: 100%;
   overflow: hidden;
 }
@@ -160,6 +159,7 @@ $_control-height-small: 28px;
   gap: $space-md;
   margin-bottom: $space-sm;
 }
+
 
 .barTitle {
   font-family: $font-mono;
@@ -264,6 +264,11 @@ $_control-height-small: 28px;
   display: none;
 }
 
+// Indent bar header to align with grid content (past the label column)
+.barWrapper:nth-child(4n+1) .barHeader {
+  padding-left: calc(100% / 17);
+}
+
 // Tablet: 2 bars per row, show labels on first bar of each row
 @media (max-width: 1000px) {
   .barsContainer {
@@ -277,6 +282,15 @@ $_control-height-small: 28px;
   .barWrapper:nth-child(odd) [data-label-column],
   .barWrapper:nth-child(odd) [data-left-boundary] {
     display: flex;
+  }
+
+  // Reset desktop indent, apply tablet indent for odd bars
+  .barWrapper:nth-child(4n+1) .barHeader {
+    padding-left: 0;
+  }
+
+  .barWrapper:nth-child(odd) .barHeader {
+    padding-left: calc(100% / 17);
   }
 }
 
@@ -311,6 +325,11 @@ $_control-height-small: 28px;
   .barWrapper:not(:first-child) [data-label-column],
   .barWrapper:not(:first-child) [data-left-boundary] {
     display: flex;
+  }
+
+  // All bars show labels on mobile — indent all headers
+  .barWrapper .barHeader {
+    padding-left: calc(100% / 17);
   }
 }
 

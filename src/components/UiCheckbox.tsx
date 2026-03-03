@@ -6,6 +6,7 @@ export interface UiCheckboxProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   checked?: boolean
   label?: string
   hideIcon?: boolean
+  size?: 'default' | 'small'
   onChange?: (checked: boolean) => void
 }
 
@@ -13,6 +14,7 @@ const UiCheckbox = forwardRef<HTMLButtonElement, UiCheckboxProps>(({
   checked = false,
   label,
   hideIcon,
+  size = 'default',
   onChange,
   disabled,
   className,
@@ -22,6 +24,7 @@ const UiCheckbox = forwardRef<HTMLButtonElement, UiCheckboxProps>(({
     styles.checkbox,
     checked && styles.selected,
     label && styles.hasLabel,
+    size === 'small' && styles.small,
     className
   ].filter(Boolean).join(' ')
 

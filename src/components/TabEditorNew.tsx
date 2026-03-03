@@ -31,7 +31,7 @@ export default function TabEditorNew() {
   const [albumName, setAlbumName] = useState('')
   const [bpm, setBpm] = useState('120')
   const [showLegend, setShowLegend] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
+  const [showSettings, setShowSettings] = useState(() => localStorage.getItem('tabEditorShowSettings') === 'true')
   const [showLibrary, setShowLibrary] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
@@ -1013,6 +1013,7 @@ export default function TabEditorNew() {
 
     // Set new instrument and appropriate string count
     setInstrument(newInstrument)
+    localStorage.setItem('tabEditorInstrument', newInstrument)
     const defaultStrings = newInstrument === 'drums' ? String(drumLines.length) : newInstrument === 'bass' ? '4' : '6'
     setStrings(defaultStrings)
 
@@ -1174,20 +1175,27 @@ export default function TabEditorNew() {
     setKeySignature(project.projectKey)
     setTime(project.timeSignature?.label || '4/4')
     setGrid(project.noteResolution?.label || '1/16')
-    setTuning(project.tunings?.guitar || 'standard')
-
-    // Determine instrument from tabData keys
+    // Restore instrument — prefer persisted choice, then detect from tabData keys
+    const savedInstrument = localStorage.getItem('tabEditorInstrument')
     const tabKeys = Object.keys(project.tabData || {})
-    const firstKey = tabKeys[0] || ''
-    if (firstKey.includes('-drums')) {
+    const hasInstrumentData = (inst: string) => tabKeys.some(k => k.includes(`-${inst}`) && !k.includes('-annotations'))
+    const detectedInstrument = savedInstrument && hasInstrumentData(savedInstrument)
+      ? savedInstrument
+      : tabKeys[0]?.includes('-drums') ? 'drums'
+      : tabKeys[0]?.includes('-bass') ? 'bass'
+      : 'guitar'
+
+    if (detectedInstrument === 'drums') {
       setInstrument('drums')
       setStrings(String(drumLines.length))
-    } else if (firstKey.includes('-bass')) {
+    } else if (detectedInstrument === 'bass') {
       setInstrument('bass')
       setStrings(String(project.stringCounts?.bass || 4))
+      setTuning(project.tunings?.bass || 'standard')
     } else {
       setInstrument('guitar')
       setStrings(String(project.stringCounts?.guitar || 6))
+      setTuning(project.tunings?.guitar || 'standard')
     }
 
     // Derive beat/cell counts from the project's saved time signature and resolution
@@ -1200,8 +1208,8 @@ export default function TabEditorNew() {
     const sections = project.sections || []
     if (sections.length > 0) {
       const newParts = sections.map(section => {
-        // Find matching tabData for this section (try each instrument)
-        const instKey = tabKeys.find(k => k.startsWith(`${section.id}-`)) || `${section.id}-guitar`
+        // Find matching tabData for this section (prefer the active instrument)
+        const instKey = tabKeys.find(k => k === `${section.id}-${detectedInstrument}`) || tabKeys.find(k => k.startsWith(`${section.id}-`) && !k.includes('-annotations')) || `${section.id}-guitar`
         const measureData = project.tabData?.[instKey] || []
         const annotationsData = (project.tabData as Record<string, unknown>)?.[`${instKey}-annotations`] as BarAnnotation[][] | undefined
 
@@ -1514,7 +1522,7 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" onClick={() => { stopPlayback(); setPracticeMode(true) }} title="Practice mode">
             <Eye size={16} />
           </UiButton>
-          <UiButton variant="secondary" onClick={() => setShowSettings(!showSettings)} title="Settings" className={styles.hideOnTablet}>
+          <UiButton variant={showSettings ? 'primary' : 'secondary'} onClick={() => { const next = !showSettings; setShowSettings(next); localStorage.setItem('tabEditorShowSettings', String(next)) }} title="Settings" className={styles.hideOnTablet}>
             <Settings size={16} />
           </UiButton>
           <UiButton variant="secondary" onClick={() => window.print()} title="Print / Save as PDF" className={styles.hideOnTablet}>
@@ -1618,20 +1626,21 @@ export default function TabEditorNew() {
             onChange={setPowerChordMode}
             label="Power Chord"
             hideIcon
+            size="small"
           />
           {instrument === 'guitar' && strings === '6' && (
-            <UiButton variant="secondary" onClick={() => setShowChordPicker(true)}>
+            <UiButton variant="secondary" size="small" onClick={() => setShowChordPicker(true)}>
               Insert Chord
             </UiButton>
           )}
-          <UiButton variant="secondary" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
+          <UiButton variant="secondary" size="small" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
             Palm Mute
           </UiButton>
           {instrument === 'bass' && (() => {
             const existingProject = getLocalProjects().find(p => p.id === projectId)
             const hasGuitarData = existingProject && Object.keys(existingProject.tabData || {}).some(k => k.includes('-guitar') && !k.includes('-annotations'))
             return (
-              <UiButton variant="secondary" disabled={!hasGuitarData} onClick={handleGenerateBass} title="Generate bass from guitar tab data">
+              <UiButton variant="secondary" size="small" disabled={!hasGuitarData} onClick={handleGenerateBass} title="Generate bass from guitar tab data">
                 Generate Bass
               </UiButton>
             )
