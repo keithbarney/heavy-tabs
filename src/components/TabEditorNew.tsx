@@ -71,6 +71,7 @@ export default function TabEditorNew() {
   const [isSaving, setIsSaving] = useState(false)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasLoadedRef = useRef(false)
+  const skipNextAutoSaveRef = useRef(false)
   const handleSaveRef = useRef<() => Promise<void>>(async () => {})
   const userMenuRef = useRef<HTMLDivElement>(null)
   const partsRef = useRef<typeof parts>([])
@@ -1173,6 +1174,10 @@ export default function TabEditorNew() {
     // can read all instruments' tabData (critical for cross-device sync)
     saveLocalProject(project)
 
+    // Suppress auto-save from firing due to loadProject state changes
+    // (otherwise auto-save could overwrite cloud data with partially-loaded state)
+    skipNextAutoSaveRef.current = true
+
     setProjectId(project.id)
     setCloudId(project.cloudId || null)
     setCurrentProjectId(project.id)
@@ -1306,6 +1311,13 @@ export default function TabEditorNew() {
   useEffect(() => {
     // Skip auto-save until user has loaded or created a project
     if (!hasLoadedRef.current) {
+      return
+    }
+
+    // Skip the auto-save triggered by loadProject setting all state at once
+    // (prevents overwriting cloud data with partially-loaded editor state)
+    if (skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false
       return
     }
 
@@ -1483,12 +1495,12 @@ export default function TabEditorNew() {
           />
           <UiButton
             variant="action"
-            disabled={!isDirty || isSaving}
+            disabled={!isDirty && !isSaving}
             onClick={() => { hasLoadedRef.current = true; handleSave() }}
             className={styles.hideOnTablet}
           >
             <Save size={16} />
-            {isDirty ? 'Save' : 'Saved'}
+            {isSaving ? 'Saving...' : isDirty ? 'Save' : 'Saved'}
           </UiButton>
         </div>
 
