@@ -1351,16 +1351,17 @@ export default function TabEditorNew() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isDirty])
 
-  // Restore active project on mount (after projects finish loading)
+  // Restore active project on mount (after auth + projects finish loading)
+  // Must wait for auth to resolve so loadProjects fetches from Supabase (not stale localStorage)
   useEffect(() => {
-    if (projectsHook.loading || hasLoadedRef.current) return
+    if (auth.loading || projectsHook.loading || hasLoadedRef.current) return
     const activeId = getActiveProjectId()
     if (!activeId) return
     const match = projectsHook.projects.find(p => p.id === activeId)
     if (match) {
       loadProject(match)
     }
-  }, [projectsHook.loading, projectsHook.projects, loadProject])
+  }, [auth.loading, projectsHook.loading, projectsHook.projects, loadProject])
 
   // Close user menu on outside click
   useEffect(() => {
