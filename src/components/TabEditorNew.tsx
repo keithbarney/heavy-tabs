@@ -1168,6 +1168,11 @@ export default function TabEditorNew() {
   // Load a project from the library into editor state
   const loadProject = useCallback((project: LocalProject) => {
     trackEvent('project_load', project.cloudId)
+
+    // Sync full project to localStorage so handleSave/handleInstrumentChange
+    // can read all instruments' tabData (critical for cross-device sync)
+    saveLocalProject(project)
+
     setProjectId(project.id)
     setCloudId(project.cloudId || null)
     setCurrentProjectId(project.id)
