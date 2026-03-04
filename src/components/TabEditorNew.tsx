@@ -952,6 +952,9 @@ export default function TabEditorNew() {
         }
       }
     }
+    // Store active instrument in tabData so it syncs to cloud
+    tabData['_activeInstrument'] = instrument
+
     parts.forEach(part => {
       tabData[`${part.id}-${instrument}`] = part.bars.map(bar => {
         const numRows = bar.data[0]?.length ?? numStrings
@@ -1175,9 +1178,10 @@ export default function TabEditorNew() {
     setKeySignature(project.projectKey)
     setTime(project.timeSignature?.label || '4/4')
     setGrid(project.noteResolution?.label || '1/16')
-    // Restore instrument — prefer persisted choice, then detect from tabData keys
-    const savedInstrument = localStorage.getItem('tabEditorInstrument')
-    const tabKeys = Object.keys(project.tabData || {})
+    // Restore instrument — prefer project-embedded choice (synced to cloud), then localStorage, then detect from tabData keys
+    const projectInstrument = (project.tabData as Record<string, unknown>)?.['_activeInstrument'] as string | undefined
+    const savedInstrument = projectInstrument || localStorage.getItem('tabEditorInstrument')
+    const tabKeys = Object.keys(project.tabData || {}).filter(k => k !== '_activeInstrument')
     const hasInstrumentData = (inst: string) => tabKeys.some(k => k.includes(`-${inst}`) && !k.includes('-annotations'))
     const detectedInstrument = savedInstrument && hasInstrumentData(savedInstrument)
       ? savedInstrument
