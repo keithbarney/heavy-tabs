@@ -40,7 +40,7 @@ Guitar/bass/drum tablature editor with cloud sync and public sharing.
 - ✅ Supabase Pro + custom domain (api.heavytabs.app)
 - ✅ Responsive breakpoints: 1460px / 1000px / 575px
 - ✅ Landing page for conversions
-- ✅ Payment integration (Lemon Squeezy)
+- ✅ Payment integration (Stripe)
 - ✅ PDF export
 - ✅ Palm mute annotations (Shift+M / toolbar button, US-133–139)
 

@@ -99,7 +99,7 @@ A web-based guitar/bass/drum tablature editor with cloud sync, public sharing, a
 
 ### Phase 1: Launch (Weeks 1–4)
 - [ ] Landing page with demo video
-- [ ] Payment integration (Lemon Squeezy)
+- [ ] Payment integration (Stripe)
 - [ ] SEO basics: meta tags, sitemap, structured data
 - [ ] Post on Reddit: r/guitar, r/Bass, r/drums, r/WeAreTheMusicMakers
 - [ ] Post on Hacker News (Show HN)
@@ -141,7 +141,7 @@ A web-based guitar/bass/drum tablature editor with cloud sync, public sharing, a
 
 ### Next (Q1 2026)
 - [ ] Landing page for conversions
-- [ ] Payment gate (Lemon Squeezy)
+- [ ] Payment gate (Stripe)
 - [ ] PDF export (proper, not browser print)
 - [ ] GP5/GPX file import
 - [ ] Touch-friendly mobile editing
@@ -170,10 +170,10 @@ A web-based guitar/bass/drum tablature editor with cloud sync, public sharing, a
 |--------|------|-----------------|
 | Monthly visitors | Vercel Analytics | 5,000 |
 | Sign-ups | Supabase Auth | 500/mo |
-| Conversion (free → paid) | Lemon Squeezy | 2.5% |
+| Conversion (free → paid) | Stripe | 2.5% |
 | Projects created | Supabase | 2,000/mo |
 | Shared tabs viewed | Analytics events | 1,000/mo |
-| Churn (paid refunds) | Lemon Squeezy | <5% |
+| Churn (paid refunds) | Stripe | <5% |
 
 ---
 
