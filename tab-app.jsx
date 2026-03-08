@@ -1448,6 +1448,12 @@ function TabApp() {
   };
 
   // Print formatted tab sheet
+  const escHtml = (s) => {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  };
+
   const printTab = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -1523,8 +1529,8 @@ function TabApp() {
 </head>
 <body>
   <div class="header">
-    <div class="title">${projectName}</div>
-    <div class="meta">${bpm} BPM • ${timeSignature.label} • Key of ${projectKey}</div>
+    <div class="title">${escHtml(projectName)}</div>
+    <div class="meta">${bpm} BPM • ${escHtml(timeSignature.label)} • Key of ${escHtml(projectKey)}</div>
   </div>
 `;
 
@@ -1538,7 +1544,7 @@ function TabApp() {
         : '';
 
       html += `<div class="instrument-section">`;
-      html += `<div class="instrument-title">${instrument.charAt(0).toUpperCase() + instrument.slice(1)}${tuningLabel}</div>`;
+      html += `<div class="instrument-title">${escHtml(instrument.charAt(0).toUpperCase() + instrument.slice(1))}${escHtml(tuningLabel)}</div>`;
 
       sections.forEach(section => {
         const sectionData = getTabData(section.id, instrument);
@@ -1546,9 +1552,9 @@ function TabApp() {
         if (!hasNotes) return;
 
         html += `<div class="part">`;
-        html += `<div class="part-name">${section.name}${section.repeat > 1 ? ` (×${section.repeat})` : ''}</div>`;
+        html += `<div class="part-name">${escHtml(section.name)}${section.repeat > 1 ? ` (×${section.repeat})` : ''}</div>`;
         if (section.notes) {
-          html += `<div style="color: #666; font-style: italic; font-size: 11px; margin-bottom: 6px; font-family: Arial, sans-serif;">${section.notes}</div>`;
+          html += `<div style="color: #666; font-style: italic; font-size: 11px; margin-bottom: 6px; font-family: Arial, sans-serif;">${escHtml(section.notes)}</div>`;
         }
         html += `<div class="tab-grid">`;
 

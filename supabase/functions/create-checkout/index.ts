@@ -2,12 +2,20 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const allowedOrigins = ['https://heavytabs.app', 'http://localhost:3002']
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || ''
+  const allowed = allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
