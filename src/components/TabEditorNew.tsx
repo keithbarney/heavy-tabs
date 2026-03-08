@@ -1928,7 +1928,7 @@ export default function TabEditorNew() {
           <>
             <a href="/privacy" className={footerStyles.supportLink}>Privacy</a>
             <a href="https://buy.stripe.com/8x2eVfdpYfbW5Rd1Ax87K01" target="_blank" rel="noopener noreferrer" className={footerStyles.supportLink}>
-              Support Heavy Tabs ♥
+              Buy me a coffee
             </a>
           </>
         }

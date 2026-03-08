@@ -100,7 +100,7 @@ export default function Features() {
         <span>© {new Date().getFullYear()} Heavy Tabs</span>
         <Link to="/privacy">Privacy Policy</Link>
         <a href="https://buy.stripe.com/8x2eVfdpYfbW5Rd1Ax87K01" target="_blank" rel="noopener noreferrer">
-          Support Heavy Tabs
+          Buy me a coffee
         </a>
       </footer>
     </div>
