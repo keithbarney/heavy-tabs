@@ -1925,9 +1925,12 @@ export default function TabEditorNew() {
           </UiButton>
         }
         right={
-          <a href="https://heavy.lemonsqueezy.com" target="_blank" rel="noopener noreferrer" className={footerStyles.supportLink}>
-            Support Heavy Tabs ♥
-          </a>
+          <>
+            <a href="/privacy" className={footerStyles.supportLink}>Privacy</a>
+            <a href="https://heavy.lemonsqueezy.com" target="_blank" rel="noopener noreferrer" className={footerStyles.supportLink}>
+              Support Heavy Tabs ♥
+            </a>
+          </>
         }
         legendPanel={
           <>
