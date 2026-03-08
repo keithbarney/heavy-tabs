@@ -1,0 +1,78 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.page {
+  min-height: 100vh;
+  background-color: $color-bg;
+  color: $color-text;
+  font-family: $font-sans;
+}
+
+.header {
+  padding: $space-lg $space-2xl;
+  border-bottom: 1px solid $color-border;
+}
+
+.logo {
+  font-family: $font-mono;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-bright;
+  text-decoration: none;
+}
+
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px $space-2xl 80px;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: $color-text-bright;
+    margin: 0 0 $space-sm;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: $color-text-bright;
+    margin: 32px 0 $space-md;
+  }
+
+  p {
+    line-height: 1.7;
+    color: $color-text;
+    margin: 0 0 $space-md;
+  }
+
+  ul {
+    padding-left: 20px;
+    margin: 0 0 $space-md;
+
+    li {
+      line-height: 1.7;
+      margin-bottom: $space-xs;
+    }
+  }
+
+  a {
+    color: $color-accent;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.updated {
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.footer {
+  margin-top: 48px;
+  padding-top: $space-lg;
+  border-top: 1px solid $color-border;
+}

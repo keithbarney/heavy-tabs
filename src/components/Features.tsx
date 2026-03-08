@@ -98,6 +98,7 @@ export default function Features() {
 
       <footer className={styles.footer}>
         <span>© {new Date().getFullYear()} Heavy Tabs</span>
+        <Link to="/privacy">Privacy Policy</Link>
         <a href="https://heavy.lemonsqueezy.com" target="_blank" rel="noopener noreferrer">
           Support Heavy Tabs
         </a>

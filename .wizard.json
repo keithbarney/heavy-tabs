@@ -1,0 +1,485 @@
+{
+  "projectName": "heavy-tabs",
+  "createdAt": "2026-03-07",
+  "updatedAt": "2026-03-07",
+  "phases": {
+    "idea-vision": {
+      "steps": {
+        "problem-statement": {
+          "tasks": {
+            "ps-1": {
+              "completed": true,
+              "value": "Musicians need a fast, cloud-synced tablature editor that works across guitar, bass, and drums without desktop software."
+            },
+            "ps-2": {
+              "completed": true,
+              "value": "Hobbyist guitarists, band members, and music teachers who write and share tabs"
+            },
+            "ps-3": {
+              "completed": true,
+              "value": "Pain"
+            },
+            "ps-4": {
+              "completed": true,
+              "value": "Guitar Pro ($70 desktop app), Ultimate Guitar's clunky editor, or plain text tabs in Notepad"
+            },
+            "ps-5": {
+              "completed": true,
+              "value": "Weekly"
+            }
+          }
+        },
+        "vision-positioning": {
+          "tasks": {
+            "vp-1": {
+              "completed": true,
+              "value": "A free, browser-based tab editor with cloud sync, public sharing, and multi-instrument support."
+            },
+            "vp-2": {
+              "completed": true,
+              "value": "Not a DAW, not a sheet music notation tool, not a tab archive/library like Ultimate Guitar"
+            },
+            "vp-3": {
+              "completed": true,
+              "value": "The go-to free online tab editor with a growing community sharing original tabs and arrangements"
+            }
+          }
+        },
+        "competitive-landscape": {
+          "tasks": {
+            "cl-1": {
+              "completed": true,
+              "value": "Guitar Pro (powerful but $70, desktop only), Songsterr (playback-focused, no real editor), Ultimate Guitar (tab archive, weak editor), Flat.io (notation-focused, not tab-native)"
+            },
+            "cl-2": {
+              "completed": true,
+              "value": "Free and browser-based, multi-instrument (guitar/bass/drums in one project), instant public sharing via slug URLs"
+            },
+            "cl-3": {
+              "completed": true,
+              "value": "Guitar Pro is expensive and desktop-only, UG's editor is clunky and ad-heavy, Songsterr is read-only for most users"
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "steps": {
+        "validation-research": {
+          "tasks": {
+            "vr-1": {
+              "completed": true,
+              "value": "Personal experience writing tabs for band rehearsals, Reddit threads in r/guitar and r/Bass requesting free browser-based tab editors"
+            },
+            "vr-2": {
+              "completed": true,
+              "value": "No good free browser-based editor, no cloud sync in existing tools, sharing tabs requires file exports"
+            },
+            "vr-3": {
+              "completed": true,
+              "value": "If users create and share tabs without prompting, the core loop works"
+            }
+          }
+        },
+        "scope-definition": {
+          "tasks": {
+            "sd-1": {
+              "completed": true,
+              "value": "Tab editor (guitar/bass/drums), cloud sync, sharing, playback, click track, PDF export, practice mode, power chords, palm mute annotations, library management, offline support, theming"
+            },
+            "sd-2": {
+              "completed": true
+            },
+            "sd-3": {
+              "completed": true,
+              "value": "Tab editor with cell-based input, cloud sync via Supabase, public sharing via slug URLs, playback with click track, project library"
+            },
+            "sd-4": {
+              "completed": true,
+              "value": "Collaboration/real-time editing, tab marketplace, audio import/transcription, MIDI export"
+            }
+          }
+        }
+      }
+    },
+    "business-model": {
+      "steps": {
+        "revenue-and-costs": {
+          "tasks": {
+            "rc-1": {
+              "completed": true,
+              "value": "Freemium"
+            },
+            "rc-2": {
+              "completed": true,
+              "value": "Free: 3 projects, no sharing. Paid ($29 lifetime): unlimited projects, cloud sync, sharing, PDF export"
+            },
+            "rc-3": {
+              "completed": true,
+              "value": "Lemon Squeezy"
+            },
+            "rc-4": {
+              "completed": true,
+              "value": "Supabase Pro + custom domain: $35/mo, Vercel: free tier, SendGrid: free tier. Total burn: ~$35/mo"
+            },
+            "rc-5": {
+              "completed": true,
+              "value": "2 lifetime purchases/mo ($58) covers Supabase costs"
+            }
+          }
+        },
+        "legal-compliance": {
+          "tasks": {
+            "lc-1": {
+              "completed": true,
+              "value": "Privacy policy created at /privacy route \u2014 covers data collection, third-party services, user rights, cookies"
+            },
+            "lc-2": {
+              "completed": false
+            },
+            "lc-3": {
+              "completed": true,
+              "value": "No conflicts found \u2014 'Heavy Tabs' is unique in the music software space"
+            },
+            "lc-4": {
+              "completed": true,
+              "value": "App collects email via auth, stores user data in Supabase (US region). No EU-specific data processing. Basic GDPR compliance via Supabase's DPA."
+            }
+          }
+        }
+      }
+    },
+    "product-definition": {
+      "steps": {
+        "user-stories": {
+          "tasks": {
+            "us-1": {
+              "completed": true,
+              "value": "123 user stories documented in TESTING.md covering editor, library, sharing, playback, auth, offline, practice mode, PDF export, and palm mute annotations"
+            },
+            "us-2": {
+              "completed": true,
+              "value": "Each story in TESTING.md has specific acceptance criteria with expected behavior"
+            }
+          }
+        },
+        "ux-flows": {
+          "tasks": {
+            "ux-1": {
+              "completed": true,
+              "value": "Main editor (/), project library (drawer), public viewer (/tab/:slug), style guide (/styleguide), auth callback, landing page"
+            },
+            "ux-2": {
+              "completed": true,
+              "value": "Land on editor with empty tab, create content, prompted to sign in when saving/sharing"
+            },
+            "ux-3": {
+              "completed": true,
+              "value": "Open project from library, edit tab cells, save to cloud, share via slug URL"
+            },
+            "ux-4": {
+              "completed": true,
+              "value": "Offline fallback to localStorage, migration dialog for local-to-cloud, empty states, auth session persistence"
+            },
+            "ux-5": {
+              "completed": true
+            }
+          }
+        }
+      }
+    },
+    "design": {
+      "steps": {
+        "visual-design": {
+          "tasks": {
+            "vd-1": {
+              "completed": true,
+              "value": "Custom component system (UiButton, UiInput, UiSelect, UiCheckbox) with SCSS tokens and mixins"
+            },
+            "vd-2": {
+              "completed": true,
+              "value": "Dark-first with light/dark theme toggle, SCSS design tokens"
+            },
+            "vd-3": {
+              "completed": true,
+              "value": "BarGrid, Part, TabEditorNew, Library, ShareModal, AuthModal, PracticeMode, PageFooter with legend"
+            },
+            "vd-4": {
+              "completed": true
+            },
+            "vd-5": {
+              "completed": true
+            }
+          }
+        }
+      }
+    },
+    "technical-architecture": {
+      "steps": {
+        "stack-and-infrastructure": {
+          "tasks": {
+            "si-1": {
+              "completed": true,
+              "value": "React 18, TypeScript, Vite, React Router, Sass (SCSS modules), Lucide React icons"
+            },
+            "si-2": {
+              "completed": true,
+              "value": "Sass (SCSS modules) with design tokens"
+            },
+            "si-3": {
+              "completed": true,
+              "value": "Vercel (auto-deploys from GitHub main branch), custom domain heavytabs.app"
+            },
+            "si-4": {
+              "completed": true,
+              "value": "VITE_SUPABASE_URL (api.heavytabs.app), VITE_SUPABASE_ANON_KEY"
+            },
+            "si-5": {
+              "completed": true,
+              "value": "Vite for fast dev, React for interactive editor UI, Supabase for auth + real-time sync + RLS"
+            }
+          }
+        },
+        "data-architecture": {
+          "tasks": {
+            "da-1": {
+              "completed": true,
+              "value": "profiles (auto-created on signup), projects (tab data as JSONB), shared_links (8-char slugs with view counts)"
+            },
+            "da-2": {
+              "completed": true,
+              "value": "Supabase Pro (Postgres + Auth + RLS), project ref mffldntdtsqckmhuwylm, custom domain api.heavytabs.app"
+            },
+            "da-3": {
+              "completed": true,
+              "value": "Direct Supabase client calls (no API routes), RLS policies for row-level access control"
+            },
+            "da-4": {
+              "completed": true,
+              "value": "SQL migrations in supabase/migrations/, localStorage-to-cloud migration dialog for existing users"
+            }
+          }
+        },
+        "auth-authorization": {
+          "tasks": {
+            "aa-1": {
+              "completed": true,
+              "value": "Yes"
+            },
+            "aa-2": {
+              "completed": true,
+              "value": "Google OAuth + magic link (passwordless) via Supabase Auth, SendGrid for emails from noreply@heavytabs.app"
+            },
+            "aa-3": {
+              "completed": true,
+              "value": "Single role: authenticated user owns their projects, RLS enforces access"
+            }
+          }
+        }
+      }
+    },
+    "development": {
+      "steps": {
+        "project-setup": {
+          "tasks": {
+            "ps-setup-1": {
+              "completed": true
+            },
+            "ps-setup-2": {
+              "completed": true
+            },
+            "ps-setup-3": {
+              "completed": true
+            },
+            "ps-setup-4": {
+              "completed": true
+            },
+            "ps-setup-5": {
+              "completed": true
+            }
+          }
+        },
+        "core-features": {
+          "tasks": {
+            "cf-1": {
+              "completed": true
+            },
+            "cf-2": {
+              "completed": true
+            },
+            "cf-3": {
+              "completed": true
+            },
+            "cf-4": {
+              "completed": true
+            },
+            "cf-5": {
+              "completed": true
+            }
+          }
+        },
+        "polish-edge-cases": {
+          "tasks": {
+            "pe-1": {
+              "completed": true
+            },
+            "pe-2": {
+              "completed": true
+            },
+            "pe-3": {
+              "completed": true
+            },
+            "pe-4": {
+              "completed": true
+            },
+            "pe-5": {
+              "completed": true
+            }
+          }
+        }
+      }
+    },
+    "testing-qa": {
+      "steps": {
+        "testing": {
+          "tasks": {
+            "t-1": {
+              "completed": true
+            },
+            "t-2": {
+              "completed": true
+            },
+            "t-3": {
+              "completed": false
+            },
+            "t-4": {
+              "completed": true
+            },
+            "t-5": {
+              "completed": false
+            },
+            "t-6": {
+              "completed": true,
+              "value": "596KB bundle, live on Vercel with Analytics. Performance acceptable for production use."
+            }
+          }
+        }
+      }
+    },
+    "launch-prep": {
+      "steps": {
+        "content-and-seo": {
+          "tasks": {
+            "cs-1": {
+              "completed": true
+            },
+            "cs-2": {
+              "completed": true
+            },
+            "cs-3": {
+              "completed": true,
+              "value": "Auth errors, sync failures, and offline fallback messages handled"
+            },
+            "cs-4": {
+              "completed": true
+            },
+            "cs-5": {
+              "completed": true,
+              "value": "SEO planned for 'free tab editor', 'online tab maker'"
+            }
+          }
+        },
+        "pre-launch-checklist": {
+          "tasks": {
+            "plc-1": {
+              "completed": true
+            },
+            "plc-2": {
+              "completed": true
+            },
+            "plc-3": {
+              "completed": true
+            },
+            "plc-4": {
+              "completed": false
+            },
+            "plc-5": {
+              "completed": true,
+              "value": "Vercel built-in rollback \u2014 revert to any previous deployment via dashboard"
+            }
+          }
+        }
+      }
+    },
+    "marketing": {
+      "steps": {
+        "launch-marketing": {
+          "tasks": {
+            "lm-1": {
+              "completed": false
+            },
+            "lm-2": {
+              "completed": false
+            },
+            "lm-3": {
+              "completed": false
+            },
+            "lm-4": {
+              "completed": false
+            },
+            "lm-5": {
+              "completed": false
+            }
+          }
+        }
+      }
+    },
+    "launch": {
+      "steps": {
+        "ship-and-monitor": {
+          "tasks": {
+            "sm-1": {
+              "completed": true
+            },
+            "sm-2": {
+              "completed": true
+            },
+            "sm-3": {
+              "completed": false
+            },
+            "sm-4": {
+              "completed": true,
+              "value": "App is live in production at heavytabs.app with paying users. Initial monitoring period complete."
+            },
+            "sm-5": {
+              "completed": false
+            }
+          }
+        }
+      }
+    },
+    "post-launch": {
+      "steps": {
+        "feedback-and-iteration": {
+          "tasks": {
+            "fi-1": {
+              "completed": false
+            },
+            "fi-2": {
+              "completed": false
+            },
+            "fi-3": {
+              "completed": false
+            },
+            "fi-4": {
+              "completed": false
+            },
+            "fi-5": {
+              "completed": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

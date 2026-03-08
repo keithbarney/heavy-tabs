@@ -13,6 +13,7 @@ import WelcomeModal from '@/components/WelcomeModal'
 import PublicViewer from '@/components/PublicViewer'
 import UpgradeSuccess from '@/components/UpgradeSuccess'
 import Features from '@/components/Features'
+import Privacy from '@/components/Privacy'
 
 function App() {
   const auth = useAuth()
@@ -58,6 +59,12 @@ function App() {
         <Route
           path="/features"
           element={<Features />}
+        />
+
+        {/* Privacy policy */}
+        <Route
+          path="/privacy"
+          element={<Privacy />}
         />
 
         {/* Style guide */}
