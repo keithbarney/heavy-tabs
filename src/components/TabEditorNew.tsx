@@ -1551,7 +1551,7 @@ export default function TabEditorNew() {
             <Printer size={16} />
           </UiButton>
           {auth.isAuthenticated ? (
-            <div className={`${styles.userMenuContainer} ${styles.hideOnTablet}`} ref={userMenuRef}>
+            <div className={styles.userMenuContainer} ref={userMenuRef}>
               <button className={styles.userButton} onClick={() => setShowUserMenu(!showUserMenu)}>
                 {auth.user?.avatarUrl && !avatarError ? (
                   <img
@@ -1601,7 +1601,7 @@ export default function TabEditorNew() {
               )}
             </div>
           ) : (
-            <UiButton variant="primary" onClick={() => setShowAuthModal(true)} className={styles.hideOnTablet}>
+            <UiButton variant="primary" onClick={() => setShowAuthModal(true)}>
               Sign In
             </UiButton>
           )}

@@ -63,6 +63,10 @@
   justify-content: space-between;
   gap: $space-md;
   padding: $space-md;
+
+  @supports (-webkit-touch-callout: none) {
+    padding-top: 56px;
+  }
 }
 
 .title {
@@ -70,6 +74,12 @@
   font-weight: 600;
   color: $color-text-bright;
   margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
 }
 
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, RefreshCw, Music } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, Music, X } from 'lucide-react'
 import UiButton from './UiButton'
 import DrawerSongListItem from './DrawerSongListItem'
 import { FREE_PROJECT_LIMIT } from '@/lib/constants'
@@ -99,10 +99,15 @@ export default function Library({
       <div className={`${styles.panel} ${isClosing ? styles.panelClosing : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>Projects ({projects.projects.length})</h2>
-          <UiButton variant="action" onClick={handleNewProject}>
-            <Plus size={16} />
-            New Song
-          </UiButton>
+          <div className={styles.headerActions}>
+            <UiButton variant="action" onClick={handleNewProject}>
+              <Plus size={16} />
+              New Song
+            </UiButton>
+            <UiButton variant="secondary" onClick={handleClose} title="Close">
+              <X size={16} />
+            </UiButton>
+          </div>
         </div>
 
         {message && (
