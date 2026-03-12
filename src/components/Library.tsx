@@ -166,23 +166,22 @@ export default function Library({
               />
             ))
           )}
+          {settingsProps && (
+            <div className={styles.settingsSection}>
+              <button
+                className={styles.settingsToggle}
+                onClick={() => setSettingsOpen(!settingsOpen)}
+              >
+                <Settings size={14} />
+                <span>Settings</span>
+                {settingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </button>
+              {settingsOpen && (
+                <PageAdvancedSettings {...settingsProps} className={styles.settingsPanel} />
+              )}
+            </div>
+          )}
         </div>
-
-        {settingsProps && (
-          <div className={styles.settingsSection}>
-            <button
-              className={styles.settingsToggle}
-              onClick={() => setSettingsOpen(!settingsOpen)}
-            >
-              <Settings size={14} />
-              <span>Settings</span>
-              {settingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </button>
-            {settingsOpen && (
-              <PageAdvancedSettings {...settingsProps} className={styles.settingsPanel} />
-            )}
-          </div>
-        )}
       </div>
     </div>
   )

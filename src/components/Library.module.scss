@@ -11,7 +11,7 @@
   background-color: $color-bg-alt;
   width: 100%;
   max-width: 480px;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   animation: slideIn 0.2s ease-out;
@@ -370,18 +370,15 @@
   }
 }
 
-// Settings section — mobile only
+// Settings section — sticky bottom, hidden on desktop
 .settingsSection {
   border-top: 1px solid $color-border;
   flex-shrink: 0;
-  display: none;
+  margin-top: auto;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 
-  @supports (-webkit-touch-callout: none) {
-    display: block;
-  }
-
-  @media (max-width: 1000px) {
-    display: block;
+  @media (min-width: 1001px) {
+    display: none;
   }
 }
 
@@ -390,12 +387,13 @@
   align-items: center;
   gap: $space-sm;
   width: 100%;
-  padding: $space-md;
+  min-height: 44px;
+  padding: $space-md $space-lg;
   background: none;
   border: none;
   color: $color-text-muted;
   font-family: $font-mono;
-  font-size: $font-size-sm;
+  font-size: 16px;
   cursor: pointer;
 
   &:hover {
@@ -404,7 +402,28 @@
 }
 
 .settingsPanel {
-  background-color: $color-bg;
+  background-color: $color-bg-alt;
   border-top: 1px solid $color-border;
+
+  > div:last-child {
+    flex-direction: column;
+    padding: $space-2xl $space-lg;
+    gap: $space-xl;
+
+    > * {
+      width: 100%;
+    }
+
+    // Mobile-accessible touch targets (44px min) and font sizes (16px min)
+    span {
+      font-size: $font-size-base;
+    }
+
+    select {
+      height: 44px;
+      font-size: 16px; // Prevents iOS zoom on focus
+      border-radius: $radius-md;
+    }
+  }
 }
 
