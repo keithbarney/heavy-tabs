@@ -1812,6 +1812,36 @@ export default function TabEditorNew() {
         onNewProject={resetToNew}
         onShowUpgradeModal={() => { setShowLibrary(false); setShowUpgradeModal(true) }}
         isPro={auth.user?.isPro}
+        settingsProps={{
+          instrument,
+          strings,
+          tuning,
+          keySignature,
+          time,
+          grid,
+          onInstrumentChange: handleInstrumentChange,
+          onStringsChange: setStrings,
+          onTuningChange: setTuning,
+          onKeyChange: setKeySignature,
+          onTimeChange: (value) => {
+            setTime(value)
+            const sig = TIME_SIGNATURES.find(t => t.label === value)
+            const newGrid = sig && sig.noteValue === 8 ? '1/8' : '1/16'
+            setGrid(newGrid)
+            setParts(prev => prev.map(p => {
+              if (p.time) return p
+              return { ...p, bars: p.bars.map(b => rebuildBar(b, value, p.grid || newGrid)) }
+            }))
+          },
+          onGridChange: (value) => {
+            setGrid(value)
+            setParts(prev => prev.map(p => {
+              if (p.grid) return p
+              return { ...p, bars: p.bars.map(b => rebuildBar(b, p.time || time, value)) }
+            }))
+          },
+          projectId: cloudId,
+        }}
       />
 
       {/* Auth Modal */}

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, RefreshCw, Music, X } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, Music, X, ChevronDown, ChevronRight, Settings } from 'lucide-react'
 import UiButton from './UiButton'
 import DrawerSongListItem from './DrawerSongListItem'
+import PageAdvancedSettings from './PageAdvancedSettings'
 import { FREE_PROJECT_LIMIT } from '@/lib/constants'
 import type { LocalProject } from '@/types'
 import type { UseProjectsReturn } from '@/hooks/useProjects'
+import type { PageAdvancedSettingsProps } from './PageAdvancedSettings'
 import styles from './Library.module.scss'
 
 interface LibraryProps {
@@ -17,6 +19,7 @@ interface LibraryProps {
   onShowUpgradeModal: () => void
   isPro?: boolean
   message?: string | null
+  settingsProps?: PageAdvancedSettingsProps
 }
 
 export default function Library({
@@ -29,9 +32,11 @@ export default function Library({
   onShowUpgradeModal,
   isPro,
   message,
+  settingsProps,
 }: LibraryProps) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [isClosing, setIsClosing] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   // Handle close with animation
   const handleClose = () => {
@@ -162,6 +167,22 @@ export default function Library({
             ))
           )}
         </div>
+
+        {settingsProps && (
+          <div className={styles.settingsSection}>
+            <button
+              className={styles.settingsToggle}
+              onClick={() => setSettingsOpen(!settingsOpen)}
+            >
+              <Settings size={14} />
+              <span>Settings</span>
+              {settingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+            {settingsOpen && (
+              <PageAdvancedSettings {...settingsProps} className={styles.settingsPanel} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

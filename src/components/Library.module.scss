@@ -370,3 +370,41 @@
   }
 }
 
+// Settings section — mobile only
+.settingsSection {
+  border-top: 1px solid $color-border;
+  flex-shrink: 0;
+  display: none;
+
+  @supports (-webkit-touch-callout: none) {
+    display: block;
+  }
+
+  @media (max-width: 1000px) {
+    display: block;
+  }
+}
+
+.settingsToggle {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  width: 100%;
+  padding: $space-md;
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-bright;
+  }
+}
+
+.settingsPanel {
+  background-color: $color-bg;
+  border-top: 1px solid $color-border;
+}
+
