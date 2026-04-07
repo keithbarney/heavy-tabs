@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Copy, Loader2, AlertCircle, Music, ArrowLeft, Eye } from 'lucide-react'
 import TabEditor from './TabEditor'
@@ -27,6 +27,13 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
   const [copied, setCopied] = useState(false)
   const [practiceMode, setPracticeMode] = useState(false)
 
+  // Stash sharing in a ref so we can call it from the effect without
+  // making it a dependency. useSharing returns a new object every render,
+  // so including `sharing` in deps caused the effect to re-fire on every
+  // render — an infinite loop that hammered Supabase and never resolved.
+  const sharingRef = useRef(sharing)
+  sharingRef.current = sharing
+
   useEffect(() => {
     if (!slug) {
       setError('Invalid share link')
@@ -34,23 +41,26 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
       return
     }
 
+    let cancelled = false
     const loadSharedProject = async () => {
       setLoading(true)
       setError(null)
 
-      const result = await sharing.getSharedProject(slug)
+      const result = await sharingRef.current.getSharedProject(slug)
+      if (cancelled) return
       if (result) {
         setProject(result.project)
         setShareLink(result.shareLink)
       } else {
-        setError(sharing.error || 'This tab is not available')
+        setError(sharingRef.current.error || 'This tab is not available')
       }
 
       setLoading(false)
     }
 
     loadSharedProject()
-  }, [slug, sharing])
+    return () => { cancelled = true }
+  }, [slug])
 
   // Escape key exits practice mode
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
