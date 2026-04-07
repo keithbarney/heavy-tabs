@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { BarGridProps } from './BarGrid'
-import { Menu, Plus, Play, Pause, RotateCcw, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save, Eye, Share2 } from 'lucide-react'
+import { Menu, Plus, Play, Pause, RotateCcw, Repeat, Drum, Timer, Settings, Printer, X, ChevronUp, ChevronDown, LogOut, Save, Eye } from 'lucide-react'
 import UiButton from './UiButton'
 import UiCheckbox from './UiCheckbox'
 import UiInput from './UiInput'
@@ -12,10 +12,8 @@ import footerStyles from './PageFooter.module.scss'
 import Library from './Library'
 import UpgradeModal from './UpgradeModal'
 import AuthModal from './AuthModal'
-import ShareModal from './ShareModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useProjects } from '@/hooks/useProjects'
-import { useSharing } from '@/hooks/useSharing'
 import { KEYS, KEY_SEMITONES, CHORD_SHAPES, validInputs, TIME_SIGNATURES, NOTE_RESOLUTIONS, drumLines, getTuningNotes, STANDARD_MIDI, getOpenStringMidi } from '@/lib/constants'
 import { saveLocalProject, generateId, saveActiveProjectId, getActiveProjectId, clearActiveProjectId, resetToDemo, getLocalProjects } from '@/lib/storage'
 import { trackEvent } from '@/lib/analytics'
@@ -27,7 +25,6 @@ export default function TabEditorNew() {
   // Auth and projects hooks
   const auth = useAuth()
   const projectsHook = useProjects({ user: auth.user })
-  const sharing = useSharing({ user: auth.user })
 
   const [projectName, setProjectName] = useState('')
   const [artistName, setArtistName] = useState('')
@@ -38,7 +35,6 @@ export default function TabEditorNew() {
   const [showLibrary, setShowLibrary] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [showSignedOutModal, setShowSignedOutModal] = useState(false)
@@ -1548,24 +1544,6 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" onClick={() => { stopPlayback(); setPracticeMode(true) }} title="Practice mode">
             <Eye size={16} />
           </UiButton>
-          <UiButton
-            variant="secondary"
-            onClick={() => {
-              if (!auth.isAuthenticated) { setShowAuthModal(true); return }
-              if (!cloudId) return
-              setShowShareModal(true)
-            }}
-            disabled={auth.isAuthenticated && !cloudId}
-            title={
-              !auth.isAuthenticated
-                ? 'Sign in to share'
-                : !cloudId
-                  ? 'Save to cloud first to share'
-                  : 'Share this tab'
-            }
-          >
-            <Share2 size={16} />
-          </UiButton>
           <UiButton variant={showSettings ? 'primary' : 'secondary'} onClick={() => { const next = !showSettings; setShowSettings(next); localStorage.setItem('tabEditorShowSettings', String(next)) }} title="Settings" className={styles.hideOnTablet}>
             <Settings size={16} />
           </UiButton>
@@ -1880,17 +1858,6 @@ export default function TabEditorNew() {
         projectCount={projectsHook.projects.length}
         isPro={auth.user?.isPro}
       />
-
-      {/* Share Modal */}
-      {cloudId && (
-        <ShareModal
-          isOpen={showShareModal}
-          onClose={() => setShowShareModal(false)}
-          projectId={cloudId}
-          projectName={projectName || 'Untitled'}
-          sharing={sharing}
-        />
-      )}
 
       {/* Sign Out Confirmation Modal */}
       {showSignOutConfirm && (
