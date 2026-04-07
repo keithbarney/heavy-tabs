@@ -180,8 +180,14 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     const { tabData } = project
     for (const key of Object.keys(tabData)) {
       const measures = tabData[key]
+      // Skip non-measure entries like `_activeInstrument` (string) and
+      // `*-annotations` (different shape) — only iterate real measure arrays.
+      if (!Array.isArray(measures)) continue
+      if (key.includes('-annotations')) continue
       for (const measure of measures) {
+        if (!Array.isArray(measure)) continue
         for (const string of measure) {
+          if (!Array.isArray(string)) continue
           for (const cell of string) {
             if (cell !== '-' && cell !== '') {
               return false
@@ -271,6 +277,13 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
   useEffect(() => {
     const newTabData: TabData = {}
     Object.entries(tabData).forEach(([key, measures]) => {
+      // Pass non-measure entries through unchanged: `_activeInstrument`
+      // (string), `*-annotations` (different shape), or anything that
+      // isn't an array of measures. Only resize real measure arrays.
+      if (!Array.isArray(measures) || key.includes('-annotations')) {
+        newTabData[key] = measures
+        return
+      }
       newTabData[key] = measures.map(measure =>
         measure.map(string => {
           const currentLength = string.length
