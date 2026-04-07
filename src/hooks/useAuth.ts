@@ -40,18 +40,39 @@ export function useAuth() {
       return
     }
 
+    // Hard timeout: never let initial getSession leave us stuck in
+    // loading: true forever if the refresh token is invalidated and
+    // supabase-js hangs on the failed token exchange. onAuthStateChange
+    // will still catch up if auth eventually resolves.
+    let resolved = false
+    const finishWith = (next: AuthState) => {
+      if (resolved) return
+      resolved = true
+      setState(next)
+    }
+    const timeoutId = setTimeout(() => {
+      finishWith({ user: null, loading: false, error: null })
+    }, 5000)
+
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
-      if (error) {
-        console.error('Auth session error:', error)
-        setState({ user: null, loading: false, error: error.message })
-      } else if (session?.user) {
-        const user = await fetchProStatus(buildUser(session.user))
-        setState({ user, loading: false, error: null })
-      } else {
-        setState({ user: null, loading: false, error: null })
-      }
-    })
+    supabase.auth.getSession()
+      .then(async ({ data: { session }, error }) => {
+        clearTimeout(timeoutId)
+        if (error) {
+          console.error('Auth session error:', error)
+          finishWith({ user: null, loading: false, error: error.message })
+        } else if (session?.user) {
+          const user = await fetchProStatus(buildUser(session.user))
+          finishWith({ user, loading: false, error: null })
+        } else {
+          finishWith({ user: null, loading: false, error: null })
+        }
+      })
+      .catch((err) => {
+        console.warn('[useAuth] getSession failed, treating as unauthenticated:', err)
+        clearTimeout(timeoutId)
+        finishWith({ user: null, loading: false, error: null })
+      })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {

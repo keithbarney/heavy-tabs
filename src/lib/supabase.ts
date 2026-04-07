@@ -23,7 +23,9 @@ export const supabase = supabaseUrl && supabaseAnonKey
 
 export const isSupabaseConfigured = () => Boolean(supabase)
 
-// Promise that resolves when Supabase has loaded session from storage
+// Promise that resolves when Supabase has loaded session from storage.
+// Hardened against hangs and rejections so a stale/invalidated refresh
+// token can never block the React app from mounting.
 let sessionInitialized = false
 let initPromise: Promise<void> | null = null
 
@@ -38,11 +40,28 @@ export async function waitForSession(): Promise<void> {
       return
     }
 
-    // Wait for Supabase to load session from localStorage
-    supabase.auth.getSession().then(() => {
+    const finish = () => {
+      if (sessionInitialized) return
       sessionInitialized = true
       resolve()
-    })
+    }
+
+    // Hard timeout: never block render for more than 5s, even if the
+    // refresh token is invalidated and supabase-js is hanging on the
+    // failed token exchange. The app handles unauthenticated state
+    // gracefully and onAuthStateChange will catch up if/when auth resolves.
+    const timeoutId = setTimeout(finish, 5000)
+
+    supabase.auth.getSession()
+      .then(() => {
+        clearTimeout(timeoutId)
+        finish()
+      })
+      .catch((err) => {
+        console.warn('[supabase] getSession failed during init, rendering anyway:', err)
+        clearTimeout(timeoutId)
+        finish()
+      })
   })
 
   return initPromise
