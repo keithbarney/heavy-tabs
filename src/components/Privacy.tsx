@@ -15,9 +15,8 @@ export default function Privacy() {
           <h2>What We Collect</h2>
           <p>When you create an account, we collect:</p>
           <ul>
-            <li><strong>Email address</strong> — used for magic link authentication and account recovery</li>
+            <li><strong>Google profile info</strong> — when you sign in with Google (name, email, profile photo)</li>
             <li><strong>Display name</strong> — shown on your profile and shared tabs</li>
-            <li><strong>Google profile info</strong> — if you sign in with Google (name, email, profile photo)</li>
           </ul>
           <p>When you use the app, we store:</p>
           <ul>
@@ -42,10 +41,9 @@ export default function Privacy() {
           <h2>Third-Party Services</h2>
           <ul>
             <li><strong>Supabase</strong> — database and authentication (stores your account and tab data)</li>
-            <li><strong>Google OAuth</strong> — optional sign-in method (governed by Google's privacy policy)</li>
+            <li><strong>Google OAuth</strong> — sign-in (governed by Google's privacy policy)</li>
             <li><strong>Stripe</strong> — payment processing (governed by Stripe's privacy policy)</li>
             <li><strong>Vercel</strong> — hosting and web analytics</li>
-            <li><strong>SendGrid</strong> — sends magic link authentication emails</li>
           </ul>
         </section>
 

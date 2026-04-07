@@ -89,37 +89,6 @@ export function useAuth() {
     }
   }, [])
 
-  // Sign in with magic link
-  const signInWithMagicLink = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
-    if (!isSupabaseConfigured() || !supabase) {
-      return { success: false, error: 'Supabase not configured' }
-    }
-
-    setState(prev => ({ ...prev, loading: true, error: null }))
-
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        setState(prev => ({ ...prev, loading: false, error: error.message }))
-        return { success: false, error: error.message }
-      }
-
-      setState(prev => ({ ...prev, loading: false }))
-      trackEvent('sign_in_magic_link')
-      return { success: true }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      setState(prev => ({ ...prev, loading: false, error: message }))
-      return { success: false, error: message }
-    }
-  }, [])
-
   // Sign out
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured() || !supabase) {
@@ -182,7 +151,6 @@ export function useAuth() {
     error: state.error,
     isAuthenticated: !!state.user,
     isSupabaseConfigured: isSupabaseConfigured(),
-    signInWithMagicLink,
     signInWithGoogle,
     signOut,
     clearError,

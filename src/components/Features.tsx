@@ -31,7 +31,7 @@ const features = [
   {
     icon: <Cloud size={24} />,
     title: 'Cloud Sync',
-    description: 'Sign in with Google or magic link. Your tabs sync across every device — phone, laptop, studio computer.',
+    description: 'Sign in with Google. Your tabs sync across every device — phone, laptop, studio computer.',
   },
   {
     icon: <Share2 size={24} />,
