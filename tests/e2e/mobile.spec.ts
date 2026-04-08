@@ -131,12 +131,12 @@ test.describe('Mobile: public viewer', () => {
     // Brand link doubles as back-to-home affordance.
     await expect(page.getByRole('link', { name: 'Heavy Tabs home' })).toBeVisible()
 
-    // Practice button has a real touch target now.
-    const practice = page.locator('button[aria-label="Practice mode"]')
-    await expect(practice).toBeVisible()
-    const practiceBox = await practice.boundingBox()
-    expect(practiceBox?.width, 'practice button width >= 44px').toBeGreaterThanOrEqual(44)
-    expect(practiceBox?.height, 'practice button height >= 44px').toBeGreaterThanOrEqual(44)
+    // Focus button has a real touch target now.
+    const focusBtn = page.locator('button[aria-label="Focus mode"]')
+    await expect(focusBtn).toBeVisible()
+    const focusBox = await focusBtn.boundingBox()
+    expect(focusBox?.width, 'focus button width >= 44px').toBeGreaterThanOrEqual(44)
+    expect(focusBox?.height, 'focus button height >= 44px').toBeGreaterThanOrEqual(44)
 
     // Primary CTA spans most of the viewport on mobile and meets 44px height.
     const saveButton = page.getByRole('button', { name: /Save to my library/i })
@@ -166,16 +166,16 @@ test.describe('Mobile: public viewer', () => {
   })
 })
 
-test.describe('Mobile: practice mode', () => {
-  test('practice mode toggle works and Escape exits', async ({ page }) => {
+test.describe('Mobile: focus mode', () => {
+  test('focus mode toggle works and Escape exits', async ({ page }) => {
     await page.goto('/')
-    const practice = page.locator('button[title="Practice mode"]')
-    await expect(practice).toBeVisible()
-    await practice.click()
-    await expect(page.locator('button[title="Exit practice mode (Esc)"]')).toBeVisible()
-    await page.screenshot({ path: resolve(SHOTS_DIR, 'practice-mode.png'), fullPage: true })
+    const focusBtn = page.locator('button[title="Focus mode (F)"]')
+    await expect(focusBtn).toBeVisible()
+    await focusBtn.click()
+    await expect(page.locator('button[title="Exit focus mode (Esc)"]')).toBeVisible()
+    await page.screenshot({ path: resolve(SHOTS_DIR, 'focus-mode.png'), fullPage: true })
     await page.keyboard.press('Escape')
-    await expect(practice).toBeVisible()
+    await expect(focusBtn).toBeVisible()
   })
 })
 

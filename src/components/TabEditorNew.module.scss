@@ -281,8 +281,8 @@
   overflow-y: auto;
 }
 
-// Practice mode
-.practiceBar {
+// Focus mode
+.focusBar {
   position: sticky;
   top: 0;
   z-index: 100;
@@ -294,7 +294,7 @@
   backdrop-filter: blur(8px);
 }
 
-.practiceTitle {
+.focusTitle {
   font-family: $font-mono;
   font-size: $font-size-md;
   font-weight: 500;

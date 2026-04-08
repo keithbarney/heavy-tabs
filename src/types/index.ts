@@ -82,6 +82,7 @@ export interface LocalProject {
   projectKey: string
   tunings: Tunings
   stringCounts: StringCounts
+  activeInstrument?: Instrument
   sections: Section[]
   tabData: TabData
   updatedAt?: string

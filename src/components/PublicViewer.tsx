@@ -25,7 +25,7 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
   const [error, setError] = useState<string | null>(null)
   const [copying, setCopying] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [practiceMode, setPracticeMode] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
 
   // sharing is a fresh object each render; ref keeps the load effect from looping
   const sharingRef = useRef(sharing)
@@ -59,13 +59,13 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
     return () => { cancelled = true }
   }, [slug])
 
-  // Escape key exits practice mode
+  // Escape key exits focus mode
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (practiceMode && e.key === 'Escape') {
+    if (focusMode && e.key === 'Escape') {
       e.preventDefault()
-      setPracticeMode(false)
+      setFocusMode(false)
     }
-  }, [practiceMode])
+  }, [focusMode])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -127,11 +127,11 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
 
   const localProject: LocalProject = supabaseToLocal(project)
 
-  // Practice mode content
-  if (practiceMode) {
-    return <PublicPracticeView
+  // Focus mode content
+  if (focusMode) {
+    return <PublicFocusView
       localProject={localProject}
-      onExit={() => setPracticeMode(false)}
+      onExit={() => setFocusMode(false)}
     />
   }
 
@@ -150,9 +150,9 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
             <button
               type="button"
               className={styles.iconButton}
-              onClick={() => setPracticeMode(true)}
-              title="Practice mode"
-              aria-label="Practice mode"
+              onClick={() => setFocusMode(true)}
+              title="Focus mode"
+              aria-label="Focus mode"
             >
               <Eye size={18} aria-hidden="true" />
             </button>
@@ -189,8 +189,8 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
   )
 }
 
-// Separate component for practice view to keep hooks clean
-function PublicPracticeView({ localProject, onExit }: { localProject: LocalProject; onExit: () => void }) {
+// Separate component for focus view to keep hooks clean
+function PublicFocusView({ localProject, onExit }: { localProject: LocalProject; onExit: () => void }) {
   const parts = useMemo(() => projectToParts(localProject), [localProject])
   const { instrument, strings: numStrings } = useMemo(() => getProjectInstrument(localProject), [localProject])
 
@@ -207,18 +207,18 @@ function PublicPracticeView({ localProject, onExit }: { localProject: LocalProje
   }, [instrument, numStrings, localProject])
 
   return (
-    <div className={`${styles.container} ${styles.practiceContainer} practiceMode`}>
-      <div className={styles.practiceBar}>
-        <span className={styles.practiceTitle}>
+    <div className={`${styles.container} ${styles.focusContainer} focusMode`}>
+      <div className={styles.focusBar}>
+        <span className={styles.focusTitle}>
           {localProject.artistName && <>{localProject.artistName} — </>}
           {localProject.projectName || 'Untitled'}
         </span>
-        <UiButton variant="secondary" selected onClick={onExit} title="Exit practice mode (Esc)">
+        <UiButton variant="secondary" selected onClick={onExit} title="Exit focus mode (Esc)">
           <Eye size={16} />
         </UiButton>
       </div>
 
-      <main className={styles.practiceContent}>
+      <main className={styles.focusContent}>
         {parts.map(part => (
           <Part
             key={part.id}

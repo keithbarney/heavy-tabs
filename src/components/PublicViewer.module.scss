@@ -89,7 +89,7 @@
   letter-spacing: 0.02em;
 }
 
-// Icon-only button used by Practice. 44px hit target on every breakpoint.
+// Icon-only button used by Focus. 44px hit target on every breakpoint.
 .iconButton {
   display: inline-flex;
   align-items: center;
@@ -192,12 +192,12 @@
   }
 }
 
-// Practice mode
-.practiceContainer {
+// Focus mode
+.focusContainer {
   background-color: $color-bg;
 }
 
-.practiceBar {
+.focusBar {
   position: sticky;
   top: 0;
   z-index: 100;
@@ -209,7 +209,7 @@
   backdrop-filter: blur(8px);
 }
 
-.practiceTitle {
+.focusTitle {
   font-family: $font-mono;
   font-size: $font-size-md;
   font-weight: 500;
@@ -219,7 +219,7 @@
   text-overflow: ellipsis;
 }
 
-.practiceContent {
+.focusContent {
   flex: 1;
   padding: $space-sm $space-lg $space-lg;
   display: flex;

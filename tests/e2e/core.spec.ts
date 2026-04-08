@@ -69,15 +69,15 @@ test.describe('Core: header controls', () => {
     expect(title, 'share button must have one of three known states').toBeTruthy()
   })
 
-  test('practice mode button toggles into and out of read-only view', async ({ page }) => {
+  test('focus mode button toggles into and out of read-only view', async ({ page }) => {
     const errors = trackErrors(page)
     await page.goto('/')
-    await page.locator('button[title="Practice mode"]').click()
-    // Practice mode collapses the header into the artist — title summary
-    await expect(page.locator('button[title="Exit practice mode (Esc)"]')).toBeVisible()
+    await page.locator('button[title="Focus mode (F)"]').click()
+    // Focus mode collapses the header into the artist — title summary
+    await expect(page.locator('button[title="Exit focus mode (Esc)"]')).toBeVisible()
     // Escape returns to the editor
     await page.keyboard.press('Escape')
-    await expect(page.locator('button[title="Practice mode"]')).toBeVisible()
+    await expect(page.locator('button[title="Focus mode (F)"]')).toBeVisible()
     expect(errors, errors.map((e) => e.message).join('\n')).toHaveLength(0)
   })
 

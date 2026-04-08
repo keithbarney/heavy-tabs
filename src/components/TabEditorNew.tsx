@@ -43,7 +43,7 @@ export default function TabEditorNew() {
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [showSignedOutModal, setShowSignedOutModal] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
-  const [practiceMode, setPracticeMode] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
   const [powerChordMode, setPowerChordMode] = useState(true)
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
@@ -810,6 +810,23 @@ export default function TabEditorNew() {
     }
   }, [startPlayback, bpm, cloudId])
 
+  // Move playhead to the start of the previous/next bar. Wraps across parts.
+  const movePlayhead = useCallback((direction: 'prev' | 'next') => {
+    if (parts.length === 0) return
+    const curPart = playbackPosition?.partIndex ?? 0
+    const curBar = playbackPosition?.barIndex ?? 0
+    let partIndex = curPart
+    let barIndex = curBar + (direction === 'next' ? 1 : -1)
+    if (barIndex < 0) {
+      partIndex = Math.max(0, partIndex - 1)
+      barIndex = Math.max(0, parts[partIndex].bars.length - 1)
+    } else if (barIndex >= parts[partIndex].bars.length) {
+      partIndex = Math.min(parts.length - 1, partIndex + 1)
+      barIndex = partIndex === curPart ? parts[curPart].bars.length - 1 : 0
+    }
+    setPlaybackPosition({ partIndex, barIndex, beat: 0, cell: 0 })
+  }, [parts, playbackPosition])
+
   // Build playingPosition prop for a specific bar
   const getPlayingPositionForBar = (partIndex: number, barIndex: number) => {
     if (!playbackPosition) return undefined
@@ -886,6 +903,10 @@ export default function TabEditorNew() {
   const handleCellMouseDown = useCallback((partId: string, barIndex: number, beat: number, row: number, cell: number, e: React.MouseEvent) => {
     if (e.button !== 0) return
     e.preventDefault() // Prevent browser text selection while dragging
+    // Steal keyboard focus away from any active Song Title / Lyrics / etc input
+    // so keyboard shortcuts (P, S, F, L, C, numbers, arrows) fire for the grid.
+    const active = document.activeElement as HTMLElement | null
+    if (active && active.matches('input, textarea, select')) active.blur()
     setIsSelecting(true)
     const pos = { partId, barIndex, beat, row, cell }
     setSelectionStart(pos)
@@ -1385,13 +1406,20 @@ export default function TabEditorNew() {
 
   // Keyboard handler
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Escape exits practice mode
-    if (e.key === 'Escape' && practiceMode) { e.preventDefault(); setPracticeMode(false); return }
+    // Escape exits focus mode
+    if (e.key === 'Escape' && focusMode) { e.preventDefault(); setFocusMode(false); return }
 
     if ((e.target as HTMLElement).matches('input, textarea, select')) return
 
-    // Skip all editing shortcuts in practice mode
-    if (practiceMode) return
+    // F toggles focus mode from anywhere
+    if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      setFocusMode(prev => !prev)
+      return
+    }
+
+    // Skip all editing shortcuts in focus mode
+    if (focusMode) return
 
     // Space bar toggles play/pause regardless of cell selection
     if (e.key === ' ' && !e.repeat) { e.preventDefault(); togglePlayback(); return }
@@ -1414,6 +1442,31 @@ export default function TabEditorNew() {
       return
     }
 
+    // C toggles the click track
+    if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      setClickTrack(prev => !prev)
+      return
+    }
+
+    // L toggles loop
+    if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      setIsLooping(prev => {
+        const next = !prev
+        loopingRef.current = next
+        return next
+      })
+      return
+    }
+
+    // Cmd/Ctrl + Left/Right moves the playhead to the previous/next bar
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.shiftKey && !e.altKey) {
+      e.preventDefault()
+      movePlayhead(e.key === 'ArrowRight' ? 'next' : 'prev')
+      return
+    }
+
     // Shift+M toggles palm mute annotation (works with or without cell selection)
     if (e.shiftKey && e.key === 'M' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); togglePalmMute(); return }
 
@@ -1429,7 +1482,7 @@ export default function TabEditorNew() {
       e.preventDefault()
       inputValue(e.key)
     }
-  }, [selectedCell, instrument, practiceMode, deleteCell, navigateSelection, inputValue, copySelection, pasteSelection, togglePlayback, undo, redo, togglePalmMute])
+  }, [selectedCell, instrument, focusMode, deleteCell, navigateSelection, inputValue, copySelection, pasteSelection, togglePlayback, undo, redo, togglePalmMute, movePlayhead])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -1441,15 +1494,15 @@ export default function TabEditorNew() {
   }, [handleKeyDown, handleMouseUp])
 
   return (
-    <div className={`${styles.container} ${practiceMode ? 'practiceMode' : ''}`}>
-      {/* Practice Mode Top Bar */}
-      {practiceMode && (
-        <div className={styles.practiceBar}>
-          <span className={styles.practiceTitle}>
+    <div className={`${styles.container} ${focusMode ? 'focusMode' : ''}`}>
+      {/* Focus Mode Top Bar */}
+      {focusMode && (
+        <div className={styles.focusBar}>
+          <span className={styles.focusTitle}>
             {artistName && <>{artistName} — </>}
             {projectName || 'Untitled'}
           </span>
-          <UiButton variant="secondary" selected onClick={() => setPracticeMode(false)} title="Exit practice mode (Esc)">
+          <UiButton variant="secondary" selected onClick={() => setFocusMode(false)} title="Exit focus mode (Esc)">
             <Eye size={16} />
           </UiButton>
         </div>
@@ -1474,7 +1527,7 @@ export default function TabEditorNew() {
       </div>
 
       {/* Header */}
-      {!practiceMode && <header className={styles.header}>
+      {!focusMode && <header className={styles.header}>
         <div className={styles.headerLeft}>
           <UiButton variant="secondary" onClick={() => setShowLibrary(true)} title="Projects">
             <Menu size={16} />
@@ -1515,10 +1568,10 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" onClick={togglePlayback} title={isPlaying ? 'Pause' : 'Play'}>
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
           </UiButton>
-          <UiButton variant="secondary" selected={isLooping} onClick={() => { setIsLooping(!isLooping); loopingRef.current = !isLooping }} title="Loop" className={styles.hideOnTablet}>
+          <UiButton variant="secondary" selected={isLooping} onClick={() => { setIsLooping(!isLooping); loopingRef.current = !isLooping }} title="Loop (L)" className={styles.hideOnTablet}>
             <Repeat size={16} />
           </UiButton>
-          <UiButton variant="secondary" selected={clickTrack} onClick={() => setClickTrack(!clickTrack)} title="Click track">
+          <UiButton variant="secondary" selected={clickTrack} onClick={() => setClickTrack(!clickTrack)} title="Click track (C)">
             <Drum size={16} />
           </UiButton>
           <UiButton variant="secondary" selected={countIn} onClick={() => setCountIn(!countIn)} title="Count-in" className={styles.hideOnTablet}>
@@ -1544,7 +1597,7 @@ export default function TabEditorNew() {
         </div>
 
         <div className={styles.headerRight}>
-          <UiButton variant="secondary" onClick={() => { stopPlayback(); setPracticeMode(true) }} title="Practice mode">
+          <UiButton variant="secondary" onClick={() => { stopPlayback(); setFocusMode(true) }} title="Focus mode (F)">
             <Eye size={16} />
           </UiButton>
           <UiButton
@@ -1630,7 +1683,7 @@ export default function TabEditorNew() {
       </header>}
 
       {/* Advanced Settings */}
-      {!practiceMode && showSettings && <PageAdvancedSettings
+      {!focusMode && showSettings && <PageAdvancedSettings
         instrument={instrument}
         strings={strings}
         tuning={tuning}
@@ -1662,7 +1715,7 @@ export default function TabEditorNew() {
       />}
 
       {/* Chord Toolbar */}
-      {!practiceMode && instrument !== 'drums' && (
+      {!focusMode && instrument !== 'drums' && (
         <div className={styles.chordToolbar}>
           <UiCheckbox
             checked={powerChordMode}
@@ -1693,7 +1746,14 @@ export default function TabEditorNew() {
       )}
 
       {/* Main Content */}
-      <main className={styles.content} onClick={practiceMode ? undefined : (e) => { if (e.target === e.currentTarget) { setSelectedCell(null); setSelectedCells([]) } }}>
+      <main className={styles.content} onClick={focusMode ? undefined : (e) => {
+        if (e.target === e.currentTarget) {
+          setSelectedCell(null)
+          setSelectedCells([])
+          const active = document.activeElement as HTMLElement | null
+          if (active && active.matches('input, textarea, select')) active.blur()
+        }
+      }}>
         {parts.map((part, partIndex) => (
           <Part
             key={part.id}
@@ -1708,16 +1768,16 @@ export default function TabEditorNew() {
             globalGrid={grid}
             timeOptions={TIME_SIGNATURES}
             gridOptions={NOTE_RESOLUTIONS}
-            readOnly={practiceMode}
+            readOnly={focusMode}
             bars={part.bars.map((bar, bi) => ({
               ...bar,
               annotations: instrument !== 'drums' ? (bar.annotations || []) : undefined,
-              selectedCells: practiceMode ? [] : getSelectedCellsForBar(part.id, bi),
+              selectedCells: focusMode ? [] : getSelectedCellsForBar(part.id, bi),
               playingPosition: getPlayingPositionForBar(partIndex, bi),
             }))}
-            onCellClick={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellClick(part.id, barIndex, beat, row, cell)}
-            onCellMouseDown={practiceMode ? undefined : (barIndex, beat, row, cell, e) => handleCellMouseDown(part.id, barIndex, beat, row, cell, e)}
-            onCellMouseEnter={practiceMode ? undefined : (barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
+            onCellClick={focusMode ? undefined : (barIndex, beat, row, cell) => handleCellClick(part.id, barIndex, beat, row, cell)}
+            onCellMouseDown={focusMode ? undefined : (barIndex, beat, row, cell, e) => handleCellMouseDown(part.id, barIndex, beat, row, cell, e)}
+            onCellMouseEnter={focusMode ? undefined : (barIndex, beat, row, cell) => handleCellMouseEnter(part.id, barIndex, beat, row, cell)}
             loop={part.loop}
             onLoopChange={() => setParts(parts.map(p => p.id === part.id ? { ...p, loop: !p.loop } : p))}
             onBarTitleClick={(barIndex) => {
@@ -1805,7 +1865,7 @@ export default function TabEditorNew() {
           />
         ))}
 
-        {!practiceMode && <UiButton variant="action" className={styles.addPartButton} onClick={() => {
+        {!focusMode && <UiButton variant="action" className={styles.addPartButton} onClick={() => {
           pushHistory()
           const newId = String(Date.now())
           // Clone settings from the last part
@@ -1979,7 +2039,7 @@ export default function TabEditorNew() {
       )}
 
       {/* Footer */}
-      {!practiceMode && <PageFooter
+      {!focusMode && <PageFooter
         expanded={showLegend}
         left={
           <UiButton variant="secondary" onClick={() => setShowLegend(!showLegend)}>
@@ -2030,12 +2090,17 @@ export default function TabEditorNew() {
             )}
             <LegendColumn title="Shortcuts">
               <LegendItem keyChar="Space" label="Play / Pause" />
-              <LegendItem keyChar="←→↑↓" label="Navigate" />
+              <LegendItem keyChar="⌘←" label="Previous bar" />
+              <LegendItem keyChar="⌘→" label="Next bar" />
+              <LegendItem keyChar="←→↑↓" label="Navigate cell" />
               <LegendItem keyChar="Del" label="Clear cell" />
               <LegendItem keyChar="⌘Z" label="Undo" />
               <LegendItem keyChar="⌘⇧Z" label="Redo" />
               <LegendItem keyChar="⌘C" label="Copy column" />
               <LegendItem keyChar="⌘V" label="Paste column" />
+              <LegendItem keyChar="C" label="Click track" />
+              <LegendItem keyChar="L" label="Loop" />
+              <LegendItem keyChar="F" label="Focus mode" />
               <LegendItem keyChar="P" label="Power chord" />
               <LegendItem keyChar="S" label="Settings" />
               <LegendItem keyChar="⇧M" label="Palm mute" />
