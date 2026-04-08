@@ -41,70 +41,154 @@
   text-decoration: none;
 }
 
+// Shared-tab header. Mobile-first: stacked title + full-width CTA
+// at narrow widths, collapses to a single horizontal row on desktop.
 .banner {
   background-color: $color-accent;
   color: $color-bg;
-  padding: $space-sm $space-lg;
+  padding: $space-md $space-lg env(safe-area-inset-bottom, $space-md);
+  padding-top: max($space-md, env(safe-area-inset-top));
 }
 
 .bannerContent {
   max-width: 1400px;
   margin: 0 auto;
   display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.bannerTopRow {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: $space-md;
+  min-height: 44px; // Anchors the row so children inherit a real touch target
 }
 
-.bannerLeft {
-  display: flex;
+.brandLink {
+  display: inline-flex;
   align-items: center;
+  gap: $space-xs;
+  color: $color-bg;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  text-decoration: none;
+  padding: $space-xs $space-sm $space-xs 0; // Tap padding without visible chrome
+  border-radius: $radius-sm;
+
+  &:hover { opacity: 0.85; }
+  &:focus-visible {
+    outline: 2px solid rgba($color-bg, 0.6);
+    outline-offset: 2px;
+  }
+}
+
+.brandLabel {
+  font-family: $font-mono;
+  letter-spacing: 0.02em;
+}
+
+// Icon-only button used by Practice. 44px hit target on every breakpoint.
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba($color-bg, 0.35);
+  border-radius: $radius-md;
+  background-color: rgba($color-bg, 0.18);
+  color: $color-bg;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+
+  &:hover { background-color: rgba($color-bg, 0.28); }
+  &:active { transform: scale(0.96); }
+  &:focus-visible {
+    outline: 2px solid rgba($color-bg, 0.6);
+    outline-offset: 2px;
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0; // Allow ellipsis on overflow
+}
+
+.songTitle {
+  margin: 0;
+  font-family: $font-mono;
+  font-size: $font-size-xl;
+  font-weight: 600;
+  line-height: 1.1;
+  color: $color-bg;
+  word-break: break-word;
+}
+
+.songSubtitle {
+  margin: 0;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  line-height: 1.3;
+  color: rgba($color-bg, 0.78);
+  word-break: break-word;
+}
+
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: $space-sm;
+  width: 100%;
+  min-height: 44px;
+  padding: $space-sm $space-md;
+  border: 0;
+  border-radius: $radius-md;
+  background-color: $color-bg;
+  color: $color-text-bright;
+  font-family: $font-mono;
   font-size: $font-size-sm;
-  font-weight: 500;
-}
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
 
-.bannerRight {
-  display: flex;
-  align-items: center;
-  gap: $space-md;
-}
-
-.practiceButton {
-  @include button-base;
-  background-color: rgba($color-bg, 0.2);
-  border-color: transparent;
-  color: $color-bg;
-
-  &:hover {
-    background-color: rgba($color-bg, 0.3);
+  &:hover:not(:disabled) { background-color: rgba($color-bg, 0.92); }
+  &:active:not(:disabled) { transform: scale(0.99); }
+  &:disabled { opacity: 0.7; cursor: default; }
+  &:focus-visible {
+    outline: 2px solid rgba($color-bg, 0.85);
+    outline-offset: 2px;
   }
 }
 
-.copyButton {
-  @include button-base;
-  background-color: rgba($color-bg, 0.2);
-  border-color: transparent;
-  color: $color-bg;
-
-  &:hover:not(:disabled) {
-    background-color: rgba($color-bg, 0.3);
+// Desktop layout: collapse the stacked rows back into a single horizontal bar.
+@media (min-width: 1001px) {
+  .bannerContent {
+    flex-direction: row;
+    align-items: center;
+    gap: $space-xl;
   }
 
-  &:disabled {
-    opacity: 0.8;
+  .bannerTopRow {
+    order: 1;
+    flex: 0 0 auto;
   }
-}
 
-.createLink {
-  color: $color-bg;
-  font-size: $font-size-sm;
-  font-weight: 500;
-  text-decoration: underline;
+  .titleBlock {
+    order: 2;
+    flex: 1 1 auto;
+  }
 
-  &:hover {
-    text-decoration: none;
+  .songTitle { font-size: $font-size-lg; }
+
+  .primaryAction {
+    order: 3;
+    width: auto;
+    flex: 0 0 auto;
   }
 }
 

@@ -135,49 +135,54 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
     />
   }
 
+  const songTitle = project.project_name || 'Untitled'
+  const subtitleParts = [project.artist, project.album].filter(Boolean)
+
   return (
     <div className={styles.container}>
-      <div className={styles.banner}>
+      <header className={styles.banner}>
         <div className={styles.bannerContent}>
-          <div className={styles.bannerLeft}>
-            <Music size={20} />
-            <span>Viewing shared tab</span>
-          </div>
-          <div className={styles.bannerRight}>
-            <button
-              className={styles.practiceButton}
-              onClick={() => setPracticeMode(true)}
-            >
-              <Eye size={14} />
-              Practice
-            </button>
-            {shareLink?.allow_copy && (
-              <button
-                className={styles.copyButton}
-                onClick={handleCopyToLibrary}
-                disabled={copying || copied}
-              >
-                {copying ? (
-                  <>
-                    <Loader2 size={14} className="spinner" />
-                    Copying...
-                  </>
-                ) : copied ? (
-                  'Added to library!'
-                ) : (
-                  <>
-                    <Copy size={14} />
-                    Copy to my library
-                  </>
-                )}
-              </button>
-            )}
-            <Link to="/" className={styles.createLink}>
-              Create your own
+          <div className={styles.bannerTopRow}>
+            <Link to="/" className={styles.brandLink} aria-label="Heavy Tabs home">
+              <Music size={18} aria-hidden="true" />
+              <span className={styles.brandLabel}>Heavy Tabs</span>
             </Link>
+            <button
+              type="button"
+              className={styles.iconButton}
+              onClick={() => setPracticeMode(true)}
+              title="Practice mode"
+              aria-label="Practice mode"
+            >
+              <Eye size={18} aria-hidden="true" />
+            </button>
           </div>
+
+          <div className={styles.titleBlock}>
+            <h1 className={styles.songTitle}>{songTitle}</h1>
+            {subtitleParts.length > 0 && (
+              <p className={styles.songSubtitle}>{subtitleParts.join(' • ')}</p>
+            )}
+          </div>
+
+          {shareLink?.allow_copy && (
+            <button
+              type="button"
+              className={styles.primaryAction}
+              onClick={handleCopyToLibrary}
+              disabled={copying || copied}
+            >
+              {copying ? (
+                <><Loader2 size={16} className="spinner" aria-hidden="true" /> Copying…</>
+              ) : copied ? (
+                <>Added to your library</>
+              ) : (
+                <><Copy size={16} aria-hidden="true" /> Save to my library</>
+              )}
+            </button>
+          )}
         </div>
-      </div>
+      </header>
 
       <TabEditor initialProject={localProject} readOnly />
     </div>

@@ -115,13 +115,44 @@ test.describe('Mobile: library drawer', () => {
 })
 
 test.describe('Mobile: public viewer', () => {
-  test('shared tab loads on mobile and renders the viewing banner', async ({ page }) => {
+  test('shared header shows song title, artist • album, and a Save CTA', async ({ page }) => {
     const errors = trackErrors(page)
     await page.goto(`/tab/${KNOWN_PUBLIC_SLUG}`)
-    await expect(page.getByText('Viewing shared tab')).toBeVisible({ timeout: 10_000 })
+
+    // The header is the project banner — wait for the song title to render.
+    // Title is an <h1>, which is much more useful semantic markup than the
+    // old "Viewing shared tab" generic label.
+    const heading = page.getByRole('heading', { level: 1 })
+    await expect(heading).toBeVisible({ timeout: 10_000 })
+    const title = (await heading.textContent())?.trim()
+    expect(title, 'song title must be present').toBeTruthy()
+    expect(title).not.toBe('Viewing shared tab')
+
+    // Brand link doubles as back-to-home affordance.
+    await expect(page.getByRole('link', { name: 'Heavy Tabs home' })).toBeVisible()
+
+    // Practice button has a real touch target now.
+    const practice = page.locator('button[aria-label="Practice mode"]')
+    await expect(practice).toBeVisible()
+    const practiceBox = await practice.boundingBox()
+    expect(practiceBox?.width, 'practice button width >= 44px').toBeGreaterThanOrEqual(44)
+    expect(practiceBox?.height, 'practice button height >= 44px').toBeGreaterThanOrEqual(44)
+
+    // Primary CTA spans most of the viewport on mobile and meets 44px height.
+    const saveButton = page.getByRole('button', { name: /Save to my library/i })
+    await expect(saveButton).toBeVisible()
+    const saveBox = await saveButton.boundingBox()
+    expect(saveBox?.height, 'save button height >= 44px').toBeGreaterThanOrEqual(44)
+    // Full-width-ish: should be at least 80% of viewport width.
+    const viewport = page.viewportSize()
+    if (viewport) {
+      expect(saveBox?.width || 0, 'save button width is mobile full-width').toBeGreaterThanOrEqual(viewport.width * 0.8)
+    }
+
     await expectMounted(page)
     await expectNoHorizontalOverflow(page)
     await page.screenshot({ path: resolve(SHOTS_DIR, 'public-viewer.png'), fullPage: true })
+    await page.screenshot({ path: resolve(SHOTS_DIR, 'public-viewer-header.png'), clip: { x: 0, y: 0, width: viewport?.width || 390, height: 280 } })
     expect(errors, errors.map((e) => e.message).join('\n')).toHaveLength(0)
   })
 
@@ -129,7 +160,7 @@ test.describe('Mobile: public viewer', () => {
     let requestCount = 0
     page.on('request', (req) => { if (req.url().includes('api.heavytabs.app')) requestCount++ })
     await page.goto(`/tab/${KNOWN_PUBLIC_SLUG}`)
-    await expect(page.getByText('Viewing shared tab')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 })
     await page.waitForTimeout(5000)
     expect(requestCount, `Supabase request count over 5s: ${requestCount}`).toBeLessThan(30)
   })

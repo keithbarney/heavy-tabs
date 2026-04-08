@@ -119,11 +119,12 @@ test.describe('Core: library drawer', () => {
 })
 
 test.describe('Core: public viewer (/tab/:slug)', () => {
-  test('loads a real shared tab and renders the viewing banner', async ({ page }) => {
+  test('loads a real shared tab and renders the song-title header', async ({ page }) => {
     const errors = trackErrors(page)
     await page.goto(`/tab/${KNOWN_PUBLIC_SLUG}`)
-    // PublicViewer shows a "Viewing shared tab" banner above the read-only editor
-    await expect(page.getByText('Viewing shared tab')).toBeVisible({ timeout: 10_000 })
+    // PublicViewer's header is an <h1> with the song title — much more
+    // useful than the old "Viewing shared tab" generic label.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 })
     await expectMounted(page)
     expect(errors, errors.map((e) => e.message).join('\n')).toHaveLength(0)
   })
@@ -137,7 +138,7 @@ test.describe('Core: public viewer (/tab/:slug)', () => {
       if (req.url().includes('api.heavytabs.app')) requestCount++
     })
     await page.goto(`/tab/${KNOWN_PUBLIC_SLUG}`)
-    await expect(page.getByText('Viewing shared tab')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 })
     await page.waitForTimeout(5000)
     expect(requestCount, `Supabase request count over 5s: ${requestCount}`).toBeLessThan(30)
   })
