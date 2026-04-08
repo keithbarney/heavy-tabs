@@ -45,6 +45,7 @@ export default function TabEditorNew() {
   const [avatarError, setAvatarError] = useState(false)
   const [focusMode, setFocusMode] = useState(false)
   const [powerChordMode, setPowerChordMode] = useState(true)
+  const [holdMode, setHoldMode] = useState(false)
   const [showChordPicker, setShowChordPicker] = useState(false)
   const [chordSearch, setChordSearch] = useState('')
   const [projectId, setProjectId] = useState(() => generateId())
@@ -66,6 +67,7 @@ export default function TabEditorNew() {
   const playbackActiveRef = useRef(false)
   const loopingRef = useRef(false)
   const clickTrackRef = useRef(clickTrack)
+  const holdModeRef = useRef(holdMode)
   const playbackSpeedRef = useRef(1.0)
   const countInRef = useRef(false)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -130,6 +132,7 @@ export default function TabEditorNew() {
   // Keep refs in sync with state for use inside playback closures
   useEffect(() => { partsRef.current = parts }, [parts])
   useEffect(() => { clickTrackRef.current = clickTrack }, [clickTrack])
+  useEffect(() => { holdModeRef.current = holdMode }, [holdMode])
   useEffect(() => { playbackSpeedRef.current = playbackSpeed }, [playbackSpeed])
   useEffect(() => { countInRef.current = countIn }, [countIn])
 
@@ -735,6 +738,26 @@ export default function TabEditorNew() {
         playClick(curBeat === 0)
       }
 
+      // In hold mode, compute how many cells each fret note sustains by
+      // scanning forward on the same string until the next non-dash cell
+      // (within the current bar). Non-drums only; drums stay percussive.
+      const sustainCellsFor = (rowIdx: number): number => {
+        if (!holdModeRef.current) return 2 // Default short duration (2 cells)
+        let cells = 1
+        let b = curBeat
+        let c = curCell + 1
+        while (b < bar.data.length) {
+          const row = bar.data[b]?.[rowIdx]
+          if (!row) break
+          if (c >= row.length) { b++; c = 0; continue }
+          const next = row[c]
+          if (next && next !== '-') break
+          cells++
+          c++
+        }
+        return cells
+      }
+
       // Play sounds for all strings at current position
       beatData.forEach((rowCells: string[], rowIdx: number) => {
         const value = rowCells[curCell]
@@ -744,8 +767,12 @@ export default function TabEditorNew() {
           } else {
             const fret = parseInt(value)
             const inst = instrument as 'guitar' | 'bass'
-            if (!isNaN(fret)) playNote(fretToFrequency(rowIdx, fret, inst), msPerCell / 1000 * 2, 'sawtooth')
-            else if (value === 'm') playNote(fretToFrequency(rowIdx, 0, inst), msPerCell / 1000, 'square')
+            if (!isNaN(fret)) {
+              const sustainCells = sustainCellsFor(rowIdx)
+              playNote(fretToFrequency(rowIdx, fret, inst), (msPerCell / 1000) * sustainCells, 'sawtooth')
+            } else if (value === 'm') {
+              playNote(fretToFrequency(rowIdx, 0, inst), msPerCell / 1000, 'square')
+            }
           }
         }
       })
@@ -1431,6 +1458,13 @@ export default function TabEditorNew() {
     // P toggles power chord mode
     if ((e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setPowerChordMode(prev => !prev); return }
 
+    // H toggles hold mode (notes sustain across dashes instead of playing as short bursts)
+    if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      setHoldMode(prev => !prev)
+      return
+    }
+
     // S toggles advanced settings panel
     if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
       e.preventDefault()
@@ -1721,6 +1755,13 @@ export default function TabEditorNew() {
             checked={powerChordMode}
             onChange={setPowerChordMode}
             label="Power Chord (P)"
+            hideIcon
+            size="small"
+          />
+          <UiCheckbox
+            checked={holdMode}
+            onChange={setHoldMode}
+            label="Hold (H)"
             hideIcon
             size="small"
           />
@@ -2101,6 +2142,7 @@ export default function TabEditorNew() {
               <LegendItem keyChar="C" label="Click track" />
               <LegendItem keyChar="L" label="Loop" />
               <LegendItem keyChar="F" label="Focus mode" />
+              <LegendItem keyChar="H" label="Hold notes" />
               <LegendItem keyChar="P" label="Power chord" />
               <LegendItem keyChar="S" label="Settings" />
               <LegendItem keyChar="⇧M" label="Palm mute" />
