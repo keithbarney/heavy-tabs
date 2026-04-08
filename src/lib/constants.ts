@@ -57,10 +57,12 @@ export const drumLines = [
   { id: 'kick', name: 'KK', fullName: 'Kick' },
 ]
 
-// Valid inputs for each instrument type
+// Valid inputs for each instrument type. 'm' and '-' are intentionally
+// omitted from guitar/bass: palm mute is now an annotation toggled via
+// the M shortcut, and rest/clear is handled by Delete/Backspace.
 export const validInputs = {
-  guitar: ['0','1','2','3','4','5','6','7','8','9','h','p','/','\\','b','x','m','~','-'],
-  bass: ['0','1','2','3','4','5','6','7','8','9','h','p','/','\\','b','x','m','~','-'],
+  guitar: ['0','1','2','3','4','5','6','7','8','9','h','p','/','\\','b','x','~'],
+  bass: ['0','1','2','3','4','5','6','7','8','9','h','p','/','\\','b','x','~'],
   drums: ['x','o','X','O','-','f','g','d','b','r'],
 }
 

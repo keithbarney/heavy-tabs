@@ -1501,8 +1501,12 @@ export default function TabEditorNew() {
       return
     }
 
-    // Shift+M toggles palm mute annotation (works with or without cell selection)
-    if (e.shiftKey && e.key === 'M' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); togglePalmMute(); return }
+    // M toggles palm mute annotation (works with or without cell selection)
+    if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      togglePalmMute()
+      return
+    }
 
     if (!selectedCell) return
 
@@ -2116,8 +2120,6 @@ export default function TabEditorNew() {
                 <LegendColumn title="Notes">
                   <LegendItem keyChar="0-9" label="Fret number" />
                   <LegendItem keyChar="x" label="Dead note" />
-                  <LegendItem keyChar="m" label="Palm mute" />
-                  <LegendItem keyChar="-" label="Rest" />
                 </LegendColumn>
                 <LegendColumn title="Techniques">
                   <LegendItem keyChar="h" label="Hammer-on" />
@@ -2143,9 +2145,9 @@ export default function TabEditorNew() {
               <LegendItem keyChar="L" label="Loop" />
               <LegendItem keyChar="F" label="Focus mode" />
               <LegendItem keyChar="H" label="Hold notes" />
+              <LegendItem keyChar="M" label="Palm mute" />
               <LegendItem keyChar="P" label="Power chord" />
               <LegendItem keyChar="S" label="Settings" />
-              <LegendItem keyChar="⇧M" label="Palm mute" />
             </LegendColumn>
           </>
         }
