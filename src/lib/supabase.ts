@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { withTimeout } from './withTimeout'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -23,46 +24,15 @@ export const supabase = supabaseUrl && supabaseAnonKey
 
 export const isSupabaseConfigured = () => Boolean(supabase)
 
-// Promise that resolves when Supabase has loaded session from storage.
-// Hardened against hangs and rejections so a stale/invalidated refresh
-// token can never block the React app from mounting.
-let sessionInitialized = false
+// Resolves once Supabase has loaded the stored session, with a 5s ceiling
+// so an invalidated refresh token can't strand React in a loading state.
 let initPromise: Promise<void> | null = null
 
-export async function waitForSession(): Promise<void> {
-  if (sessionInitialized) return
-  if (initPromise) return initPromise
-
-  initPromise = new Promise((resolve) => {
-    if (!supabase) {
-      sessionInitialized = true
-      resolve()
-      return
-    }
-
-    const finish = () => {
-      if (sessionInitialized) return
-      sessionInitialized = true
-      resolve()
-    }
-
-    // Hard timeout: never block render for more than 5s, even if the
-    // refresh token is invalidated and supabase-js is hanging on the
-    // failed token exchange. The app handles unauthenticated state
-    // gracefully and onAuthStateChange will catch up if/when auth resolves.
-    const timeoutId = setTimeout(finish, 5000)
-
-    supabase.auth.getSession()
-      .then(() => {
-        clearTimeout(timeoutId)
-        finish()
-      })
-      .catch((err) => {
-        console.warn('[supabase] getSession failed during init, rendering anyway:', err)
-        clearTimeout(timeoutId)
-        finish()
-      })
-  })
-
+export function waitForSession(): Promise<void> {
+  if (!initPromise) {
+    initPromise = supabase
+      ? withTimeout(supabase.auth.getSession().then(() => undefined), 5000, undefined)
+      : Promise.resolve()
+  }
   return initPromise
 }

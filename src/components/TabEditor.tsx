@@ -175,23 +175,14 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     updatedAt: new Date().toISOString(),
   }), [currentProjectId, currentCloudId, projectName, bpm, timeSignature, noteResolution, projectKey, tunings, stringCounts, sections, tabData])
 
-  // Check if project has any actual content
   const isProjectEmpty = useCallback((project: LocalProject): boolean => {
-    const { tabData } = project
-    for (const key of Object.keys(tabData)) {
-      const measures = tabData[key]
-      // Skip non-measure entries like `_activeInstrument` (string) and
-      // `*-annotations` (different shape) — only iterate real measure arrays.
-      if (!Array.isArray(measures)) continue
-      if (key.includes('-annotations')) continue
+    for (const [key, measures] of Object.entries(project.tabData)) {
+      // tabData also holds non-measure entries (_activeInstrument, *-annotations) — skip them
+      if (!Array.isArray(measures) || key.includes('-annotations')) continue
       for (const measure of measures) {
-        if (!Array.isArray(measure)) continue
         for (const string of measure) {
-          if (!Array.isArray(string)) continue
           for (const cell of string) {
-            if (cell !== '-' && cell !== '') {
-              return false
-            }
+            if (cell !== '-' && cell !== '') return false
           }
         }
       }
@@ -258,8 +249,11 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
     onProjectChange?.(getCurrentProject())
   }, [projectName, bpm, timeSignature, noteResolution, projectKey, tunings, stringCounts, sections, tabData])
 
-  // Initialize tab data when sections change
+  // Initialize tab data when sections change. Skipped in readOnly so PublicViewer
+  // doesn't trigger spurious dirty/onProjectChange notifications.
   useEffect(() => {
+    if (readOnly) return
+    let added = false
     const newTabData = { ...tabData }
     sections.forEach(section => {
       (['guitar', 'bass', 'drums'] as Instrument[]).forEach(instrument => {
@@ -267,19 +261,19 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
         if (!newTabData[key]) {
           const stringCount = instrument === 'drums' ? drumLines.length : stringCounts[instrument]
           newTabData[key] = Array(section.measures).fill(null).map(() => createEmptyMeasure(instrument, stringCount, cellsPerMeasure))
+          added = true
         }
       })
     })
-    setTabData(newTabData)
+    if (added) setTabData(newTabData)
   }, [sections])
 
-  // Resize measures when time signature changes
+  // Resize measures when time signature changes. Skipped in readOnly.
   useEffect(() => {
+    if (readOnly) return
+    let changed = false
     const newTabData: TabData = {}
     Object.entries(tabData).forEach(([key, measures]) => {
-      // Pass non-measure entries through unchanged: `_activeInstrument`
-      // (string), `*-annotations` (different shape), or anything that
-      // isn't an array of measures. Only resize real measure arrays.
       if (!Array.isArray(measures) || key.includes('-annotations')) {
         newTabData[key] = measures
         return
@@ -288,6 +282,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
         measure.map(string => {
           const currentLength = string.length
           if (currentLength === cellsPerMeasure) return string
+          changed = true
           if (currentLength < cellsPerMeasure) {
             return [...string, ...Array(cellsPerMeasure - currentLength).fill('-')]
           }
@@ -295,7 +290,7 @@ export default function TabEditor({ initialProject, onSave, onProjectChange, onO
         })
       )
     })
-    setTabData(newTabData)
+    if (changed) setTabData(newTabData)
   }, [cellsPerMeasure])
 
   // Section management

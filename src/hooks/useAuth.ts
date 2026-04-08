@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { withTimeout } from '@/lib/withTimeout'
 import { trackEvent } from '@/lib/analytics'
 import type { AuthState, User } from '@/types'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
@@ -40,38 +41,23 @@ export function useAuth() {
       return
     }
 
-    // Hard timeout: never let initial getSession leave us stuck in
-    // loading: true forever if the refresh token is invalidated and
-    // supabase-js hangs on the failed token exchange. onAuthStateChange
-    // will still catch up if auth eventually resolves.
-    let resolved = false
-    const finishWith = (next: AuthState) => {
-      if (resolved) return
-      resolved = true
-      setState(next)
-    }
-    const timeoutId = setTimeout(() => {
-      finishWith({ user: null, loading: false, error: null })
-    }, 5000)
-
-    // Get initial session
-    supabase.auth.getSession()
+    // 5s ceiling so an invalidated refresh token can't strand us in loading: true.
+    // onAuthStateChange catches up later if auth eventually resolves.
+    const UNAUTH: AuthState = { user: null, loading: false, error: null }
+    let cancelled = false
+    withTimeout(supabase.auth.getSession(), 5000, { data: { session: null }, error: null } as Awaited<ReturnType<typeof supabase.auth.getSession>>)
       .then(async ({ data: { session }, error }) => {
-        clearTimeout(timeoutId)
+        if (cancelled) return
         if (error) {
           console.error('Auth session error:', error)
-          finishWith({ user: null, loading: false, error: error.message })
+          setState({ ...UNAUTH, error: error.message })
         } else if (session?.user) {
           const user = await fetchProStatus(buildUser(session.user))
-          finishWith({ user, loading: false, error: null })
+          if (cancelled) return
+          setState({ user, loading: false, error: null })
         } else {
-          finishWith({ user: null, loading: false, error: null })
+          setState(UNAUTH)
         }
-      })
-      .catch((err) => {
-        console.warn('[useAuth] getSession failed, treating as unauthenticated:', err)
-        clearTimeout(timeoutId)
-        finishWith({ user: null, loading: false, error: null })
       })
 
     // Listen for auth changes
@@ -85,6 +71,7 @@ export function useAuth() {
     })
 
     return () => {
+      cancelled = true
       subscription.unsubscribe()
     }
   }, [])

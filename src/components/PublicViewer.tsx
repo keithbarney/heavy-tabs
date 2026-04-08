@@ -27,10 +27,7 @@ export default function PublicViewer({ sharing, auth, onShowAuth }: PublicViewer
   const [copied, setCopied] = useState(false)
   const [practiceMode, setPracticeMode] = useState(false)
 
-  // Stash sharing in a ref so we can call it from the effect without
-  // making it a dependency. useSharing returns a new object every render,
-  // so including `sharing` in deps caused the effect to re-fire on every
-  // render — an infinite loop that hammered Supabase and never resolved.
+  // sharing is a fresh object each render; ref keeps the load effect from looping
   const sharingRef = useRef(sharing)
   sharingRef.current = sharing
 
