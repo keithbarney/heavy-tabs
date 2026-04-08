@@ -1403,6 +1403,17 @@ export default function TabEditorNew() {
     // P toggles power chord mode
     if ((e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setPowerChordMode(prev => !prev); return }
 
+    // S toggles advanced settings panel
+    if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      setShowSettings(prev => {
+        const next = !prev
+        localStorage.setItem('tabEditorShowSettings', String(next))
+        return next
+      })
+      return
+    }
+
     // Shift+M toggles palm mute annotation (works with or without cell selection)
     if (e.shiftKey && e.key === 'M' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); togglePalmMute(); return }
 
@@ -2025,7 +2036,8 @@ export default function TabEditorNew() {
               <LegendItem keyChar="⌘⇧Z" label="Redo" />
               <LegendItem keyChar="⌘C" label="Copy column" />
               <LegendItem keyChar="⌘V" label="Paste column" />
-              <LegendItem keyChar="⇧P" label="Power chord" />
+              <LegendItem keyChar="P" label="Power chord" />
+              <LegendItem keyChar="S" label="Settings" />
               <LegendItem keyChar="⇧M" label="Palm mute" />
             </LegendColumn>
           </>

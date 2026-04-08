@@ -4,9 +4,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
   padding: $space-sm $space-lg;
+  padding-bottom: max(#{$space-sm}, env(safe-area-inset-bottom));
   background-color: $color-bg-alt;
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .left,

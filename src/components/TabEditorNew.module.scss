@@ -274,6 +274,7 @@
 .content {
   flex: 1;
   padding: $space-lg;
+  padding-bottom: calc(#{$space-lg} + 56px); // Clearance for the fixed Legend footer
   display: flex;
   flex-direction: column;
   gap: $space-lg * 2;
