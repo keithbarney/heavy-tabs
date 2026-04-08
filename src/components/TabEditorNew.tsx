@@ -1400,8 +1400,8 @@ export default function TabEditorNew() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return }
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey) || e.key === 'Z')) { e.preventDefault(); redo(); return }
 
-    // Shift+P toggles power chord mode
-    if (e.shiftKey && e.key === 'P' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); setPowerChordMode(prev => !prev); return }
+    // P toggles power chord mode
+    if ((e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setPowerChordMode(prev => !prev); return }
 
     // Shift+M toggles palm mute annotation (works with or without cell selection)
     if (e.shiftKey && e.key === 'M' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); togglePalmMute(); return }
@@ -1656,7 +1656,7 @@ export default function TabEditorNew() {
           <UiCheckbox
             checked={powerChordMode}
             onChange={setPowerChordMode}
-            label="Power Chord"
+            label="Power Chord (P)"
             hideIcon
             size="small"
           />
