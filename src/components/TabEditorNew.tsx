@@ -1107,9 +1107,15 @@ export default function TabEditorNew() {
     setSelectedCells([])
   }, [handleSave, projectId, time, grid])
 
-  // Generate bass tab data from existing guitar tab data
-  const handleGenerateBass = useCallback(() => {
-    if (instrument !== 'bass') return
+  // Generate bass tab data from the current guitar tab. Runs from guitar mode:
+  // persists the latest guitar edits, writes generated bass measures to the
+  // project under ${sectionId}-bass keys, then switches the editor to bass so
+  // the user sees the result immediately.
+  const handleGenerateBass = useCallback(async () => {
+    if (instrument !== 'guitar') return
+
+    // Persist the current guitar edits so generation reads the freshest data
+    await handleSaveRef.current()
 
     const existingProject = getLocalProjects().find(p => p.id === projectId)
     if (!existingProject) return
@@ -1118,57 +1124,39 @@ export default function TabEditorNew() {
     const hasGuitarData = tabKeys.some(k => k.includes('-guitar') && !k.includes('-annotations'))
     if (!hasGuitarData) return
 
-    // Check if bass data already exists
-    const hasBassData = parts.some(part =>
-      part.bars.some(bar =>
-        bar.data.some(beat =>
-          beat.some(row => row.some(cell => cell !== '-'))
-        )
-      )
-    )
-    if (hasBassData && !window.confirm('This will overwrite existing bass data. Continue?')) return
+    const hasExistingBass = tabKeys.some(k => k.includes('-bass') && !k.includes('-annotations'))
+    if (hasExistingBass && !window.confirm('This will overwrite existing bass data. Continue?')) return
 
     const guitarStringCount = existingProject.stringCounts?.guitar || 6
-    const bassStringCount = parseInt(strings) || 4
+    const bassStringCount = existingProject.stringCounts?.bass || 4
 
-    const timeSig = TIME_SIGNATURES.find(t => t.label === time) || TIME_SIGNATURES[0]
-    const noteRes = NOTE_RESOLUTIONS.find(r => r.label === grid) || NOTE_RESOLUTIONS[2]
-    const numBeats = timeSig.beats
-    const cellsPerBeat = Math.max(1, Math.round(timeSig.noteValue === 4 ? noteRes.perQuarter : noteRes.perQuarter / 2))
-
-    const newParts = parts.map(part => {
-      const guitarKey = `${part.id}-guitar`
-      const guitarMeasures = existingProject.tabData?.[guitarKey] || []
-
-      const newBars = part.bars.map((bar, barIdx) => {
-        const guitarMeasure = guitarMeasures[barIdx] as string[][] | undefined
-        if (!guitarMeasure || guitarMeasure.length === 0) return bar
-
-        const bassData = generateBassBar(guitarMeasure, {
+    // Write generated bass measures directly into tabData under ${sectionId}-bass
+    const newTabData: Record<string, unknown> = { ...(existingProject.tabData || {}) }
+    const sections = existingProject.sections || []
+    sections.forEach(section => {
+      const guitarKey = `${section.id}-guitar`
+      const bassKey = `${section.id}-bass`
+      const guitarMeasures = (existingProject.tabData as Record<string, unknown>)?.[guitarKey] as string[][][] | undefined
+      if (!Array.isArray(guitarMeasures)) return
+      newTabData[bassKey] = guitarMeasures.map(guitarMeasure => {
+        if (!guitarMeasure || guitarMeasure.length === 0) return []
+        return generateBassBar(guitarMeasure, {
           guitarStringCount,
           bassStringCount,
           guitarTuning: existingProject.tunings?.guitar || 'standard',
-          bassTuning: tuning as 'standard' | 'drop',
+          bassTuning: existingProject.tunings?.bass || 'standard',
           guitarKey: existingProject.projectKey || 'e',
-          bassKey: keySignature,
+          bassKey: existingProject.projectKey || 'e',
         })
-
-        // Convert flat bass data (strings x allCells) to beat structure (beats x strings x cellsPerBeat)
-        const data = Array.from({ length: numBeats }, (_, beatIdx) =>
-          bassData.map(stringCells =>
-            stringCells.slice(beatIdx * cellsPerBeat, (beatIdx + 1) * cellsPerBeat)
-          )
-        )
-
-        return { ...bar, data }
       })
-
-      return { ...part, bars: newBars }
     })
 
-    setParts(newParts)
+    saveLocalProject({ ...existingProject, tabData: newTabData as typeof existingProject.tabData })
     trackEvent('generate_bass', { guitarStrings: guitarStringCount, bassStrings: bassStringCount })
-  }, [instrument, projectId, parts, strings, tuning, keySignature, time, grid])
+
+    // Switch to bass so the user sees the freshly generated data
+    await handleInstrumentChange('bass')
+  }, [instrument, projectId, handleInstrumentChange])
 
   // Load a project from the library into editor state
   const loadProject = useCallback((project: LocalProject) => {
@@ -1680,15 +1668,16 @@ export default function TabEditorNew() {
           <UiButton variant="secondary" size="small" disabled={selectedCells.length === 0 && !selectedCell} onClick={togglePalmMute} title="Toggle palm mute (Shift+M)">
             Palm Mute
           </UiButton>
-          {instrument === 'bass' && (() => {
-            const existingProject = getLocalProjects().find(p => p.id === projectId)
-            const hasGuitarData = existingProject && Object.keys(existingProject.tabData || {}).some(k => k.includes('-guitar') && !k.includes('-annotations'))
-            return (
-              <UiButton variant="secondary" size="small" disabled={!hasGuitarData} onClick={handleGenerateBass} title="Generate bass from guitar tab data">
-                Generate Bass
-              </UiButton>
-            )
-          })()}
+          {instrument === 'guitar' && (
+            <UiButton
+              variant="secondary"
+              size="small"
+              onClick={handleGenerateBass}
+              title="Generate a bass part from this guitar tab and switch to bass"
+            >
+              Generate Bass
+            </UiButton>
+          )}
         </div>
       )}
 
