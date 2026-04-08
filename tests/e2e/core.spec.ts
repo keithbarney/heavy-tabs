@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 
 /**
- * Core feature smoke tests for heavy-tabs.
+ * Core feature smoke tests for heavy-tabs (DESKTOP only).
  *
  * Catches the bug classes that bit prod on 2026-04-07:
  *   - silent React-mount hangs (root never gets children)
@@ -11,7 +11,13 @@ import { test, expect, type Page } from '@playwright/test'
  *
  * Every test asserts both: zero pageerror events AND root has children.
  * Either signal alone wouldn't have caught today's deploys.
+ *
+ * Mobile coverage lives in mobile.spec.ts. This file uses desktop-only
+ * selectors (header buttons hidden via .hideOnTablet at <1000px width).
  */
+test.beforeEach(({ }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'Desktop-only suite — see mobile.spec.ts')
+})
 
 const KNOWN_PUBLIC_SLUG = 'qcwy3hf7' // Keith's "Song 1" — Paradisio
 

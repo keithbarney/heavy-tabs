@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test'
 
+test.beforeEach(({ }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'Desktop-only — share button is hidden on mobile via .hideOnTablet')
+})
+
 /**
  * Share button smoke test.
  *
