@@ -1,4 +1,3 @@
-import { Agentation } from "agentation";
 import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { inject } from '@vercel/analytics'
@@ -93,7 +92,6 @@ function App() {
         onClose={() => setShowAuthModal(false)}
         auth={auth}
       />
-      {import.meta.env.DEV && <Agentation />}
     </>
   )
 }
